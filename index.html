@@ -13,8 +13,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}</style>
 </head>
-<body>
-<title>개척기</title>
+<body><title>개척기</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -786,7 +785,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden){ clea
 async function doSignup(login, pw, pw2, auto){
   login = login.trim();
   if (login.length < 3) return '아이디는 3자 이상으로 지어 주세요.';
-  if (login.toLowerCase() === OP_ID && !ST.isOwner) return '사용할 수 없는 아이디입니다. 다른 아이디를 골라 주세요.';
+  if (window.claude && login.toLowerCase() === OP_ID && !ST.isOwner) return '사용할 수 없는 아이디입니다. 다른 아이디를 골라 주세요.';
   if (pw.length < 4) return '비밀번호는 4자 이상이어야 합니다.';
   if (pw !== pw2) return '비밀번호 확인이 일치하지 않습니다.';
   const salt = uid36();
