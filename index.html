@@ -350,6 +350,21 @@ details.sub .log{ margin-top:6px; background:var(--card); }
 .li.stat.w3{ background:linear-gradient(90deg, color-mix(in srgb, var(--seal) 7%, transparent), transparent 70%); }
 
 #ytbox{ position:fixed; left:-400px; bottom:0; width:200px; height:120px; opacity:0; pointer-events:none; overflow:hidden; }
+
+.bt-hp{ margin:6px 0; } .bt-hp .bar{ height:12px; } .bt-hp .bar > i{ background:var(--seal); transition:width .4s; } .bt-hp.me .bar > i{ background:var(--moss); }
+.bt-intent{ display:flex; gap:10px; align-items:center; padding:8px 12px; border-radius:var(--r); border:1px solid var(--line); background:var(--paper-2); margin:8px 0; }
+.bt-intent b{ display:block; } .bt-intent .small{ color:var(--ink-2); }
+.bt-intent.i-heavy{ border-color:var(--seal); background:color-mix(in srgb, var(--seal) 10%, var(--paper-2)); animation:pulse 1.2s ease-in-out infinite; }
+.bt-intent.i-rest{ border-color:var(--moss); }
+@keyframes pulse{ 50%{ box-shadow:0 0 0 3px color-mix(in srgb, var(--seal) 25%, transparent); } }
+.bt-ic{ font-size:1.4rem; line-height:1; }
+.bt-mates{ display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+.bt-timer{ display:flex; align-items:center; gap:8px; margin:8px 0 4px; } .bt-timer .bar{ flex:1; height:6px; } .bt-timer .bar > i{ background:var(--gold); transition:width .9s linear; }
+.bt-acts{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:8px; }
+.btn.bt-act{ flex-direction:column; align-items:flex-start; height:auto; min-height:64px; padding:8px 12px; text-align:left; gap:1px; background:var(--card); color:var(--ink); border-color:var(--line); }
+.btn.bt-act.seal{ background:var(--seal); color:var(--seal-ink); border-color:var(--seal); }
+.btn.bt-act .tiny{ font-weight:400; opacity:.8; } .btn.bt-act:disabled{ opacity:.45; }
+.bt-log{ margin-top:10px; max-height:260px; } .bt-log p{ display:block; } .bt-log p.boss{ color:var(--seal); } .bt-log p.skill{ color:var(--indigo); font-weight:700; } .bt-log p.dodge{ color:var(--moss); } .bt-log p.heal{ color:var(--moss); } .bt-log p.sys{ color:var(--ink-3); } .bt-log p.win{ color:var(--moss); font-weight:700; } .bt-log p.down{ color:var(--seal); font-weight:700; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -1211,7 +1226,7 @@ function pubObj(){
   if (!S || !S.char || !S.job) return null;
   const c = S.char;
   return {uid:ST.uid, name:c.name, age:c.show.age ? c.age : null, gender:c.show.gender ? c.gender : null, height:c.show.height ? c.height : null,
-    bio:c.bio, photo:c.photo || '', job:S.job, sub:S.sub, lv:S.lv, titles:myTitles(), title:curTitle(), seen:now(),
+    bio:c.bio, photo:c.photo || '', job:S.job, sub:S.sub, lv:S.lv, hp:Math.round(curHP()), hpMax:maxHP(), hpAt:now(), titles:myTitles(), title:curTitle(), seen:now(),
     exp:S.exp ? {id:S.exp.id, region:S.exp.region, start:S.exp.start, dur:S.exp.dur, tick:S.exp.tick, seed:S.exp.seed, snap:S.exp.snap, wait:S.exp.wait, nt:S.exp.nt || 15000, v:S.exp.v || 0, party:S.exp.party || []} : null,
     loc:S.loc, travel:S.travel ? {from:S.travel.from, to:S.travel.to, start:S.travel.start, arrive:S.travel.arrive} : null, party:S.party || null,
     tiredUntil:tiredActive() ? S.tired.until : 0, comps:S.comps.map(x => ({sp:x.sp, name:x.name, lv:x.lv})),
@@ -1220,7 +1235,7 @@ function pubObj(){
 async function writePub(force){
   if (ST.mode !== 'cloud') return;
   const o = pubObj(); if (!o) return;
-  const {seen, ...rest} = o;
+  const {seen, hpAt, ...rest} = o;
   const j = JSON.stringify(rest); if (j === lastPub && !force) return;
   lastPub = j;
   try { await ST.db.doc(`players/${ST.uid}`).set({...o, updated:now()}); } catch(e){ console.warn('pub', e); lastPub = ''; }
@@ -1301,7 +1316,8 @@ function settleExp(kind){
   S.comps.forEach(c => compXP(c, Math.round(10*E.dur*SPD()/H)));
   if (['carry','heal','auto'].includes(kind)) S.tired = {until: now() + 12*H/SPD(), weak:false};
   S.exp = null; setHP(hp);
-  const sum = {kind, region:E.region, at:now(), got, gold, fee, xp, egg, note, kills:res.kills, dur:E.dur*SPD()};
+  const shownL = res.lines;
+  const sum = {kind, region:E.region, at:now(), got, gold, fee, xp, egg, note, kills:res.kills, dur:E.dur*SPD(), lines:shownL.slice(-160), start:E.start, tick:E.tick};
   // 지난 탐사 기록: 일지 전체를 함께 보관 (최대 8회, 회당 160줄)
   const shown = kind === 'early' ? res.lines : res.downedAt != null ? res.lines : res.lines;
   S.hist.unshift({kind, region:E.region, at:now(), start:E.start, tick:E.tick, xp, gold, fee, n:Object.values(got).reduce((a,b)=>a+b,0), got, kills:res.kills, dur:E.dur*SPD(), party:(E.party||[]).map(a => a.name), lines:shown.slice(-160)}); S.hist = S.hist.slice(0, 8);
@@ -1358,7 +1374,8 @@ function applyRaid(ri, res, size, announce = true){
   } else { setHP(maxHP()*0.15); }
   save(); pubDirty();
 }
-function soloBoss(ri){
+function soloBoss(ri){ return startBattle(ri); }
+function soloBossOld(ri){
   if (S.exp) return toast('장기 탐사 중에는 도전할 수 없습니다.');
   if (travelState()) return toast('길을 걷는 중입니다. 도착한 뒤에 할 수 있어요.');
   if (S.loc !== ri) return toast(`지금 있는 곳은 ${REG[S.loc].n}입니다. 지도에서 ${josa(REG[ri].n,'으로','로')} 먼저 이동하세요.`);
@@ -1651,7 +1668,7 @@ function handleEvent(id, ev){
       const msg = ev.data.msg ? ` 「${String(ev.data.msg).slice(0, 100)}」` : '';
       notify('social', '선물', `${nm}님이 ${itemName(k)} ${n}개를 보냈습니다.${msg}${extra}`); break; }
     case 'encourage': S.buffs.enc = now() + 2*H/SPD(); notify('social','격려',`${nm}님의 격려를 받았습니다. 2시간 동안 경험치 +10%`); break;
-    case 'heal': { const h = ev.data.h || 40; if (!S.exp){ setHP(curHP() + h); } notify('social','치료',`${nm}님이 상처를 돌봐 주었습니다. 체력 +${h}`); break; }
+    case 'heal': { const h = ev.data.h || 40; if (!S.exp){ setHP(curHP() + h); pubDirty(); } notify('social','치료',`${nm}님이 상처를 돌봐 주었습니다. 체력 +${h}`); break; }
     case 'tea': addAff(from, 2, true); notify('social','차 대접',`${nm}님과 녹차를 나눠 마셨습니다. 마음이 따뜻해진다.`); break;
     case 'comfort':
       if (tiredActive() && canMit()){ S.tired.until -= 2*H/SPD(); S.mit.from[from] = 1; notify('social','위로',`${nm}님의 위로에 기운이 났습니다. 지친 몸 -2시간`); }
@@ -1752,12 +1769,10 @@ async function giftTo(o, k, n, msg){
   const why = meetBlock(o); if (why) return toast(why, 'warn');
   n = Math.min(n, cnt(k) - equippedN(k)); if (n <= 0) return;
   const base = k.replace('*',''), it = IT[base];
-  const s = effStage(getRel(o));
-  if (it.t !== 'food' && stageRank(s) < 2) return toast('재료 나눔은 절친부터 할 수 있습니다. 요리는 누구에게나 선물할 수 있어요.');
   takeItem(k, n); save();
   sendEv(o, 'gift', {item:k, n, msg:(msg||'').trim().slice(0, 100)}); stat('gift');
   const mult = (it.r === 'mochi' ? 2 : 1);
-  const g = await addAff(o, (it.t === 'food' ? 3 : 2) * mult, true);
+  const g = await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult, true);
   sfx('coin'); toast(`${itemName(k)} ${n}개를 보냈습니다.${g?` 호감도 +${g}`:''}`); closeSheet(); render();
 }
 function downedList(){
@@ -1871,6 +1886,16 @@ async function deleteNotice(id){ if (!isOp()) return; if (!await ask('공지 삭
 const isFav = o => (S.fav || []).includes(o);
 function toggleFav(o){ S.fav = isFav(o) ? S.fav.filter(x => x !== o) : [...(S.fav || []), o]; save(); render(); renderSheet(true); }
 const isOnline = p => p && p.seen && now() - p.seen < 6*MIN;
+// 다른 개척자의 체력: 마지막으로 알린 값에서 자연 회복(10분에 5%)을 더해 어림한다
+function hpOf(p){
+  if (!p || p.hp == null || !p.hpMax) return null;
+  const es = p.exp ? expState(p.exp, RESC[`${p.uid}_${p.exp.id}`] || null) : null;
+  if (es && es.st === 'down') return {hp:0, max:p.hpMax, note:'행동불능'};
+  if (es && es.st === 'run') return {hp:null, max:p.hpMax, note:'탐사 중'};
+  const est = Math.min(p.hpMax, Math.round(p.hp + p.hpMax*0.05*Math.max(0, now() - (p.hpAt || p.seen || now()))/(10*MIN)));
+  return {hp:est, max:p.hpMax, note:''};
+}
+function hpChip(p){ const h = hpOf(p); if (!h) return ''; if (h.hp == null) return `<span class="chip">♥ ${h.note}</span>`; const r = h.hp/h.max; return `<span class="chip ${r <= 0 ? 'bad' : r < 0.35 ? 'bad' : r < 0.7 ? 'gold' : 'good'}">♥ ${h.hp}/${h.max}${h.note ? ' · ' + h.note : ''}</span>`; }
 // ===================== 지도 · 이동 =====================
 // 지도 위 고장 좌표 (viewBox 360×420)
 const MAPPOS = [[70,362],[140,318],[224,352],[104,248],[232,274],[304,302],[176,202],[292,196],[86,160],[150,104],[70,66],[268,108],[200,42]];
@@ -2365,7 +2390,7 @@ function paintCD(root){ (root || document).querySelectorAll('[data-cd]').forEach
 
 let SHEET = null;
 function openSheet(k, a){ SHEET = {k, a}; renderSheet(); sfx('page'); }
-function closeSheet(){ SHEET = null; renderSheet(); }
+function closeSheet(force){ if (!force && SHEET && SHEET.k === 'battle' && typeof BT !== 'undefined' && BT && BT.st === 'fight') return; SHEET = null; renderSheet(); }
 function renderSheet(soft){
   const el = $('#sheet');
   if (!SHEET){ el.hidden = true; el.innerHTML = ''; return; }
@@ -2758,7 +2783,7 @@ TABS.bag = () => {
   <div class="seg" style="margin-bottom:10px" role="group" aria-label="분류">${BAGF.map(([k,n]) => `<button data-act="bagf" data-f="${k}" aria-pressed="${f===k}">${n}</button>`).join('')}</div>
   ${lock ? '<p class="small" style="color:var(--seal);margin:0 2px 8px">장기 탐사 중에는 짐을 풀 수 없다. 보기만 할 수 있다.</p>' : ''}
   <div class="card">${keys.length ? `<div class="list">${keys.map(row).join('')}</div>` : '<p class="muted" style="margin:0">이 분류에는 아직 아무것도 없습니다.</p>'}</div>
-  <p class="tiny muted">물건을 팔려면 거점의 잡화점로 가세요.</p>
+  <p class="tiny muted">물건을 팔려면 거점의 잡화점으로 가세요.</p>
   ${S.eggs.length && (f==='all'||f==='sp') ? `<div class="sec-title"><h2>알</h2></div><div class="card"><div class="list">${S.eggs.map(e => `<div class="li">${eggArt(e.kind)}<div class="t"><b>${e.kind==='pet'?'야생동물의 알':'요괴의 알'}</b><span>둥지에 두면 ${EGG_H[e.kind]}시간 뒤 부화</span></div><button class="btn sm" data-act="sheet" data-s="nest" ${lock?'disabled':''}>둥지로</button></div>`).join('')}</div></div>` : ''}`;
 };
 
@@ -2773,7 +2798,7 @@ TABS.social = () => {
   const rank = p => (isFav(p.uid) ? 0 : 2) + (isOnline(p) ? 0 : 1);
   const withRel = people.map(p => ({p, r:getRel(p.uid)})).sort((a,b) => rank(a.p) - rank(b.p) || stageRank(effStage(b.r)) - stageRank(effStage(a.r)) || (b.r.aff||0) - (a.r.aff||0));
   const statusChip = p => { const es = p.exp ? expState(p.exp, RESC[`${p.uid}_${p.exp.id}`] || null) : null; if (es?.st === 'down') return `<span class="chip bad">${REG[p.exp.region].n} · 행동불능</span>`; if (es?.st === 'run') return `<span class="chip blue">${REG[p.exp.region].n} 탐사 중</span>`; if (p.travel && p.travel.arrive > now()) return `<span class="chip blue">${josa(REG[p.travel.to].n,'으로','로')} 이동 중</span>`; const same = (p.loc ?? 0) === S.loc; return `<span class="chip ${same ? 'good' : ''}">${REG[p.loc ?? 0]?.n || '거점'}${same ? ' · 같은 곳' : ''}</span>`; };
-  const person = ({p, r}) => `<div class="li person"><button class="star ${isFav(p.uid)?'on':''}" data-act="fav" data-u="${esc(p.uid)}" aria-label="${isFav(p.uid)?'즐겨찾기 해제':'즐겨찾기'}" aria-pressed="${isFav(p.uid)}">${isFav(p.uid)?'★':'☆'}</button><button class="click grow row" style="gap:10px;background:none;border:0;padding:0;text-align:left;min-width:0" data-act="sheet" data-s="profile" data-a="${esc(p.uid)}"><span class="av-wrap">${PHOTO(p.photo)}<i class="on-dot ${isOnline(p)?'on':''}" aria-label="${isOnline(p)?'접속 중':'오프라인'}"></i></span><span class="t"><b>${esc(p.name)} <span class="small muted num">Lv.${p.lv} ${JOBS[p.job]?.n||''}</span></b><span>${isOnline(p) ? '<b style="color:var(--moss)">접속 중</b>' : p.seen ? `${agoTxt(p.seen)} 접속` : '오프라인'} · ${STAGE_N[effStage(r)]} ${r.aff||0}${p.title ? ' · 「' + esc(p.title) + '」' : ''}</span></span></button>${statusChip(p)}</div>`;
+  const person = ({p, r}) => `<div class="li person"><button class="star ${isFav(p.uid)?'on':''}" data-act="fav" data-u="${esc(p.uid)}" aria-label="${isFav(p.uid)?'즐겨찾기 해제':'즐겨찾기'}" aria-pressed="${isFav(p.uid)}">${isFav(p.uid)?'★':'☆'}</button><button class="click grow row" style="gap:10px;background:none;border:0;padding:0;text-align:left;min-width:0" data-act="sheet" data-s="profile" data-a="${esc(p.uid)}"><span class="av-wrap">${PHOTO(p.photo)}<i class="on-dot ${isOnline(p)?'on':''}" aria-label="${isOnline(p)?'접속 중':'오프라인'}"></i></span><span class="t"><b>${esc(p.name)} <span class="small muted num">Lv.${p.lv} ${JOBS[p.job]?.n||''}</span></b><span>${isOnline(p) ? '<b style="color:var(--moss)">접속 중</b>' : p.seen ? `${agoTxt(p.seen)} 접속` : '오프라인'} · ${STAGE_N[effStage(r)]} ${r.aff||0}${p.title ? ' · 「' + esc(p.title) + '」' : ''}</span></span></button><span class="row" style="gap:4px;flex-wrap:wrap;justify-content:flex-end">${hpChip(p)}${statusChip(p)}</span></div>`;
   const threads = mailThreads();
   return `<div class="sec-title"><h2>교류</h2><span class="small muted">마을 사람 ${people.length}명 · 접속 ${online}명</span></div>
   ${baseLocked() ? '<p class="small" style="color:var(--seal);margin:0 2px 8px">장기 탐사 중에는 교류할 수 없다. 쪽지는 보낼 수 있다.</p>' : `<p class="tiny muted" style="margin:0 2px 8px">지금 있는 곳: <b>${REG[S.loc].n}</b> · 같은 고장에 있는 사람과만 교류할 수 있다. 쪽지는 어디서든 보낼 수 있다.</p>`}
@@ -2923,10 +2948,11 @@ function musicTools(){
   <div class="row wrapf"><label class="btn sm" for="bgmFile">${MUSIC.busy ? `올리는 중… ${MUSIC.prog ? MUSIC.prog + '%' : ''}` : '파일 올리기'}</label><input id="bgmFile" type="file" accept="${window.FB_MODE ? 'audio/*,.mp3,.m4a,.ogg,.wav,.aac' : 'video/mp4,video/webm,audio/mp4,audio/x-m4a,audio/webm,.m4a,.mp4,.webm'}" hidden>${MUSIC.cfg ? '<button class="btn sm ghost" data-act="bgmClear">파일 지우기</button>' : ''}</div></div>`;
 }
 SHEETS.boss = ri => {
-  ri = +ri; const b = bossStats(ri), cl = !!S.bosses[ri];
+  ri = +ri; const b = bossBase(ri, 1), cl = !!S.bosses[ri];
   return sheetHead(BOSS[ri].n) + `<p style="margin-top:0">${BOSS[ri].d}. ${REG[ri].n}의 우두머리.</p>
   <p class="small num muted">Lv.${b.L} · 체력 ${b.hp} · ${b.t==='y'?'요괴':'야생동물'}${cl?' · <b style="color:var(--moss)">토벌 완료</b>':''}</p>
-  <p class="small">함께 토벌할수록 성공률이 오른다. 인원이 늘면 우두머리도 조금 단단해지지만 공격이 훨씬 많이 들어간다. 도전 레벨 ${bossReqLv(ri)} (토벌대 합류는 ${bossReqLv(ri)-3}부터).</p>
+  <p class="small">턴마다 직접 행동을 고르는 실시간 전투다. 공격 · 고유 스킬 · 피하기 · 숨기 · 회복 · 도주 중 하나를 20초 안에 고른다. 우두머리가 강공을 예고하면 피하거나 숨자.</p>
+  <p class="small">토벌대는 출발 시각에 대원마다 전투 창이 열리고, 15분 안에 모두가 넣은 피해로 하나의 체력을 깎는다. 인원이 늘면 우두머리 체력도 늘지만 훨씬 쉬워진다. 도전 레벨 ${bossReqLv(ri)} (토벌대 합류는 ${bossReqLv(ri)-3}부터).</p>
   <div class="stack"><button class="btn" data-act="soloBoss" data-r="${ri}" ${S.lv<bossReqLv(ri)||S.exp?'disabled':''}>혼자 도전하기</button>
   ${ST.mode === 'cloud' ? `<button class="btn seal" data-act="createRaid" data-r="${ri}" ${S.lv<bossReqLv(ri)||S.exp?'disabled':''}>토벌대 모집 (20분 뒤 출발)</button>` : ''}</div>
   ${S.lv < bossReqLv(ri) ? `<p class="small" style="color:var(--seal)">레벨 ${bossReqLv(ri)}부터 도전할 수 있습니다. (지금 ${S.lv})</p>` : ''}${S.exp ? '<p class="small" style="color:var(--seal)">장기 탐사 중에는 도전할 수 없습니다.</p>' : ''}`;
@@ -2944,6 +2970,10 @@ SHEETS.result = s => {
   <hr class="rule">${items.length ? `<div class="row wrapf" style="gap:6px">${items.map(([k,v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('')}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}
   ${Object.keys(s.kills).length ? `<p class="small muted" style="margin-bottom:0">쓰러뜨린 몬스터: ${Object.entries(s.kills).map(([k,v]) => `${MON[k].n} ${v}`).join(', ')}</p>` : ''}</div>
   ${s.egg ? `<div class="card comp" style="margin-top:10px">${eggArt(s.egg.kind)}<div><b>${s.egg.kind==='pet'?'야생동물의 알':'요괴의 알'}을 얻었다!</b><br><span class="small muted">거점의 둥지에 두면 부화한다.</span><br><button class="btn sm" style="margin-top:6px" data-act="sheet" data-s="nest">둥지로 가기</button></div></div>` : ''}
+  ${s.lines && s.lines.length ? (() => { const bl = s.lines.filter(l => ['enc','fight','win','flee','down'].includes(l.k)); return `<h3 style="margin-top:14px">이번 탐사 기록</h3>
+  <details class="sub" open><summary class="small">전체 탐사 일지 (${new Set(s.lines.map(l => l.i)).size}칸)</summary><div class="log" style="max-height:340px">${logGroups(s.lines, s.start, s.tick).join('')}</div></details>
+  <details class="sub" style="margin-top:6px"><summary class="small">전투 기록 (${bl.filter(l => l.k === 'enc').length}번)</summary><div class="log" style="max-height:300px">${logGroups(bl, s.start, s.tick).join('') || '<p class="muted small">전투가 없었다.</p>'}</div></details>
+  <p class="tiny muted" style="margin:6px 0 0">이 기록은 탐사 탭 아래 '지난 탐사'에서도 언제든 다시 볼 수 있다.</p>`; })() : ''}
   <button class="btn full" style="margin-top:12px" data-act="closeSheet">확인</button>`;
 };
 SHEETS.profile = o => {
@@ -3079,11 +3109,16 @@ SHEETS.mail = o => {
   <p class="tiny muted">쪽지는 어느 고장에 있든, 탐사 중이든 주고받을 수 있다.</p>` : ''}`;
 };
 SHEETS.gift = o => {
-  const s = effStage(getRel(o)), mats = stageRank(s) >= 2;
-  const keys = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && !['ticket','ring'].includes(k)).filter(k => mats || IT[k.replace('*','')].t === 'food');
-  return sheetHead('선물하기') + `<p class="small muted" style="margin-top:0">${esc(PL[o]?.name||'')}님께 보낼 물건을 고르세요. ${mats ? '절친이라 재료도 나눌 수 있다.' : '절친이 되기 전에는 요리만 선물할 수 있다.'}</p>
-  <label class="f">함께 보낼 한마디 (선택)<textarea id="giftMsg" rows="2" maxlength="80" placeholder="예: 탐사 잘 다녀오세요!">${esc(UI.giftMsg || '')}</textarea></label>
-  ${keys.length ? `<div class="list" style="margin-top:8px">${keys.map(k => `<div class="li"><div class="t"><b>${esc(itemName(k))} <span class="cntx">×${cnt(k)}</span></b>${IT[k.replace('*','')].f ? `<span class="flav">${esc(IT[k.replace('*','')].f)}</span>` : ''}</div><button class="btn sm" data-act="gift" data-u="${esc(o)}" data-k="${k}">보내기</button></div>`).join('')}</div>` : '<p class="muted">보낼 수 있는 물건이 없습니다. 부엌에서 요리를 만들어 보세요.</p>'}`;
+  const f = UI.giftF || 'all';
+  const GF = [['all','전체'],['food','요리'],['pot','약'],['gear','장비'],['mat','재료'],['fish','생선'],['seed','씨앗']];
+  const typeOf = k => IT[k.replace('*','')]?.t;
+  const keys = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && !['ticket','ring'].includes(k))
+    .filter(k => { const t = typeOf(k); if (f === 'all') return true; if (f === 'pot') return t === 'pot' || t === 'cure'; if (f === 'gear') return ['weapon','armor','acc'].includes(t); return t === f; })
+    .sort((a, b) => typeOf(a).localeCompare(typeOf(b)) || itemName(a).localeCompare(itemName(b), 'ko'));
+  return sheetHead('선물하기') + `<p class="small muted" style="margin-top:0">${esc(PL[o]?.name||'')}님께 보낼 물건을 고르세요. 요리·장비·약·재료 무엇이든 보낼 수 있다. 요리와 장비는 호감도가 더 오르고, 지친 친구에게 요리를 대접하면 피로가 덜해진다.</p>
+  <label class="f">함께 보낼 한마디 (선택)<textarea id="giftMsg" rows="2" maxlength="80" placeholder="예: 탐사 잘 다녀오세요!"></textarea></label>
+  <div class="seg" style="margin:8px 0" role="group" aria-label="분류">${GF.map(([k, n]) => `<button data-act="giftF" data-f="${k}" aria-pressed="${f === k}">${n}</button>`).join('')}</div>
+  ${keys.length ? `<div class="list">${keys.map(k => { const it = IT[k.replace('*','')], free = cnt(k) - equippedN(k), st = statTxt(it); return `<div class="li"><div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b>${it.f ? `<span class="flav">${esc(it.f)}</span>` : ''}${st || it.d ? `<span>${esc([st, it.d].filter(Boolean).join(' · '))}</span>` : ''}</div><div class="acts"><button class="btn sm" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="1">보내기</button>${free >= 5 && !['weapon','armor','acc'].includes(it.t) ? `<button class="btn sm ghost" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="5">5개</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">이 분류에는 보낼 수 있는 물건이 없습니다.</p>'}`;
 };
 SHEETS.profile = o => {
   const p = PL[o]; if (!p) return sheetHead('개척자') + '<p>정보를 불러오는 중입니다.</p>';
@@ -3101,6 +3136,7 @@ SHEETS.profile = o => {
   <div class="row wrapf" style="gap:6px;margin-top:6px">${(p.titles||[]).map(t => `<span class="chip gold">${esc(t)}</span>`).join('')}${tired?'<span class="chip bad">지친 몸</span>':''}${es?.st==='run'?`<span class="chip blue">${REG[p.exp.region].n} 탐사 중</span>`:''}${es?.st==='down'?`<span class="chip bad">${REG[p.exp.region].n} · 행동불능</span>`:''}${p.travel && p.travel.arrive > now() ? `<span class="chip blue">${josa(REG[p.travel.to].n,'으로','로')} 이동 중</span>` : !es ? `<span class="chip">${REG[p.loc ?? 0]?.n}</span>` : ''}${myParty()?.members.includes(o) ? '<span class="chip good">우리 조사대</span>' : ''}</div></div></div>
   ${p.bio ? `<p>${esc(p.bio)}</p>` : ''}
   ${(p.comps||[]).length ? `<div class="row wrapf">${p.comps.map(c => `<span class="row" style="gap:4px">${art(c.sp).replace('class="crit ', 'style="width:40px;height:40px" class="crit ')}<span class="small">${esc(c.name)}</span></span>`).join('')}</div>` : ''}
+  ${(() => { const h = hpOf(p); if (!h) return ''; const pct = h.hp == null ? 0 : h.hp/h.max*100; return `<div class="card" style="margin-top:10px"><div class="row"><b class="grow">체력</b><span class="num small">${h.hp == null ? h.note : `${h.hp} / ${h.max}`}${h.note && h.hp != null ? ` · ${h.note}` : ''}</span></div><div class="bar" style="margin-top:6px"><i style="width:${pct}%;background:${pct < 35 ? 'var(--seal)' : pct < 70 ? 'var(--gold)' : 'var(--moss)'}"></i></div>${h.hp != null && h.hp < h.max*0.5 ? '<p class="tiny muted" style="margin:6px 0 0">많이 다쳤다. 같은 고장에 있다면 \'치료\'로 회복 환약을 써 줄 수 있다.</p>' : ''}</div>`; })()}
   <div class="card" style="margin-top:10px"><div class="row"><b class="grow">${STAGE_N[s]}</b><span class="num small">호감도 ${r.aff||0}/100</span></div><div class="bar gold" style="margin-top:6px"><i style="width:${r.aff||0}%"></i></div>
   <p class="tiny muted" style="margin:6px 0 0">${({acq:'호감도 30이 되면 친구 신청을 할 수 있다.',friend:'호감도 60이 되면 절친이 된다.',best:'호감도 80이 되면 고백할 수 있다. 재료도 나눌 수 있다.',lover:'청혼 반지가 있으면 언제든 청혼할 수 있다.',married:'부부 버프: 경험치 +10%'})[s]}</p></div>
   ${es?.st === 'down' ? (S.loc === p.exp.region && !baseLocked() ? `<div class="row" style="margin-top:10px"><button class="btn seal grow" data-act="rescue" data-u="${esc(o)}" data-k="heal" ${cnt('cure')?'':'disabled'}>각성약으로 일으키기 (${cnt('cure')})</button><button class="btn grow" data-act="rescue" data-u="${esc(o)}" data-k="carry">부축하기</button></div>` : `<p class="small" style="color:var(--seal)">${REG[p.exp.region].n}에 가야 구조할 수 있다. <button class="btn sm ghost" data-act="goRegion" data-r="${p.exp.region}">${josa(REG[p.exp.region].n,'으로','로')} 가기</button></p>`) : ''}
@@ -3141,6 +3177,230 @@ function pwaBox(){
   if (ios) return '<p class="small" style="margin:4px 0">사파리 아래쪽 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b>를 누르면 앱처럼 설치됩니다.</p>';
   return '<p class="small" style="margin:4px 0">브라우저 메뉴(⋮)에서 <b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르면 앱처럼 설치됩니다.</p>';
 }
+// ===================== 토벌전: 실시간 턴제 전투 (혼자 · 토벌대) =====================
+// 매 턴 직접 행동을 고른다: 공격 · 고유 스킬 · 피하기 · 숨기 · 회복 · 도주.
+// 우두머리는 다음 행동을 미리 드러낸다(강공 예고 등). 20초 안에 고르지 않으면 자동으로 피한다.
+// 토벌대는 각자 자기 화면에서 싸우고, 넣은 피해가 하나의 우두머리 체력에서 함께 깎인다.
+const TURN_MS = 20000, RAID_WINDOW = 15*MIN;
+let BT = null;
+
+const BINTENT = {
+  atk:{ic:'⚔', t:'공격 자세', d:'평범하게 공격해 온다.'},
+  heavy:{ic:'💢', t:'강공 예고', d:'크게 몸을 웅크린다… 다음 공격이 매섭다! 피하거나 숨자.'},
+  roar:{ic:'📢', t:'포효', d:'귀를 찢는 포효를 준비한다. 맞으면 2턴 동안 공격력이 떨어진다.'},
+  rest:{ic:'💤', t:'숨 고르기', d:'잠시 숨을 고른다. 마음껏 공격할 틈이다.'},
+};
+function bossBase(ri, n){
+  const b = bossStats(ri);
+  const hp = Math.round(b.hp * 1.0 * (1 + 0.5*Math.max(0, n-1)));
+  return {...b, hp, hpMax:hp, atk:b.atk*0.93};
+}
+function nextIntent(bt, rng){
+  const low = bt.bossLeft() < bt.boss.hpMax*0.3;
+  let w = {atk:55, heavy: low ? 34 : 24, roar:12, rest: low ? 4 : 9};
+  if (bt.intent === 'heavy') w.heavy = 0;
+  if (bt.intent === 'rest') w.rest = 0;
+  const tot = Object.values(w).reduce((a, b) => a + b, 0); let r = rng()*tot;
+  for (const k in w){ r -= w[k]; if (r < 0) return k; }
+  return 'atk';
+}
+// 순수 계산: 행동 하나를 처리하고 우두머리 차례까지 진행한다 (화면 없이도 돈다 → 밸런스 시험용)
+function battleStep(bt, act, rng, inv){
+  const me = bt.me, b = bt.boss, J = JOBS[me.job] || JOBS.samurai, L = [];
+  if (bt.st !== 'fight') return L;
+  bt.turn++;
+  const atkMul = bt.buff.down > 0 ? 0.75 : 1;
+  const hit = (mul, ignoreDef) => { let d = pDmg(me, ignoreDef ? {...b, def:0} : b, rng) * mul * atkMul; let crit = false;
+    if (bt.buff.hidden){ d *= 1.8; crit = true; bt.buff.hidden = 0; } else if (rng() < 0.08 + me.agi*0.004){ d *= 1.5; crit = true; }
+    d = Math.max(1, Math.round(d)); bt.dealt(d); return [d, crit]; };
+  let evade = 0, guard = 1, fled = false;
+  if (act === 'attack'){
+    const [d, c] = hit(1); let t = `${pick(rng, J.verb)} — ${d} 피해${c ? ' (치명타!)' : ''}`;
+    if (me.summ){ const s2 = Math.max(1, Math.round(me.summ * (0.8 + rng()*0.4))); bt.dealt(s2); t += ` · 동료 ${s2}`; }
+    L.push(['me', t]);
+  } else if (act === 'skill'){
+    if (bt.cd.skill > 0) return [['sys', `「${J.sk.n}」은 ${bt.cd.skill}턴 뒤에 다시 쓸 수 있다.`]];
+    bt.cd.skill = 4; const nm = `「${J.sk.n}」`;
+    switch (me.job){
+      case 'samurai': { const [d] = hit(2.4); L.push(['skill', `${nm}! 칼집에서 뽑은 일섬이 ${d} 피해를 냈다.`]); break; }
+      case 'monk': { const [d] = hit(1.3); const ok = b.t === 'y' || rng() < 0.5; if (ok) bt.buff.sealed = 1; L.push(['skill', `${nm}! ${d} 피해${ok ? ' — 우두머리가 결계에 묶여 다음 행동을 못 한다.' : ' — 결계가 튕겨 나갔다.'}`]); break; }
+      case 'thief': { const [d] = hit(1.6); let t = `${nm}! ${d} 피해`; if (!bt.stole){ bt.stole = pick(rng, ['rareore','gem','talisman','soul']); t += ` — 품에서 ${IT[bt.stole].n}${pp(IT[bt.stole].n,'을','를')} 슬쩍했다!`; } L.push(['skill', t]); break; }
+      case 'brawler': { const ds = [hit(0.75)[0], hit(0.75)[0], hit(0.75)[0]]; L.push(['skill', `${nm}! 짝, 짝, 짝 — ${ds.join(' + ')} 피해`]); break; }
+      case 'healer': { const h = Math.round(me.max*0.35); me.hp = Math.min(me.max, me.hp + h); bt.buff.down = 0; const [d] = hit(0.8); L.push(['skill', `${nm}! 방울 소리에 체력 +${h}, 저주가 풀렸다. 정화의 기운이 ${d} 피해.`]); break; }
+      case 'onmyoji': { const [d] = hit(2.0, true); L.push(['skill', `${nm}! 종이 식신 떼가 방어를 뚫고 ${d} 피해.`]); break; }
+      case 'hunter': { const d1 = hit(0.9)[0], d2 = hit(0.9)[0]; evade = 0.5; L.push(['skill', `${nm}! 분신과 함께 표창 두 발 — ${d1} + ${d2} 피해. 분신이 시선을 끈다.`]); break; }
+    }
+  } else if (act === 'dodge'){
+    evade = clamp(0.45 + (me.agi - b.agi)*0.02, 0.3, 0.8); guard = 0.6; bt.counter = 1;
+    L.push(['me', '몸을 낮추고 우두머리의 움직임을 읽는다. (피하기 태세)']);
+  } else if (act === 'hide'){
+    if (bt.cd.hide > 0) return [['sys', `숨을 곳을 찾으려면 ${bt.cd.hide}턴 더 기다려야 한다.`]];
+    bt.cd.hide = 3; bt.buff.hidden = 1; evade = 0.85;
+    L.push(['me', '바위 그늘로 몸을 숨겼다. 다음 공격은 기습이 된다.']);
+  } else if (act === 'heal'){
+    const k = inv && (me.hp < me.max*0.45 && inv.has('pot2') ? 'pot2' : inv.has('pot1') ? 'pot1' : inv.has('pot2') ? 'pot2' : null);
+    if (k){ inv.take(k); const h = Math.round(IT[k].heal * me.potx); me.hp = Math.min(me.max, me.hp + h); bt.pots = (bt.pots||0) + 1; L.push(['heal', `${IT[k].n}${pp(IT[k].n,'을','를')} 삼켰다. 체력 +${h}`]); }
+    else { const h = Math.round(me.max*0.1); me.hp = Math.min(me.max, me.hp + h); L.push(['heal', `환약이 없다. 숨을 고르며 체력 +${h}`]); }
+  } else if (act === 'flee'){
+    const p = clamp(0.5 + (me.agi - b.agi)*0.03, 0.2, 0.9);
+    if (rng() < p){ fled = true; } else { guard = 1.2; L.push(['me', '달아나려 했지만 길이 막혔다!']); }
+  }
+  if (fled){ bt.st = 'fled'; L.push(['sys', '틈을 보아 전장에서 빠져나왔다.']); return L; }
+  if (bt.bossLeft() <= 0){ bt.st = 'win'; L.push(['win', `${b.n}${pp(b.n,'이','가')} 쓰러졌다!`]); return L; }
+  // ---- 우두머리 차례 ----
+  const it = bt.intent;
+  if (bt.buff.sealed){ bt.buff.sealed = 0; L.push(['boss', `${b.n}${pp(b.n,'은','는')} 결계에 묶여 꼼짝하지 못했다.`]); }
+  else if (it === 'rest'){ L.push(['boss', `${b.n}${pp(b.n,'이','가')} 거친 숨을 고른다.`]); }
+  else {
+    const mul = it === 'heavy' ? 2.2 : it === 'roar' ? 0.4 : 1;
+    const enr = bt.bossLeft() < b.hpMax*0.3 ? 1.2 : 1;
+    if (evade && rng() < evade){
+      let t = it === 'heavy' ? `${b.n}의 강공을 아슬아슬하게 피했다!` : `${b.n}의 공격을 피했다.`;
+      if (bt.counter){ const [d] = hit(0.5); t += ` 반격 ${d} 피해!`; }
+      L.push(['dodge', t]);
+      if (bt.bossLeft() <= 0){ bt.st = 'win'; L.push(['win', `${b.n}${pp(b.n,'이','가')} 쓰러졌다!`]); return L; }
+    } else {
+      let d = Math.max(1, Math.round(mDmg(b, me, rng) * mul * enr * guard));
+      if (me.job === 'brawler' && me.hp - d <= 0 && !bt.guts && rng() < 0.25){ bt.guts = 1; d = me.hp - 1; L.push(['skill', '쓰러질 일격을 두 발로 버텨 냈다! (부동)']); }
+      me.hp -= d;
+      L.push(['boss', it === 'heavy' ? `${b.n}의 강공! ${d} 피해` : it === 'roar' ? `${b.n}의 포효가 몸을 짓누른다. ${d} 피해, 2턴 동안 공격력 저하` : `${b.n}${pp(b.n,'이','가')} ${pick(rng, MON_V[b.t === 'y' ? 'y' : 'a'])} — ${d} 피해`]);
+      if (it === 'roar') bt.buff.down = 3;
+    }
+  }
+  bt.counter = 0;
+  if (bt.buff.down > 0) bt.buff.down--;
+  if (bt.cd.skill > 0) bt.cd.skill--;
+  if (bt.cd.hide > 0) bt.cd.hide--;
+  if (me.hp <= 0){ me.hp = 0; bt.st = 'lose'; L.push(['down', '눈앞이 캄캄해졌다… 더는 싸울 수 없다.']); return L; }
+  if (bt.turn >= 40){ bt.st = 'lose'; L.push(['down', `${b.n}${pp(b.n,'이','가')} 지친 틈을 타 사라졌다. (40턴 초과)`]); return L; }
+  bt.intent = nextIntent(bt, rng);
+  return L;
+}
+function newBattle(ri, opts = {}){
+  const s = makeSnap(ri); setHP(curHP());
+  const n = opts.n || 1, boss = bossBase(ri, n);
+  const bt = {ri, raidId:opts.raidId || null, n, boss, me:{...s, hp:Math.round(curHP()), max:maxHP(), job:S.job}, turn:0, st:'fight', dmg:0, cd:{skill:0, hide:0}, buff:{}, log:[], deadline:now() + TURN_MS, intent:'atk', started:now()};
+  bt.others = () => { if (!bt.raidId) return 0; const r = RAIDS.find(x => x.id === bt.raidId); if (!r || !r.m) return 0; return Object.entries(r.m).filter(([u]) => u !== ST.uid).reduce((a, [, m]) => a + (m.dmg || 0), 0); };
+  bt.bossLeft = () => Math.max(0, boss.hpMax - bt.dmg - bt.others());
+  bt.dealt = d => { bt.dmg += d; };
+  return bt;
+}
+
+// ---- 화면 쪽 ----
+function startBattle(ri, raid){
+  if (BT && BT.st === 'fight') return openSheet('battle');
+  if (S.exp) return toast('장기 탐사 중에는 도전할 수 없습니다.');
+  if (travelState()) return toast('길을 걷는 중입니다. 도착한 뒤에 할 수 있어요.');
+  if (!raid && S.loc !== ri) return toast(`지금 있는 곳은 ${REG[S.loc].n}입니다. 지도에서 ${josa(REG[ri].n,'으로','로')} 먼저 이동하세요.`);
+  if (!raid && S.lv < bossReqLv(ri)) return toast(`레벨 ${bossReqLv(ri)} 이상부터 도전할 수 있습니다.`);
+  if (curHP() < maxHP()*0.3) return toast('체력이 너무 적습니다. 회복하고 오세요. (최대 체력의 30% 이상)', 'warn');
+  BT = newBattle(ri, raid ? {raidId:raid.id, n:raid.n0 || Object.keys(raid.m || {}).length} : {});
+  BT.log.unshift(['sys', `${BT.boss.n}(Lv.${BT.boss.L}) 앞에 섰다.${raid ? ` 토벌대 ${BT.n}명이 각자의 자리에서 함께 싸운다.` : ''} 체력 ${BT.boss.hpMax}`]);
+  BT.intent = nextIntent(BT, Math.random);
+  sfx('go'); openSheet('battle'); battlePush();
+}
+const BT_INV = {has: k => cnt(k) > 0, take: k => takeItem(k)};
+function battleAct(act){
+  if (!BT || BT.st !== 'fight') return;
+  const L = battleStep(BT, act, Math.random, BT_INV);
+  BT.log.unshift(...L.reverse()); BT.log = BT.log.slice(0, 40);
+  BT.deadline = now() + TURN_MS;
+  const last = L[0] && L[0][0];
+  sfx(BT.st === 'win' ? 'win' : last === 'boss' || last === 'down' ? 'hit' : last === 'heal' ? 'eat' : 'click');
+  setHP(BT.me.hp);
+  if (BT.st !== 'fight') battleEnd(); else { battlePush(); save(); }
+  renderSheet();
+}
+// 토벌대: 내 피해·체력을 함께 쓰는 문서에 적는다 (내 칸만 고친다)
+let btPushT = 0;
+async function battlePush(final){
+  if (!BT || !BT.raidId || ST.mode !== 'cloud') return;
+  if (!final && now() - btPushT < 800) return; btPushT = now();
+  const patch = {m:{[ST.uid]:{dmg:BT.dmg, hp:Math.max(0, BT.me.hp), max:BT.me.max, st:BT.st, ts:now()}}};
+  if (BT.st === 'win' || BT.bossLeft() <= 0) patch.won = now();
+  try { await ST.db.doc('raids/' + BT.raidId).update(patch); } catch(e){}
+}
+function battleEnd(){
+  const ri = BT.ri, win = BT.st === 'win';
+  if (BT.raidId){ S.raidFought = S.raidFought || {}; S.raidFought[BT.raidId] = 1; if (win) S.raidsDone[BT.raidId] = 1; battlePush(true); }
+  if (win){
+    const res = {win:true}; applyRaid(ri, res, BT.n, BT.raidId ? (RAIDS.find(r => r.id === BT.raidId)?.leader === ST.uid) : true);
+    if (BT.stole) addItem(BT.stole);
+    BT.reward = res.reward; setHP(Math.max(1, BT.me.hp));
+  } else if (BT.st === 'lose'){ setHP(maxHP()*0.15); }
+  else setHP(Math.max(1, BT.me.hp));
+  save(); pubDirty();
+}
+function battleClose(){ if (BT && BT.st === 'fight') return; BT = null; SHEET = null; renderSheet(); render(); }
+// 시간이 지나면 자동으로 피한다 (실시간)
+function battleTick(){
+  if (!BT) return;
+  if (BT.st === 'fight'){
+    if (BT.raidId && BT.bossLeft() <= 0){ BT.st = 'win'; BT.log.unshift(['win', `토벌대의 공격으로 ${BT.boss.n}${pp(BT.boss.n,'이','가')} 쓰러졌다!`]); battleEnd(); renderSheet(); return; }
+    if (BT.raidId){ const r = RAIDS.find(x => x.id === BT.raidId); if (r && now() > r.startAt + RAID_WINDOW){ BT.st = 'lose'; BT.log.unshift(['down', '토벌 시간이 끝났다. 우두머리가 물러났다.']); battleEnd(); renderSheet(); return; } }
+    if (now() > BT.deadline){ BT.log.unshift(['sys', '머뭇거리는 사이 몸이 먼저 움직였다. (시간 초과 → 피하기)']); battleAct('dodge'); return; }
+  }
+  const el = document.getElementById('btTimer'); if (el){ const left = Math.max(0, BT.deadline - now()); el.style.width = (left/TURN_MS*100) + '%'; const tx = document.getElementById('btTimerTx'); if (tx) tx.textContent = Math.ceil(left/1000) + '초'; }
+  const bh = document.getElementById('btBossHp'); if (bh && BT.raidId){ bh.style.width = (BT.bossLeft()/BT.boss.hpMax*100) + '%'; const t = document.getElementById('btBossTx'); if (t) t.textContent = `${BT.bossLeft()} / ${BT.boss.hpMax}`; }
+}
+// 토벌대: 출발 시각이 되면 전투 창을 연다. 다른 대원이 끝냈으면 보상을 받는다.
+function checkRaidBattles(){
+  if (ST.mode !== 'cloud' || !S || SCREEN !== 'game') return;
+  for (const r of RAIDS){
+    const me = r.m && r.m[ST.uid]; if (!me || S.raidsDone[r.id]) continue;
+    if (now() < r.startAt) continue;
+    if (r.won){
+      if ((me.dmg || 0) > 0 && BT && BT.raidId === r.id && BT.st !== 'fight'){
+        // 내가 먼저 쓰러지거나 빠졌지만 대원들이 이겼다 → 이 창에서 보상
+        S.raidsDone[r.id] = 1; const res = {win:true}; applyRaid(r.region, res, Object.keys(r.m).length, false);
+        BT.reward = res.reward; BT.st = 'win'; BT.log.unshift(['win', `대원들이 ${BT.boss.n}${pp(BT.boss.n,'을','를')} 쓰러뜨렸다! 함께 싸운 몫의 보상을 받았다.`]); sfx('win'); renderSheet();
+      } else if ((me.dmg || 0) > 0 && !(BT && BT.raidId === r.id)){
+        S.raidsDone[r.id] = 1; const res = {win:true}; applyRaid(r.region, res, Object.keys(r.m).length, false);
+        openSheet('raidwin', {ri:r.region, reward:res.reward, n:Object.keys(r.m).length}); sfx('win');
+      } else if (!(me.dmg > 0)) S.raidsDone[r.id] = 1;
+      continue;
+    }
+    if (now() > r.startAt + RAID_WINDOW){ S.raidsDone[r.id] = 1; continue; }
+    if (!BT && !S.exp && !(S.raidFought && S.raidFought[r.id]) && !(SHEET && SHEET.k === 'battle')){
+      notify('rescue', '토벌 시작', `${REG[r.region].n} 우두머리 토벌이 시작되었습니다!`, 'raidgo' + r.id);
+      startBattle(r.region, {...r, n0:Object.keys(r.m).length});
+      return;
+    }
+  }
+}
+SHEETS.raidwin = ({ri, reward, n}) => sheetHead('토벌 성공') + `<p style="margin-top:0">${REG[ri].n} · ${BOSS[ri].n} · 토벌대 ${n}명</p>
+  <p class="small">다른 대원들이 마지막 일격을 넣었다. 함께 싸운 몫의 보상을 받았다.</p>
+  ${reward ? `<div class="card" style="border-color:var(--moss)"><b style="color:var(--moss)">보상</b><p class="small" style="margin:4px 0 0">엽전 ${reward.g}${CUR} · 경험치 ${reward.xp} · ${Object.entries(reward.loot).map(([k,v]) => `${IT[k].n} ${v}`).join(', ')}</p></div>` : ''}
+  <button class="btn full" style="margin-top:12px" data-act="closeSheet">확인</button>`;
+SHEETS.battle = () => {
+  const bt = BT; if (!bt) return sheetHead('토벌') + '<p>전투가 없습니다.</p>';
+  const b = bt.boss, me = bt.me, J = JOBS[me.job] || JOBS.samurai, left = bt.bossLeft(), it = BINTENT[bt.intent];
+  const fight = bt.st === 'fight';
+  const r = bt.raidId ? RAIDS.find(x => x.id === bt.raidId) : null;
+  const mates = r && r.m ? Object.entries(r.m).filter(([u]) => u !== ST.uid) : [];
+  const potN = cnt('pot1') + cnt('pot2');
+  const B = (act, ic, label, sub, dis) => `<button class="btn bt-act ${act === 'attack' ? 'seal' : ''}" data-act="bt" data-a="${act}" ${dis || !fight ? 'disabled' : ''}><span class="bt-ic">${ic}</span><b>${label}</b><span class="tiny">${sub}</span></button>`;
+  const res = bt.st === 'win' ? `<div class="card" style="border-color:var(--moss)"><b style="color:var(--moss)">토벌 성공!</b>${bt.reward ? `<p class="small" style="margin:4px 0 0">엽전 ${bt.reward.g}${CUR} · 경험치 ${bt.reward.xp} · ${Object.entries(bt.reward.loot).map(([k,v]) => `${IT[k].n} ${v}`).join(', ')}${bt.stole ? ` · 훔친 ${IT[bt.stole].n} 1` : ''}${bt.reward.first ? `<br>${REG[bt.ri].n}${pp(REG[bt.ri].n,'이','가')} 안정되었다. (토벌 ${Object.keys(S.bosses).length}/13)` : ''}</p>` : ''}</div>`
+    : bt.st === 'lose' ? `<div class="card" style="border-color:var(--seal)"><b style="color:var(--seal)">토벌 실패</b><p class="small" style="margin:4px 0 0">${bt.raidId ? `넣은 피해 ${bt.dmg} — 남은 대원들이 계속 싸우면, 이기는 순간 보상을 함께 받는다.` : '더 강해지거나 토벌대를 꾸려 다시 오자.'}</p></div>`
+    : bt.st === 'fled' ? `<div class="card"><b>전장에서 빠져나왔다</b><p class="small" style="margin:4px 0 0">${bt.raidId ? `넣은 피해 ${bt.dmg}는 토벌대에 남는다. 대원들이 이기면 보상을 함께 받는다.` : '보상은 없지만 체력은 지켰다.'}</p></div>` : '';
+  return `<div class="head"><h2>${esc(b.n)}</h2><span class="chip">${bt.raidId ? `토벌대 ${bt.n}명` : '혼자'} · ${bt.turn}턴</span>${fight ? '' : '<button class="x" data-act="btClose" aria-label="닫기">×</button>'}</div>
+  <p class="tiny muted" style="margin:-6px 0 8px">Lv.${b.L} · ${b.t === 'y' ? '요괴' : '야생동물'} · ${BOSS[bt.ri].d}</p>
+  <div class="bt-hp"><div class="row small"><b class="grow">우두머리</b><span class="num" id="btBossTx">${left} / ${b.hpMax}</span></div><div class="bar"><i id="btBossHp" style="width:${left/b.hpMax*100}%"></i></div></div>
+  ${fight ? `<div class="bt-intent i-${bt.intent}"><span class="bt-ic">${it.ic}</span><div><b>${it.t}</b><span class="small">${it.d}</span></div></div>` : ''}
+  ${mates.length ? `<div class="bt-mates">${mates.map(([u, m]) => `<span class="chip ${m.st === 'lose' ? 'bad' : m.st === 'fled' ? '' : 'good'}">${esc(m.name)} ${m.max ? `♥${Math.max(0, m.hp ?? m.max)}/${m.max}` : '대기'} · 피해 ${m.dmg || 0}</span>`).join('')}</div>` : ''}
+  <div class="bt-hp me"><div class="row small"><b class="grow">${esc(S.char.name)} <span class="tiny muted">${J.n}</span></b><span class="num">${Math.max(0, me.hp)} / ${me.max}</span></div><div class="bar"><i style="width:${Math.max(0, me.hp)/me.max*100}%"></i></div>
+    <div class="row wrapf" style="gap:4px;margin-top:4px">${bt.buff.hidden ? '<span class="chip blue">숨음 · 다음 공격 기습</span>' : ''}${bt.buff.down > 0 ? `<span class="chip bad">공격력 저하 ${bt.buff.down}턴</span>` : ''}${bt.buff.sealed ? '<span class="chip good">결계 · 우두머리 봉인</span>' : ''}<span class="chip">넣은 피해 ${bt.dmg}</span></div></div>
+  ${fight ? `<div class="bt-timer"><div class="bar"><i id="btTimer" style="width:${Math.max(0, bt.deadline - now())/TURN_MS*100}%"></i></div><span class="tiny muted" id="btTimerTx">${Math.ceil(Math.max(0, bt.deadline - now())/1000)}초</span></div>
+  <div class="bt-acts">
+    ${B('attack', '⚔', '공격하기', `${J.n} 기본 공격`)}
+    ${B('skill', '✦', `「${J.sk.n}」`, bt.cd.skill ? `${bt.cd.skill}턴 뒤` : '고유 스킬', bt.cd.skill > 0)}
+    ${B('dodge', '🛡', '피하기', '회피 + 반격, 맞아도 덜 아프다')}
+    ${B('hide', '🌫', '숨기', bt.cd.hide ? `${bt.cd.hide}턴 뒤` : '거의 안 맞고, 다음 공격 기습', bt.cd.hide > 0)}
+    ${B('heal', '💊', '회복하기', potN ? `환약 ${potN}개` : '숨 고르기 (+10%)')}
+    ${B('flee', '🏃', '도주하기', bt.raidId ? '피해는 토벌대에 남는다' : '보상 없이 빠져나온다')}
+  </div>` : res + `<button class="btn full" style="margin-top:10px" data-act="btClose">확인</button>`}
+  <div class="log bt-log">${bt.log.slice(0, 14).map((l, i) => `<p class="${l[0]}${i === 0 ? ' new' : ''}"><span>${esc(l[1])}</span></p>`).join('')}</div>`;
+};
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -3442,6 +3702,7 @@ const ACT = {
   buyAnimal: d => buyAnimal(d.k), feedAnimal: d => feedAnimal(d.id), collectAnimal: d => collectAnimal(d.id), releaseAnimal: d => releaseAnimal(d.id),
   setTitle: d => { S.title = d.k; save(); pubDirty(); renderSheet(); render(); toast(`칭호 「${curTitle()}」를 달았다.`, 'good'); },
   fav: d => toggleFav(d.u),
+  bt: d => battleAct(d.a), btClose: () => battleClose(),
   pushOn: () => pushEnable(), pushOff: () => pushDisable(),
   pushKeySave: async () => { if (!isOp()) return; const v = ($('#vapidKey').value || '').trim(); if (v && !/^[A-Za-z0-9_-]{80,100}$/.test(v)) return toast('웹 푸시 인증서의 키 쌍(B로 시작하는 긴 글자)을 그대로 붙여 넣어 주세요.', 'warn'); try { if (v) await ST.db.doc('config/push').set({vapid:v, ts:now()}); else await ST.db.doc('config/push').delete(); toast(v ? '푸시 알림 키를 저장했습니다.' : '푸시 알림 키를 지웠습니다.', 'good'); } catch(e){ toast('저장하지 못했습니다.', 'warn'); } },
   pwaInstall: async () => { const p = window.PWA && PWA.prompt; if (!p) return; p.prompt(); try { await p.userChoice; } catch(e){} PWA.prompt = null; renderSheet(); },
@@ -3463,7 +3724,8 @@ const ACT = {
   buy: d => buy(d.k, +d.n), setSub: d => { S.sub = d.k; save(); pubDirty(); renderSheet(); render(); toast(`서브 직업을 ${SUBS[d.k].n}${pp(SUBS[d.k].n,'으로','로')} 바꿨다.${SYN[`${S.job}:${d.k}`]?' 궁합 보너스!':''}`); },
   soloBoss: d => { closeSheet(); soloBoss(+d.r); }, createRaid: d => { closeSheet(); createRaid(+d.r); }, joinRaid: d => joinRaid(d.id),
   rescue: d => rescue(d.u, d.k), req: d => answerReq(d.id, d.y === '1'), soc: d => act(d.u, d.k),
-  gift: async d => { const m = ($('#giftMsg')?.value || '').trim().slice(0, 80); await giftTo(d.u, d.k, 1, m); }, block: d => block(d.u), report: d => report(d.u),
+  gift: async d => { const m = ($('#giftMsg')?.value || '').trim().slice(0, 80); await giftTo(d.u, d.k, +d.n || 1, m); },
+  giftF: d => { UI.giftF = d.f; renderSheet(); }, block: d => block(d.u), report: d => report(d.u),
   unblock: d => { S.social.block = S.social.block.filter(x => x !== d.u); save(); renderSheet(); },
   codexTab: d => { UI.codex = d.t; renderSheet(); },
   setOpt: d => { S.settings[d.o] = d.v; applyPrefs(); save(); renderSheet(); render(); },
@@ -3575,14 +3837,14 @@ function tick(){
   S.farm.forEach((f, i) => { if (f && now() >= f.at + f.dur) notify('harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
   if (S.nest && now() >= S.nest.at + S.nest.dur) notify('hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
   checkTitles();
-  presenceTick(); chatSync();
+  presenceTick(); chatSync(); battleTick();
   if (window.FB_MODE && now() % 5000 < 1000) pushSync();
   if (S.settings.infGold && isOp() && S.gold < 99999999){ S.gold = 99999999; }
   S.pen.forEach(a => { if (a.fed && now() >= a.readyAt) notify('harvest', '축사', `${a.name}에게서 ${IT[ANIMALS[a.kind].out[0]].n}${pp(IT[ANIMALS[a.kind].out[0]].n,'을','를')} 거둘 수 있습니다.`, 'pen' + a.id + a.readyAt); });
   if (ST.mode === 'cloud' && !document.hidden && now() - (window._hb || 0) > 3*MIN){ window._hb = now(); writePub(true); }
   if (ST.mode === 'cloud'){
     downedList().forEach(d => notify('rescue', '구조 요청', `${d.p.name}님이 ${REG[d.p.exp.region].n}에서 쓰러졌습니다. 게시판에서 도울 수 있습니다.`, 'dn' + d.rk));
-    checkRaids();
+    checkRaidBattles();
   }
   const sig = JSON.stringify([expState()?.st, S.task && now() >= S.task.start + S.task.dur, S.farm.map(f => f && now() >= f.at + f.dur), S.nest && now() >= S.nest.at + S.nest.dur, !!foodActive(), !!tiredActive(), S.short.d === dayKey(), RAIDS.map(r => now() < r.startAt), downedList().length, penReady(), penHungry(), baseLocked(), S.loc, !!S.travel, S.travel ? travelLines(S.travel).filter(l => l.at <= now()).length : 0]);
   if (sig !== lastSig){ const first = !lastSig; lastSig = sig; if (!first){ render(); renderSheet(true); } }
