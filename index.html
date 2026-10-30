@@ -378,6 +378,10 @@ details.sub .log{ margin-top:6px; background:var(--card); }
 .top .tgold{ font-weight:700; color:var(--gold); font-size:.9rem; line-height:1.3; }
 .hp-ic{ width:1.8rem; flex:none; text-align:center; font-size:1.1rem; line-height:1.6; }
 .topbtns{ gap:3px; } @media (max-width:380px){ .ib{ width:38px; height:38px; } .topbtns .gold{ font-size:.92rem; } }
+
+.fxl{ margin:8px 0 0; padding-left:1.1em; } .fxl li{ margin:3px 0; }
+button.chip{ cursor:pointer; font:inherit; font-size:.78rem; color:inherit; }
+button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } button.chip.blue{ color:var(--indigo); } button.chip.gold{ color:var(--gold); }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -2541,13 +2545,13 @@ function viewIntro(){
 function viewTop(){
   const mx = maxHP(), hp = curHP(), need = xpNeed(S.lv), es = expState(), fb = foodActive(), td = tiredActive();
   const chips = [];
-  if (es){ if (es.st === 'run') chips.push(`<span class="chip blue">탐사 중 · <span class="num" data-cd="${es.end}"></span></span>`); else if (es.st === 'down') chips.push(`<span class="chip bad">행동불능</span>`); }
+  if (es){ if (es.st === 'run') chips.push(`<button class="chip blue" data-act="sheet" data-s="fx" data-a="exp">탐사 중 · <span class="num" data-cd="${es.end}"></span></button>`); else if (es.st === 'down') chips.push(`<button class="chip bad" data-act="sheet" data-s="fx" data-a="down">행동불능</button>`); }
   if (shortRun) chips.push('<span class="chip blue">단기 탐사 중</span>');
   if (S.travel && now() < S.travel.arrive) chips.push(`<button class="chip blue" data-act="tab" data-t="explore">${josa(REG[S.travel.to].n,'으로','로')} 이동 · <span class="num" data-cd="${S.travel.arrive}"></span></button>`);
-  if (fb){ const r = RECIPES.find(x=>x.id===fb.id); chips.push(`<span class="chip good">${esc(r.n)}${fb.q?'★':''} · <span class="num" data-cd="${fb.until}"></span></span>`); }
-  if (td) chips.push(`<span class="chip bad">지친 몸${td.weak?'(약화)':''} · <span class="num" data-cd="${td.until}"></span></span>`);
-  if (encActive()) chips.push(`<span class="chip gold">격려 경험치 +10% · <span class="num" data-cd="${S.buffs.enc}"></span></span>`);
-  if (isMarried()) chips.push('<span class="chip gold">부부 버프 경험치 +10%</span>');
+  if (fb){ const r = RECIPES.find(x=>x.id===fb.id); chips.push(`<button class="chip good" data-act="sheet" data-s="fx" data-a="food">${esc(r.n)}${fb.q?'★':''} · <span class="num" data-cd="${fb.until}"></span></button>`); }
+  if (td) chips.push(`<button class="chip bad" data-act="sheet" data-s="fx" data-a="tired">지친 몸${td.weak?'(약화)':''} · <span class="num" data-cd="${td.until}"></span></button>`);
+  if (encActive()) chips.push(`<button class="chip gold" data-act="sheet" data-s="fx" data-a="enc">격려 경험치 +10% · <span class="num" data-cd="${S.buffs.enc}"></span></button>`);
+  if (isMarried()) chips.push('<button class="chip gold" data-act="sheet" data-s="fx" data-a="married">부부 버프 경험치 +10%</button>');
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
   const nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
@@ -3089,7 +3093,7 @@ SHEETS.settings = () => {
   ${isOp() ? `<h3 style="margin-top:14px">운영 도구 <span class="chip seal" style="border-color:var(--seal);color:var(--seal)">운영자 전용</span></h3>
   <div class="stack" style="gap:6px">${tog('fast','시험 모드: 시간을 60배 빠르게 (장기 탐사 1시간 → 1분, 새로 시작하는 타이머부터 적용)', st.fast)}
   <div class="card" style="padding:12px"><b class="small">캐릭터 · 재화</b>
-    <div class="row wrapf" style="margin-top:6px"><button class="btn sm seal" data-act="opMaxLv" ${S.lv >= MAX_LV ? 'disabled' : ''}>최대 레벨 (Lv.${MAX_LV})</button><button class="btn sm" data-act="opGold" data-n="100000">+10만 ${CUR}</button><button class="btn sm" data-act="opGold" data-n="1000000">+100만 ${CUR}</button><button class="btn sm ghost" data-act="opItems">재료 한 보따리</button></div>
+    <div class="row wrapf" style="margin-top:6px"><button class="btn sm seal" data-act="opMaxLv" ${S.lv >= MAX_LV ? 'disabled' : ''}>최대 레벨 (Lv.${MAX_LV})</button><button class="btn sm" data-act="opGold" data-n="100000">+10만 ${CUR}</button><button class="btn sm" data-act="opGold" data-n="1000000">+100만 ${CUR}</button><button class="btn sm ghost" data-act="opItems">재료 한 보따리</button><button class="btn sm ghost" data-act="opRecipes" ${RECIPES.every(r => S.recipes.includes(r.id)) ? 'disabled' : ''}>모든 레시피 습득</button></div>
     ${tog('infGold', `재화 무한 (엽전이 늘 99,999,999${CUR}로 채워진다)`, st.infGold)}</div>
   ${musicTools()}
   ${window.FB_MODE ? `<div class="card" style="padding:12px"><b class="small">푸시 알림 키 (웹 푸시 인증서)</b><p class="tiny muted" style="margin:2px 0 6px">Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징 → 웹 푸시 인증서의 '키 쌍'을 붙여 넣으세요. 지금: ${PUSH.cfg && PUSH.cfg.vapid ? '등록됨' : '없음'}</p><div class="row"><input id="vapidKey" type="text" placeholder="B로 시작하는 긴 키" value="${esc(PUSH.cfg?.vapid || '')}" aria-label="웹 푸시 키"><button class="btn sm" data-act="pushKeySave">저장</button></div></div>` : ''}
@@ -3286,6 +3290,46 @@ SHEETS.help = () => {
       ${row('6', '함께하기', '같은 시설에 들어가면 마주쳐 호감도가 오르고, 조사대를 꾸리면 탐사와 토벌이 쉬워진다', '')}
     </div>`;
   return sheetHead('도움말') + `<div class="seg" style="margin-bottom:12px" role="group" aria-label="도움말 분류">${tabs.map(([k, n]) => `<button data-act="helpTab" data-t="${k}" aria-pressed="${t === k}">${n}</button>`).join('')}</div>${body}`;
+};
+
+// 상단 버프·디버프 칩을 누르면 뜨는 설명 창
+SHEETS.fx = k => {
+  const fb = foodActive(), td = tiredActive(), es = expState();
+  const card = (title, good, lines, until, foot) => sheetHead(title) + `<div class="card" style="border-color:${good ? 'var(--moss)' : 'var(--seal)'}">
+    <span class="chip ${good ? 'good' : 'bad'}">${good ? '버프' : '디버프'}</span>${until ? ` <span class="small num">남은 시간 <b data-cd="${until}"></b></span>` : ''}
+    <ul class="fxl">${lines.map(l => `<li>${l}</li>`).join('')}</ul></div>${foot ? `<p class="small" style="margin:10px 2px 0">${foot}</p>` : ''}
+    <div class="row" style="margin-top:12px"><button class="btn ghost grow" data-act="sheet" data-s="help">도움말 전체 보기</button><button class="btn grow" data-act="closeSheet">닫기</button></div>`;
+  if (k === 'food'){
+    if (!fb) return card('식사 버프', true, ['지금은 식사 버프가 없다.'], 0, '부엌에서 요리를 만들어 먹으면 생긴다.');
+    const r = RECIPES.find(x => x.id === fb.id), b = foodBuff() || {};
+    const L = [`<b>${esc(r.n)}${fb.q ? ' (정성 가득)' : ''}</b> — ${esc(r.f || '')}`];
+    if (b.st) L.push('능력치 ' + Object.entries(b.st).map(([s, v]) => `${STN[s]} +${v}`).join(', '));
+    if (b.cost) L.push(`탐사 체력 소모 ${Math.round(-b.cost*100)}% 감소`);
+    if (b.regen) L.push('체력 자연 회복 2배 (10분에 10%)');
+    if (b.maxhp) L.push(`최대 체력 +${b.maxhp}`);
+    if (b.gift) L.push('선물하면 호감도 2배');
+    if (fb.q) L.push("'정성 가득'이라 효과 1.5배, 시간 1.25배");
+    return card('식사 버프', true, L, fb.until, '식사 버프는 하나만 유지된다. 다른 요리를 먹으면 바뀐다. 장기 탐사에는 출발할 때의 상태가 적용된다.');
+  }
+  if (k === 'tired'){
+    if (!td) return card('지친 몸', false, ['지금은 지치지 않았다.'], 0);
+    return card(`지친 몸${td.weak ? ' (약화)' : ''}`, false, [
+      td.weak ? '장기 탐사 체력 소모 <b>+25%</b>' : '장기 탐사 체력 소모 <b>+50%</b>',
+      td.weak ? '장기 탐사 보상 <b>−15%</b>' : '장기 탐사 보상 <b>−30%</b>',
+      '단기 탐사 대박 확률 −30%, 체력 소모 1.5배'], td.until,
+      '<b>푸는 법</b> · 약초죽(−3시간) · 단팥죽(−2시간) · 친구의 위로(−2시간) · 연인의 애정 표현(−4시간) · 친구가 보낸 요리(약화). 탐사에서 쓰러져 구조되거나 실려 오면 12시간 동안 걸린다.');
+  }
+  if (k === 'enc') return card('격려', true, ['얻는 경험치 <b>+10%</b>', '부부 버프와 함께 쌓인다'], S.buffs.enc, '같은 곳에 있는 개척자가 하루 한 번 격려해 주면 2시간 동안 생긴다.');
+  if (k === 'married') return card('부부의 연', true, ['얻는 경험치 <b>+10%</b> (계속)', '격려와 함께 쌓인다'], 0, '연인에게 세공소에서 만든 청혼 반지로 청혼해 부부가 되면 생긴다. 관계를 정리하면 사라진다.');
+  if (k === 'exp'){
+    if (!es) return card('장기 탐사', true, ['지금은 탐사 중이 아니다.'], 0);
+    return card(`장기 탐사 · ${REG[S.exp.region].n}`, false, ['거점 시설·가방 사용·교류가 잠긴다', '쪽지는 보낼 수 있다', '창을 닫아도 탐사는 계속된다'], es.end, '탐사 탭에서 실시간 일지를 볼 수 있고, 조기 귀환(보상 절반)하면 바로 풀린다.');
+  }
+  if (k === 'down'){
+    return card('행동불능', false, ['탐사 중 체력이 0이 되어 쓰러졌다', '아무것도 할 수 없다'], es && es.autoAt,
+      `같은 고장의 동료가 부축(보상 절반)하거나 각성약으로 일으켜 주면 풀린다. 남은 시간이 지나면 마을 사람들이 실어 오고 치료비 ${FEE_AUTO}${CUR}를 낸다. 돌아온 뒤 12시간 동안 지친 몸이 된다.`);
+  }
+  return card('효과', true, ['알 수 없는 효과'], 0);
 };
 // ===================== 토벌전: 실시간 턴제 전투 (혼자 · 토벌대) =====================
 // 매 턴 직접 행동을 고른다: 공격 · 고유 스킬 · 피하기 · 숨기 · 회복 · 도주.
@@ -3822,6 +3866,7 @@ const ACT = {
   chatSend: d => chatSend(d.room),
   opMaxLv: async () => { if (!isOp()) return; if (!await ask('최대 레벨', `레벨 ${MAX_LV}로 올리고 그만큼의 스탯 포인트를 받습니다.`, '올리기')) return; setHP(curHP()); for (let l = S.lv + 1; l <= MAX_LV; l++) S.pts += (l % 2 === 0) ? 2 : 1; S.lv = MAX_LV; S.xp = 0; setHP(maxHP()); save(); pubDirty(); render(); renderSheet(); toast(`레벨 ${MAX_LV}이 되었습니다.`, 'good'); },
   opGold: d => { if (!isOp()) return; S.gold += +d.n; save(); render(); renderSheet(); toast(`${(+d.n).toLocaleString()}${CUR}을 받았습니다.`, 'good'); },
+  opRecipes: () => { if (!isOp()) return; const n = RECIPES.filter(r => !S.recipes.includes(r.id)).length; S.recipes = RECIPES.map(r => r.id); save(); renderSheet(); render(); toast(n ? `레시피 ${n}개를 새로 익혀 ${RECIPES.length}가지를 모두 알게 되었습니다.` : '이미 모든 레시피를 알고 있습니다.', 'good'); },
   opItems: () => { if (!isOp()) return; for (const k in IT){ const t = IT[k].t; if (['mat','pot','cure','seed','fish'].includes(t)) addItem(k, 20); } save(); render(); renderSheet(); toast('재료·약·씨앗·생선을 20개씩 받았습니다.', 'good'); },
   sendMail: async d => { const el = $('#mailTxt'), v = (el.value || '').trim(); if (!v) return; el.value = ''; await sendMail(d.u, v); renderSheet(); const b = $('#mailbox'); if (b) b.scrollTop = b.scrollHeight; },
   postNotice: async () => { const t = ($('#ntTitle').value || '').trim(), b = ($('#ntBody').value || '').trim(); if (!t || !b) return toast('제목과 내용을 모두 써 주세요.', 'warn'); await postNotice(t, b); toast('공지를 올렸습니다.', 'good'); renderSheet(); },
