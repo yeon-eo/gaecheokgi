@@ -1,5 +1,5 @@
 // 개척기 서비스 워커 — 앱처럼 설치하고, 인터넷이 약해도 화면을 띄운다.
-const VERSION = '20261030163805';
+const VERSION = '20261030164842';
 const SHELL = 'gc-shell-' + VERSION;
 const LIBS = 'gc-libs-v1';
 const SHELL_FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './firebase-config.js'];

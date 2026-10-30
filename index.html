@@ -365,6 +365,14 @@ details.sub .log{ margin-top:6px; background:var(--card); }
 .btn.bt-act.seal{ background:var(--seal); color:var(--seal-ink); border-color:var(--seal); }
 .btn.bt-act .tiny{ font-weight:400; opacity:.8; } .btn.bt-act:disabled{ opacity:.45; }
 .bt-log{ margin-top:10px; max-height:260px; } .bt-log p{ display:block; } .bt-log p.boss{ color:var(--seal); } .bt-log p.skill{ color:var(--indigo); font-weight:700; } .bt-log p.dodge{ color:var(--moss); } .bt-log p.heal{ color:var(--moss); } .bt-log p.sys{ color:var(--ink-3); } .bt-log p.win{ color:var(--moss); font-weight:700; } .bt-log p.down{ color:var(--seal); font-weight:700; }
+
+.li.person{ align-items:flex-start; }
+.li.person .pbody{ display:flex; gap:10px; align-items:flex-start; background:none; border:0; padding:0; text-align:left; min-width:0; color:inherit; flex:1; }
+.li.person .pt{ display:flex; flex-direction:column; gap:3px; min-width:0; flex:1; }
+.li.person .pn{ line-height:1.3; } .li.person .pn b{ display:inline; }
+.li.person .pm{ font-size:.82rem; color:var(--ink-3); line-height:1.4; }
+.li.person .pc{ display:flex; flex-wrap:wrap; gap:4px; margin-top:2px; }
+.li.person .pc .chip{ white-space:nowrap; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -1888,14 +1896,25 @@ function toggleFav(o){ S.fav = isFav(o) ? S.fav.filter(x => x !== o) : [...(S.fa
 const isOnline = p => p && p.seen && now() - p.seen < 6*MIN;
 // 다른 개척자의 체력: 마지막으로 알린 값에서 자연 회복(10분에 5%)을 더해 어림한다
 function hpOf(p){
-  if (!p || p.hp == null || !p.hpMax) return null;
+  if (!p) return null;
+  if (p.hp == null || !p.hpMax){
+    // 아직 새 버전으로 접속하지 않은 개척자: 레벨과 직업으로 최대 체력을 어림하고, 오래 쉬었으면 가득 찬 것으로 본다
+    const lv = p.lv || 1, J = JOBS[p.job]; let pts = 0; for (let l = 2; l <= lv; l++) pts += l % 2 ? 1 : 2;
+    const w = (STAT_GUIDE[p.job] || {w:{}}).w, ws = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+    const vit = 5 + (J && J.main.includes('VIT') ? 3 : 0) + Math.round(pts * (w.VIT || 0) / ws);
+    const mx = Math.round(80 + vit*8 + lv*10);
+    const es0 = p.exp ? expState(p.exp, RESC[`${p.uid}_${p.exp.id}`] || null) : null;
+    if (es0 && es0.st === 'down') return {hp:0, max:mx, note:'행동불능', est:true};
+    if (es0 && es0.st === 'run') return {hp:null, max:mx, note:'탐사 중', est:true};
+    return {hp:mx, max:mx, note:'추정', est:true};
+  }
   const es = p.exp ? expState(p.exp, RESC[`${p.uid}_${p.exp.id}`] || null) : null;
   if (es && es.st === 'down') return {hp:0, max:p.hpMax, note:'행동불능'};
   if (es && es.st === 'run') return {hp:null, max:p.hpMax, note:'탐사 중'};
   const est = Math.min(p.hpMax, Math.round(p.hp + p.hpMax*0.05*Math.max(0, now() - (p.hpAt || p.seen || now()))/(10*MIN)));
   return {hp:est, max:p.hpMax, note:''};
 }
-function hpChip(p){ const h = hpOf(p); if (!h) return ''; if (h.hp == null) return `<span class="chip">♥ ${h.note}</span>`; const r = h.hp/h.max; return `<span class="chip ${r <= 0 ? 'bad' : r < 0.35 ? 'bad' : r < 0.7 ? 'gold' : 'good'}">♥ ${h.hp}/${h.max}${h.note ? ' · ' + h.note : ''}</span>`; }
+function hpChip(p){ const h = hpOf(p); if (!h) return ''; if (h.hp == null) return `<span class="chip">♥ ${h.note}</span>`; if (h.est) return `<span class="chip" title="새 버전에 접속하면 정확한 체력이 보입니다">♥ 약 ${h.hp}/${h.max}</span>`; const r = h.hp/h.max; return `<span class="chip ${r <= 0 ? 'bad' : r < 0.35 ? 'bad' : r < 0.7 ? 'gold' : 'good'}">♥ ${h.hp}/${h.max}${h.note ? ' · ' + h.note : ''}</span>`; }
 // ===================== 지도 · 이동 =====================
 // 지도 위 고장 좌표 (viewBox 360×420)
 const MAPPOS = [[70,362],[140,318],[224,352],[104,248],[232,274],[304,302],[176,202],[292,196],[86,160],[150,104],[70,66],[268,108],[200,42]];
@@ -1948,6 +1967,17 @@ async function startTravel(to){
   sfx('go'); save(); pubDirty(); render();
 }
 
+// 떠난 지 2분 안이면 발길을 돌려 원래 고장으로 돌아올 수 있다
+const CANCEL_MS = 2*MIN;
+const canCancelTravel = () => { const T = S.travel; if (!T || now() >= T.arrive || T.join) return false; if (now() - T.start > CANCEL_MS/SPD()) return false; const P = myParty(); return !(P && P.members.length > 1 && P.leader !== ST.uid); };
+async function cancelTravel(){
+  if (!canCancelTravel()) return toast('떠난 지 2분이 지나 되돌아갈 수 없습니다.');
+  const T = S.travel, P = myParty();
+  if (P && P.members.length > 1 && P.leader === ST.uid){ try { await ST.db.doc('parties/' + P.id).update({travel:null, travelCancel:T.start}); } catch(e){ return toast('조사대에 알리지 못했습니다.', 'warn'); } }
+  S.travel = null; UI.region = S.loc; sfx('soft'); save(); pubDirty(); render();
+  toast(`발길을 돌려 ${josa(REG[T.from].n,'으로','로')} 돌아왔다.`);
+}
+
 // ===================== 조사대 =====================
 let PARTIES = {}, partiesLoaded = false;
 const myParty = () => { const P = S && S.party && PARTIES[S.party]; return P && (P.members || []).includes(ST.uid) ? P : null; };
@@ -1964,6 +1994,9 @@ function partySync(){
   }
   if (!P) return;
   const others = P.members.filter(m => m !== ST.uid).map(nameOf);
+  if (P.travelCancel && S.travel && S.travel.start === P.travelCancel && P.leader !== ST.uid){
+    S.travel = null; UI.region = S.loc; notify('social', '되돌아감', '대장이 발길을 돌렸다. 일행과 함께 돌아왔다.'); save(); pubDirty(); render();
+  }
   if (P.travel && P.travel.start > (S.lastPT || 0)){
     S.lastPT = P.travel.start;
     if (!S.exp && now() < P.travel.arrive){
@@ -2686,6 +2719,7 @@ TABS.explore = () => {
     const lines = travelLines(T).filter(l => l.at <= now());
     where = `<div class="card stack" style="margin-bottom:10px"><div class="row"><div class="grow"><span class="small muted">길 위</span><h2 style="font-size:1.35rem;line-height:1.2">${REG[T.from].n} → ${REG[T.to].n}</h2></div><div style="text-align:right"><span class="small muted">도착까지</span><br><b class="num" data-cd="${T.arrive}"></b></div></div>
       <div class="bar gold"><i id="travBar" style="width:${pct}%"></i></div>
+      ${canCancelTravel() ? `<button class="btn ghost" data-act="cancelTravel">발길 돌리기 · ${REG[T.from].n}${pp(REG[T.from].n,'으로','로')} 돌아가기 <span class="tiny">(<span class="num" data-cd="${T.start + CANCEL_MS/SPD()}"></span> 안에)</span></button>` : ''}
       <div class="log" style="max-height:180px">${lines.slice().reverse().map(l => `<p class="${l.at===T.start?'start':'amb'}"><time class="num">${fmtClock(l.at)}</time><span>${esc(l.x)}</span></p>`).join('')}</div></div>`;
   } else where = `<p class="small" style="margin:0 2px 8px">지금 있는 곳 · <b>${REG[S.loc].n}</b> ${starHTML(S.loc)}</p>`;
   const potSel = k => { const v = Math.min(UI['p_'+k] ?? (k==='pot1'?2:0), cnt(k)); return `<div class="row"><span class="grow">${IT[k].n} <span class="muted small">보유 ${cnt(k)}</span></span><button class="btn sm ghost" data-act="potN" data-k="${k}" data-d="-1" aria-label="${IT[k].n} 줄이기">−</button><b class="num" style="min-width:1.5em;text-align:center">${v}</b><button class="btn sm ghost" data-act="potN" data-k="${k}" data-d="1" aria-label="${IT[k].n} 늘리기">+</button></div>`; };
@@ -2798,7 +2832,7 @@ TABS.social = () => {
   const rank = p => (isFav(p.uid) ? 0 : 2) + (isOnline(p) ? 0 : 1);
   const withRel = people.map(p => ({p, r:getRel(p.uid)})).sort((a,b) => rank(a.p) - rank(b.p) || stageRank(effStage(b.r)) - stageRank(effStage(a.r)) || (b.r.aff||0) - (a.r.aff||0));
   const statusChip = p => { const es = p.exp ? expState(p.exp, RESC[`${p.uid}_${p.exp.id}`] || null) : null; if (es?.st === 'down') return `<span class="chip bad">${REG[p.exp.region].n} · 행동불능</span>`; if (es?.st === 'run') return `<span class="chip blue">${REG[p.exp.region].n} 탐사 중</span>`; if (p.travel && p.travel.arrive > now()) return `<span class="chip blue">${josa(REG[p.travel.to].n,'으로','로')} 이동 중</span>`; const same = (p.loc ?? 0) === S.loc; return `<span class="chip ${same ? 'good' : ''}">${REG[p.loc ?? 0]?.n || '거점'}${same ? ' · 같은 곳' : ''}</span>`; };
-  const person = ({p, r}) => `<div class="li person"><button class="star ${isFav(p.uid)?'on':''}" data-act="fav" data-u="${esc(p.uid)}" aria-label="${isFav(p.uid)?'즐겨찾기 해제':'즐겨찾기'}" aria-pressed="${isFav(p.uid)}">${isFav(p.uid)?'★':'☆'}</button><button class="click grow row" style="gap:10px;background:none;border:0;padding:0;text-align:left;min-width:0" data-act="sheet" data-s="profile" data-a="${esc(p.uid)}"><span class="av-wrap">${PHOTO(p.photo)}<i class="on-dot ${isOnline(p)?'on':''}" aria-label="${isOnline(p)?'접속 중':'오프라인'}"></i></span><span class="t"><b>${esc(p.name)} <span class="small muted num">Lv.${p.lv} ${JOBS[p.job]?.n||''}</span></b><span>${isOnline(p) ? '<b style="color:var(--moss)">접속 중</b>' : p.seen ? `${agoTxt(p.seen)} 접속` : '오프라인'} · ${STAGE_N[effStage(r)]} ${r.aff||0}${p.title ? ' · 「' + esc(p.title) + '」' : ''}</span></span></button><span class="row" style="gap:4px;flex-wrap:wrap;justify-content:flex-end">${hpChip(p)}${statusChip(p)}</span></div>`;
+  const person = ({p, r}) => `<div class="li person"><button class="star ${isFav(p.uid)?'on':''}" data-act="fav" data-u="${esc(p.uid)}" aria-label="${isFav(p.uid)?'즐겨찾기 해제':'즐겨찾기'}" aria-pressed="${isFav(p.uid)}">${isFav(p.uid)?'★':'☆'}</button><button class="click grow pbody" data-act="sheet" data-s="profile" data-a="${esc(p.uid)}"><span class="av-wrap">${PHOTO(p.photo)}<i class="on-dot ${isOnline(p)?'on':''}" aria-label="${isOnline(p)?'접속 중':'오프라인'}"></i></span><span class="pt"><span class="pn"><b>${esc(p.name)}</b> <span class="small muted num">Lv.${p.lv} ${JOBS[p.job]?.n||''}</span></span><span class="pm">${isOnline(p) ? '<b style="color:var(--moss)">접속 중</b>' : p.seen ? `${agoTxt(p.seen)} 접속` : '오프라인'} · ${STAGE_N[effStage(r)]} ${r.aff||0}${p.title ? ' · 「' + esc(p.title) + '」' : ''}</span><span class="pc">${hpChip(p)}${statusChip(p)}</span></span></button></div>`;
   const threads = mailThreads();
   return `<div class="sec-title"><h2>교류</h2><span class="small muted">마을 사람 ${people.length}명 · 접속 ${online}명</span></div>
   ${baseLocked() ? '<p class="small" style="color:var(--seal);margin:0 2px 8px">장기 탐사 중에는 교류할 수 없다. 쪽지는 보낼 수 있다.</p>' : `<p class="tiny muted" style="margin:0 2px 8px">지금 있는 곳: <b>${REG[S.loc].n}</b> · 같은 고장에 있는 사람과만 교류할 수 있다. 쪽지는 어디서든 보낼 수 있다.</p>`}
@@ -3136,7 +3170,7 @@ SHEETS.profile = o => {
   <div class="row wrapf" style="gap:6px;margin-top:6px">${(p.titles||[]).map(t => `<span class="chip gold">${esc(t)}</span>`).join('')}${tired?'<span class="chip bad">지친 몸</span>':''}${es?.st==='run'?`<span class="chip blue">${REG[p.exp.region].n} 탐사 중</span>`:''}${es?.st==='down'?`<span class="chip bad">${REG[p.exp.region].n} · 행동불능</span>`:''}${p.travel && p.travel.arrive > now() ? `<span class="chip blue">${josa(REG[p.travel.to].n,'으로','로')} 이동 중</span>` : !es ? `<span class="chip">${REG[p.loc ?? 0]?.n}</span>` : ''}${myParty()?.members.includes(o) ? '<span class="chip good">우리 조사대</span>' : ''}</div></div></div>
   ${p.bio ? `<p>${esc(p.bio)}</p>` : ''}
   ${(p.comps||[]).length ? `<div class="row wrapf">${p.comps.map(c => `<span class="row" style="gap:4px">${art(c.sp).replace('class="crit ', 'style="width:40px;height:40px" class="crit ')}<span class="small">${esc(c.name)}</span></span>`).join('')}</div>` : ''}
-  ${(() => { const h = hpOf(p); if (!h) return ''; const pct = h.hp == null ? 0 : h.hp/h.max*100; return `<div class="card" style="margin-top:10px"><div class="row"><b class="grow">체력</b><span class="num small">${h.hp == null ? h.note : `${h.hp} / ${h.max}`}${h.note && h.hp != null ? ` · ${h.note}` : ''}</span></div><div class="bar" style="margin-top:6px"><i style="width:${pct}%;background:${pct < 35 ? 'var(--seal)' : pct < 70 ? 'var(--gold)' : 'var(--moss)'}"></i></div>${h.hp != null && h.hp < h.max*0.5 ? '<p class="tiny muted" style="margin:6px 0 0">많이 다쳤다. 같은 고장에 있다면 \'치료\'로 회복 환약을 써 줄 수 있다.</p>' : ''}</div>`; })()}
+  ${(() => { const h = hpOf(p); if (!h) return ''; const pct = h.hp == null ? 0 : h.hp/h.max*100; return `<div class="card" style="margin-top:10px"><div class="row"><b class="grow">체력</b><span class="num small">${h.hp == null ? h.note : `${h.hp} / ${h.max}`}${h.note && h.hp != null ? ` · ${h.note}` : ''}</span></div><div class="bar" style="margin-top:6px"><i style="width:${pct}%;background:${pct < 35 ? 'var(--seal)' : pct < 70 ? 'var(--gold)' : 'var(--moss)'}"></i></div>${h.est ? '<p class="tiny muted" style="margin:6px 0 0">레벨로 어림한 값이다. 이 개척자가 새 버전으로 접속하면 정확한 체력이 보인다.</p>' : ''}${h.hp != null && h.hp < h.max*0.5 ? '<p class="tiny muted" style="margin:6px 0 0">많이 다쳤다. 같은 고장에 있다면 \'치료\'로 회복 환약을 써 줄 수 있다.</p>' : ''}</div>`; })()}
   <div class="card" style="margin-top:10px"><div class="row"><b class="grow">${STAGE_N[s]}</b><span class="num small">호감도 ${r.aff||0}/100</span></div><div class="bar gold" style="margin-top:6px"><i style="width:${r.aff||0}%"></i></div>
   <p class="tiny muted" style="margin:6px 0 0">${({acq:'호감도 30이 되면 친구 신청을 할 수 있다.',friend:'호감도 60이 되면 절친이 된다.',best:'호감도 80이 되면 고백할 수 있다. 재료도 나눌 수 있다.',lover:'청혼 반지가 있으면 언제든 청혼할 수 있다.',married:'부부 버프: 경험치 +10%'})[s]}</p></div>
   ${es?.st === 'down' ? (S.loc === p.exp.region && !baseLocked() ? `<div class="row" style="margin-top:10px"><button class="btn seal grow" data-act="rescue" data-u="${esc(o)}" data-k="heal" ${cnt('cure')?'':'disabled'}>각성약으로 일으키기 (${cnt('cure')})</button><button class="btn grow" data-act="rescue" data-u="${esc(o)}" data-k="carry">부축하기</button></div>` : `<p class="small" style="color:var(--seal)">${REG[p.exp.region].n}에 가야 구조할 수 있다. <button class="btn sm ghost" data-act="goRegion" data-r="${p.exp.region}">${josa(REG[p.exp.region].n,'으로','로')} 가기</button></p>`) : ''}
@@ -3702,6 +3736,7 @@ const ACT = {
   buyAnimal: d => buyAnimal(d.k), feedAnimal: d => feedAnimal(d.id), collectAnimal: d => collectAnimal(d.id), releaseAnimal: d => releaseAnimal(d.id),
   setTitle: d => { S.title = d.k; save(); pubDirty(); renderSheet(); render(); toast(`칭호 「${curTitle()}」를 달았다.`, 'good'); },
   fav: d => toggleFav(d.u),
+  cancelTravel: () => cancelTravel(),
   bt: d => battleAct(d.a), btClose: () => battleClose(),
   pushOn: () => pushEnable(), pushOff: () => pushDisable(),
   pushKeySave: async () => { if (!isOp()) return; const v = ($('#vapidKey').value || '').trim(); if (v && !/^[A-Za-z0-9_-]{80,100}$/.test(v)) return toast('웹 푸시 인증서의 키 쌍(B로 시작하는 긴 글자)을 그대로 붙여 넣어 주세요.', 'warn'); try { if (v) await ST.db.doc('config/push').set({vapid:v, ts:now()}); else await ST.db.doc('config/push').delete(); toast(v ? '푸시 알림 키를 저장했습니다.' : '푸시 알림 키를 지웠습니다.', 'good'); } catch(e){ toast('저장하지 못했습니다.', 'warn'); } },
