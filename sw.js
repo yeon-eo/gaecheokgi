@@ -1,5 +1,5 @@
 // 개척기 서비스 워커 — 앱처럼 설치하고, 인터넷이 약해도 화면을 띄운다.
-const VERSION = '20261030151458';
+const VERSION = '20261030154345';
 const SHELL = 'gc-shell-' + VERSION;
 const LIBS = 'gc-libs-v1';
 const SHELL_FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './firebase-config.js'];
@@ -30,4 +30,26 @@ self.addEventListener('fetch', e => {
     e.respondWith(caches.open(LIBS).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok || r.type === 'opaque') c.put(req, r.clone()); return r; }))));
   }
   // 그 밖(게임 데이터 서버, 유튜브 등)은 그대로 통과
+});
+
+// ---- 푸시 알림: 앱이 꺼져 있어도 서버(GitHub Actions)가 보낸 알림을 띄운다 ----
+self.addEventListener('push', e => {
+  let p = {};
+  try { p = e.data ? e.data.json() : {}; } catch(x){ p = {data:{title:'개척기', body: e.data ? e.data.text() : ''}}; }
+  const d = p.data || p.notification || p;
+  const title = d.title || '개척기';
+  e.waitUntil(self.registration.showNotification(title, {
+    body: d.body || '', icon: 'icon-192.png', badge: 'icon-192.png', tag: d.tag || undefined, renotify: !!d.tag,
+    data: {tab: d.tab || 'home'},
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const tab = (e.notification.data && e.notification.data.tab) || 'home';
+  const url = new URL('./?tab=' + tab, self.registration.scope).href;
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({type:'window', includeUncontrolled:true});
+    for (const c of all){ if (c.url.startsWith(self.registration.scope)){ await c.focus(); return; } }
+    await self.clients.openWindow(url);
+  })());
 });

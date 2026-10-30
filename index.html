@@ -15,7 +15,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-<script>if (!window.firebase || !firebase.firestore || !firebase.auth) { ['app','auth','firestore'].forEach(function (m) { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.2/firebase-' + m + '-compat.js"><\/script>'); }); }</script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"></script>
+<script>if (!window.firebase || !firebase.firestore || !firebase.auth) { ['app','auth','firestore','messaging'].forEach(function (m) { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.2/firebase-' + m + '-compat.js"><\/script>'); }); }</script>
 <script src="firebase-config.js"></script>
 <script>
 // PWA: 서비스 워커 등록 + 새 버전 알림 + 설치 버튼
@@ -842,7 +843,7 @@ function newSave(){
     mit:{d:'',from:{}}, reqs:[], raidsDone:{}, lastDay:'',
     stats:{}, pen:[], fav:[], greet:{d:'',ids:{}}, notis:[], met:{d:'',ids:{}}, noticeSeen:0, mailSeen:0, title:'newbie', buffs:{},
     social:{block:[], noRomance:false, noReq:false},
-    settings:{bgm:true,bgmVol:.35,sfx:true,sfxVol:.6,font:'M',theme:'system',fast:false,noti:{exp:true,harvest:true,hatch:true,rescue:true,social:true}},
+    settings:{bgm:true,bgmVol:.35,sfx:true,sfxVol:.6,font:'M',theme:'system',fast:false,push:false,noti:{exp:true,harvest:true,hatch:true,rescue:true,social:true}},
   };
 }
 
@@ -1305,7 +1306,7 @@ function settleExp(kind){
   const shown = kind === 'early' ? res.lines : res.downedAt != null ? res.lines : res.lines;
   S.hist.unshift({kind, region:E.region, at:now(), start:E.start, tick:E.tick, xp, gold, fee, n:Object.values(got).reduce((a,b)=>a+b,0), got, kills:res.kills, dur:E.dur*SPD(), party:(E.party||[]).map(a => a.name), lines:shown.slice(-160)}); S.hist = S.hist.slice(0, 8);
   save(); pubDirty();
-  if (kind === 'done') notify('exp', '장기 탐사 완료', `${REG[E.region].n}에서 무사히 돌아왔습니다.`);
+  if (kind === 'done') notify('exp', '장기 탐사 완료', `${REG[E.region].n}에서 무사히 돌아왔습니다.`, 'exp' + E.id);
   openSheet('result', sum); sfx(kind === 'done' ? 'win' : 'soft');
 }
 let shortRun = null;
@@ -2144,6 +2145,104 @@ function facPanel(f){
     ${chatBox(f)}`;
 }
 function fishPeople(){ const ps = whoAt('fish'); return ps.length ? `<p class="tiny" style="margin:6px 0 0">함께 낚시 중: ${ps.map(p => esc(p.name)).join(', ')}</p>` : ''; }
+// ===================== 푸시 알림 (앱을 꺼 둬도 오는 알림) =====================
+// 구조: 휴대폰은 Firebase 메시징 토큰을 push/{uid} 에 적어 두고, "언제 무슨 알림이 필요한지(due)"도 함께 적는다.
+// GitHub Actions 가 5분마다 이 목록을 읽어 때가 된 알림을 보낸다. 쪽지·선물·구조 요청도 그때 함께 보낸다.
+const PUSH = {cfg:null, busy:false, msg:'', sig:'', lastWrite:0};
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const pushCapable = () => !!(window.FB_MODE && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && window.firebase && firebase.messaging);
+const pushOn = () => !!(S && S.settings.push && typeof Notification !== 'undefined' && Notification.permission === 'granted');
+
+function pushWatch(){
+  if (!window.FB_MODE || !ST.rdb) return;
+  try { ST.rdb.doc('config/push').onSnapshot(d => { PUSH.cfg = d.exists ? d.data() : null; if (SHEET && SHEET.k === 'settings') renderSheet(true); }, () => {}); } catch(e){}
+}
+async function pushToken(){
+  const reg = await navigator.serviceWorker.ready;
+  const msg = firebase.messaging();
+  return await msg.getToken({vapidKey: PUSH.cfg.vapid, serviceWorkerRegistration: reg});
+}
+async function pushEnable(){
+  if (!pushCapable()) return toast('이 브라우저에서는 푸시 알림을 받을 수 없습니다.', 'warn');
+  if (isIOS() && !isStandalone()) return toast('아이폰은 홈 화면에 설치한 개척기 앱에서만 푸시 알림을 켤 수 있어요.', 'warn');
+  if (!PUSH.cfg || !PUSH.cfg.vapid) return toast('운영자가 아직 푸시 알림을 준비하지 않았습니다.', 'warn');
+  PUSH.busy = true; renderSheet();
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted'){ PUSH.busy = false; renderSheet(); return toast(perm === 'denied' ? '알림이 차단되어 있습니다. 휴대폰 설정에서 개척기 알림을 허용해 주세요.' : '알림 허용을 누르지 않았습니다.', 'warn'); }
+    const tok = await pushToken();
+    if (!tok) throw new Error('no token');
+    S.settings.push = true; S.pushTok = tok; save();
+    await ST.db.doc('push/' + ST.uid).update({uid:ST.uid, tokens:{[tok]:now()}, ts:now()});
+    PUSH.sig = ''; await pushSync(true);
+    toast('푸시 알림을 켰습니다. 앱을 닫아 두어도 알림이 옵니다.', 'good');
+    try { (await navigator.serviceWorker.ready).showNotification('개척기', {body:'이렇게 알림이 옵니다.', icon:'icon-192.png', badge:'icon-192.png', tag:'push-test'}); } catch(e){}
+  } catch(e){ console.warn('push', e); toast('푸시 알림을 켜지 못했습니다. 잠시 후 다시 시도해 주세요.', 'warn'); }
+  PUSH.busy = false; renderSheet();
+}
+async function pushDisable(){
+  S.settings.push = false; save();
+  try {
+    if (S.pushTok){ await ST.db.doc('push/' + ST.uid).set({uid:ST.uid, tokens:{}, due:[], ts:now()}); try { await firebase.messaging().deleteToken(); } catch(e){} }
+  } catch(e){}
+  S.pushTok = null; save(); renderSheet(); toast('푸시 알림을 껐습니다.');
+}
+// 앱을 열 때마다 토큰을 새로 확인 (토큰은 가끔 바뀐다)
+async function pushRefresh(){
+  if (!pushOn() || !pushCapable() || !PUSH.cfg || !PUSH.cfg.vapid) return;
+  try { const tok = await pushToken(); if (tok && tok !== S.pushTok){ S.pushTok = tok; save(); await ST.db.doc('push/' + ST.uid).update({uid:ST.uid, tokens:{[tok]:now()}, ts:now()}); } } catch(e){}
+}
+
+// 앞으로 올 알림 목록. key 는 화면 안 알림과 같게 맞춰 같은 알림이 두 번 뜨지 않게 한다.
+function pushDue(){
+  const out = [], t = now(), on = k => S.settings.noti[k] !== false;
+  const add = (at, kind, title, body, key, extra) => { if (at > t + 20000 && on(kind)) out.push({at:Math.round(at), title, body, key, tab:extra?.tab || 'home', ...(extra?.all ? {all:true, allBody:extra.allBody, allTitle:extra.allTitle} : {})}); };
+  const E = S.exp;
+  if (E){
+    const res = simOf(E);
+    if (res.downedAt != null){
+      const at = E.start + res.downedAt*E.tick;
+      add(at, 'rescue', '행동불능', `${REG[E.region].n}에서 쓰러졌습니다… 동료의 구조를 기다리는 중입니다.`, 'down' + E.id, {tab:'explore', all:true, allTitle:'구조 요청', allBody:`${S.char.name}님이 ${REG[E.region].n}에서 쓰러졌습니다. 같은 고장으로 가서 도와주세요.`});
+    } else add(E.start + E.dur, 'exp', '장기 탐사 완료', `${REG[E.region].n}에서 무사히 돌아왔습니다. 보상을 받으러 오세요.`, 'exp' + E.id, {tab:'explore'});
+  }
+  if (S.travel) add(S.travel.arrive, 'exp', '도착', `${REG[S.travel.to].n}에 도착했습니다.`, 'arrive' + S.travel.arrive, {tab:'explore'});
+  if (S.task) add(S.task.start + S.task.dur, 'harvest', '생활 작업', `${TASKS[S.task.kind].n}${pp(TASKS[S.task.kind].n,'을','를')} 마쳤습니다.`, 'task' + S.task.start);
+  S.farm.forEach((f, i) => { if (f) add(f.at + f.dur, 'harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
+  if (S.nest) add(S.nest.at + S.nest.dur, 'hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
+  S.pen.forEach(a => { if (a.fed) add(a.readyAt, 'harvest', '축사', `${a.name}에게서 ${IT[ANIMALS[a.kind].out[0]].n}${pp(IT[ANIMALS[a.kind].out[0]].n,'을','를')} 거둘 수 있습니다.`, 'pen' + a.id + a.readyAt); });
+  // 같은 시각(1분 안)에 겹치는 수확 알림은 하나로 묶는다
+  out.sort((a, b) => a.at - b.at);
+  const merged = [];
+  for (const d of out){
+    const last = merged[merged.length-1];
+    if (last && !d.all && !last.all && last.title === d.title && d.at - last.at < 60000){ last.more = (last.more || 0) + 1; last.at = d.at; continue; }
+    merged.push({...d});
+  }
+  for (const m of merged) if (m.more){ m.body += ` (외 ${m.more}건)`; delete m.more; }
+  return merged.slice(0, 30);
+}
+async function pushSync(force){
+  if (!S || !S.char || ST.mode !== 'cloud' || !pushOn() || !S.pushTok) return;
+  const due = pushDue(), prefs = {social: S.settings.noti.social !== false, rescue: S.settings.noti.rescue !== false};
+  const sig = JSON.stringify([due.map(d => [d.key, d.at]), prefs, S.char.name, S.loc]);
+  if (!force && (sig === PUSH.sig || now() - PUSH.lastWrite < 5000)) return;
+  PUSH.sig = sig; PUSH.lastWrite = now();
+  try { await ST.db.doc('push/' + ST.uid).update({uid:ST.uid, name:S.char.name, due, prefs, loc:S.loc, ts:now()}); } catch(e){ PUSH.sig = ''; }
+}
+
+function pushBox(){
+  if (!window.FB_MODE) return '<p class="small muted" style="margin:4px 0">푸시 알림은 웹사이트(앱) 버전에서 쓸 수 있습니다.</p>';
+  if (!pushCapable()){
+    if (isIOS()) return `<p class="small" style="margin:4px 0">${isStandalone() ? '이 아이폰은 푸시 알림을 지원하지 않습니다. iOS 16.4 이상으로 업데이트해 주세요.' : '아이폰은 <b>홈 화면에 설치한 개척기 앱</b>에서만 푸시 알림을 받을 수 있어요. 위의 설치 방법대로 설치한 뒤, 앱에서 이 버튼을 눌러 주세요.'}</p>`;
+    return '<p class="small muted" style="margin:4px 0">이 브라우저는 푸시 알림을 지원하지 않습니다. 크롬이나 사파리로 열어 주세요.</p>';
+  }
+  if (isIOS() && !isStandalone()) return '<p class="small" style="margin:4px 0">아이폰은 <b>홈 화면에 설치한 개척기 앱</b>에서만 푸시 알림을 받을 수 있어요. 설치한 뒤 앱에서 켜 주세요.</p>';
+  if (!PUSH.cfg || !PUSH.cfg.vapid) return '<p class="small muted" style="margin:4px 0">운영자가 푸시 알림을 준비하는 중입니다.</p>';
+  const denied = Notification.permission === 'denied';
+  if (pushOn() && S.pushTok) return `<div class="row"><span class="chip good">푸시 알림 켜짐</span><button class="btn sm ghost" data-act="pushOff">끄기</button></div><p class="tiny muted" style="margin:4px 0 0">앱을 닫아 두어도 탐사 완료·수확·부화·구조 요청·쪽지 알림이 옵니다. 서버가 5분마다 확인해서 몇 분 늦게 올 수 있어요. 아래에서 알림 종류를 고를 수 있습니다.</p>`;
+  return `<div class="row"><button class="btn seal" data-act="pushOn" ${PUSH.busy || denied ? 'disabled' : ''}>${PUSH.busy ? '켜는 중…' : '🔔 푸시 알림 받기'}</button></div><p class="tiny muted" style="margin:4px 0 0">${denied ? '알림이 차단되어 있습니다. 휴대폰 설정 → 알림(또는 브라우저 사이트 설정)에서 개척기 알림을 허용한 뒤 다시 눌러 주세요.' : '앱을 닫아 두어도 탐사 완료·수확·부화·구조 요청·쪽지 알림을 받습니다.'}</p>`;
+}
 // ===================== 아이콘 =====================
 const ico = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICO = {
@@ -2207,7 +2306,13 @@ function notify(kind, title, text, key){
   if (S){ S.notis = S.notis || []; S.notis.unshift({t:now(), title, text, kind, read:false}); S.notis = S.notis.slice(0, 40); updBadges(); }
   if (S && S.settings.noti[kind] === false) return;
   toast(text, 'good'); sfx('bell');
-  try { if (document.hidden && 'Notification' in window && Notification.permission === 'granted') new Notification(title, {body:text}); } catch(e){}
+  try {
+    if (document.hidden && 'Notification' in window && Notification.permission === 'granted'){
+      const opt = {body:text, icon:'icon-192.png', badge:'icon-192.png', tag:key || ('n' + now())};
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(r => r.showNotification(title, opt)).catch(() => {});
+      else new Notification(title, opt);
+    }
+  } catch(e){}
 }
 const notiUnread = () => S ? (S.notis || []).filter(n => !n.read).length : 0;
 function updBadges(){
@@ -2896,6 +3001,7 @@ SHEETS.settings = () => {
   <h3 style="margin-top:14px">글자 크기</h3><div class="seg">${[['S','작게'],['M','보통'],['L','크게'],['XL','아주 크게']].map(([k,n]) => `<button data-act="setOpt" data-o="font" data-v="${k}" aria-pressed="${st.font===k}">${n}</button>`).join('')}</div>
   <h3 style="margin-top:14px">화면 모드</h3><div class="seg">${[['light','라이트 (양피지)'],['dark','다크 (먹빛)'],['system','기기 설정 따르기']].map(([k,n]) => `<button data-act="setOpt" data-o="theme" data-v="${k}" aria-pressed="${st.theme===k}">${n}</button>`).join('')}</div>
   <h3 style="margin-top:14px">알림</h3>
+  ${window.FB_MODE ? `<div class="card" style="padding:12px;margin:6px 0 8px"><b class="small">푸시 알림 (앱을 꺼 두어도 받기)</b>${pushBox()}</div>` : ''}
   <div class="stack" style="gap:0">${tog('noti.exp','장기 탐사 완료', st.noti.exp)}${tog('noti.harvest','작물 수확', st.noti.harvest)}${tog('noti.hatch','알 부화', st.noti.hatch)}${tog('noti.rescue','구조 요청', st.noti.rescue)}${tog('noti.social','교류 요청·쪽지·칭호', st.noti.social)}</div>
   <p class="tiny muted">게임 화면 안의 알림입니다. ${notiPerm === 'granted' ? '브라우저 알림도 켜져 있습니다.' : notiPerm === 'unsupported' ? '이 환경에서는 브라우저 알림을 쓸 수 없습니다.' : '<button class="btn sm ghost" data-act="notiPerm">브라우저 알림 허용하기</button> (환경에 따라 동작하지 않을 수 있습니다)'}</p>
   <h3 style="margin-top:14px">교류</h3>
@@ -2915,6 +3021,7 @@ SHEETS.settings = () => {
     <div class="row wrapf" style="margin-top:6px"><button class="btn sm seal" data-act="opMaxLv" ${S.lv >= MAX_LV ? 'disabled' : ''}>최대 레벨 (Lv.${MAX_LV})</button><button class="btn sm" data-act="opGold" data-n="100000">+10만 ${CUR}</button><button class="btn sm" data-act="opGold" data-n="1000000">+100만 ${CUR}</button><button class="btn sm ghost" data-act="opItems">재료 한 보따리</button></div>
     ${tog('infGold', `재화 무한 (엽전이 늘 99,999,999${CUR}로 채워진다)`, st.infGold)}</div>
   ${musicTools()}
+  ${window.FB_MODE ? `<div class="card" style="padding:12px"><b class="small">푸시 알림 키 (웹 푸시 인증서)</b><p class="tiny muted" style="margin:2px 0 6px">Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징 → 웹 푸시 인증서의 '키 쌍'을 붙여 넣으세요. 지금: ${PUSH.cfg && PUSH.cfg.vapid ? '등록됨' : '없음'}</p><div class="row"><input id="vapidKey" type="text" placeholder="B로 시작하는 긴 키" value="${esc(PUSH.cfg?.vapid || '')}" aria-label="웹 푸시 키"><button class="btn sm" data-act="pushKeySave">저장</button></div></div>` : ''}
   ${ST.mode === 'cloud' ? `<div class="row"><select id="grantTo" aria-label="받을 사람">${Object.values(PL).map(p => `<option value="${esc(p.uid)}">${esc(p.name)}${p.uid===ST.uid?' (나)':''}</option>`).join('')}</select><button class="btn sm" data-act="grant">전직 증서 지급</button></div>` : `<button class="btn sm ghost" data-act="grantSelf">전직 증서 받기</button>`}</div>` : ''}`;
 };
 
@@ -3335,6 +3442,8 @@ const ACT = {
   buyAnimal: d => buyAnimal(d.k), feedAnimal: d => feedAnimal(d.id), collectAnimal: d => collectAnimal(d.id), releaseAnimal: d => releaseAnimal(d.id),
   setTitle: d => { S.title = d.k; save(); pubDirty(); renderSheet(); render(); toast(`칭호 「${curTitle()}」를 달았다.`, 'good'); },
   fav: d => toggleFav(d.u),
+  pushOn: () => pushEnable(), pushOff: () => pushDisable(),
+  pushKeySave: async () => { if (!isOp()) return; const v = ($('#vapidKey').value || '').trim(); if (v && !/^[A-Za-z0-9_-]{80,100}$/.test(v)) return toast('웹 푸시 인증서의 키 쌍(B로 시작하는 긴 글자)을 그대로 붙여 넣어 주세요.', 'warn'); try { if (v) await ST.db.doc('config/push').set({vapid:v, ts:now()}); else await ST.db.doc('config/push').delete(); toast(v ? '푸시 알림 키를 저장했습니다.' : '푸시 알림 키를 지웠습니다.', 'good'); } catch(e){ toast('저장하지 못했습니다.', 'warn'); } },
   pwaInstall: async () => { const p = window.PWA && PWA.prompt; if (!p) return; p.prompt(); try { await p.userChoice; } catch(e){} PWA.prompt = null; renderSheet(); },
   pwaUpdate: () => { if (window.PWA && PWA.update) PWA.update(); },
   chatSend: d => chatSend(d.room),
@@ -3467,6 +3576,7 @@ function tick(){
   if (S.nest && now() >= S.nest.at + S.nest.dur) notify('hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
   checkTitles();
   presenceTick(); chatSync();
+  if (window.FB_MODE && now() % 5000 < 1000) pushSync();
   if (S.settings.infGold && isOp() && S.gold < 99999999){ S.gold = 99999999; }
   S.pen.forEach(a => { if (a.fed && now() >= a.readyAt) notify('harvest', '축사', `${a.name}에게서 ${IT[ANIMALS[a.kind].out[0]].n}${pp(IT[ANIMALS[a.kind].out[0]].n,'을','를')} 거둘 수 있습니다.`, 'pen' + a.id + a.readyAt); });
   if (ST.mode === 'cloud' && !document.hidden && now() - (window._hb || 0) > 3*MIN){ window._hb = now(); writePub(true); }
@@ -3502,7 +3612,7 @@ function afterLogin(){
   applyPrefs(); auVol();
   if (!S.char){ TMP = {show:{age:true, gender:true, height:true}}; SCREEN = 'char'; }
   else if (!S.job){ TMP = {}; SCREEN = 'job'; }
-  else { SCREEN = 'game'; startSync(); pubDirty(); try { const t = new URLSearchParams(location.search).get('tab'); if (t && TABS[t]) UI.tab = t; } catch(e){} }
+  else { SCREEN = 'game'; startSync(); pubDirty(); setTimeout(() => { if (typeof pushRefresh === 'function') pushRefresh(); }, 3000); try { const t = new URLSearchParams(location.search).get('tab'); if (t && TABS[t]) UI.tab = t; } catch(e){} }
   render(); window.scrollTo(0,0);
 }
 async function boot(){
@@ -3556,7 +3666,7 @@ function fbBoot(){
   window.claude = {use: async n => n === 'db' ? db : n === 'user' ? {
     id: async () => FB.auth.currentUser?.uid || null, isOwner: async () => ST.isOwner, canEdit: async () => ST.isOwner, can: async () => true,
     me: async () => ({id:FB.auth.currentUser?.uid || null}) } : null};
-  ST.rdb = db; musicWatch();
+  ST.rdb = db; musicWatch(); pushWatch();
   FB.auth.onAuthStateChanged(async u => {
     if (u){
       ST.mode = 'cloud'; ST.db = db; ST.uid = u.uid;
