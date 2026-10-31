@@ -489,9 +489,9 @@ const IT = {
   ring:{n:'청혼 반지',t:'sp',p:0,d:'연인에게 청혼할 때 필요하다.',f:'직접 깎고 다듬은 반지. 세상에 하나뿐이다.'},
   // 무구 (이름은 직업마다 다르게 보인다 — WEAPON_N)
   w1:{n:'수련용 무기',t:'weapon',p:20,atk:3,f:'수련용으로 깎은 가벼운 무기. 처음 손에 익히기 좋다.'}, w2:{n:'강철 무기',t:'weapon',p:80,atk:7,f:'마을 대장간에서 두드린 강철 무기.'},
-  w3:{n:'미스릴 무기',t:'weapon',p:260,atk:14,f:'정령석을 녹여 넣어 푸르게 빛나는 미스릴 무기.'}, w4:{n:'정령 무기',t:'weapon',p:900,atk:24,f:'정령석의 빛이 깃든 전설급 명품.'},
+  w3:{n:'흑요석 무기',t:'weapon',p:260,atk:14,f:'화산에서 난 흑요석을 정령석과 함께 벼려 검게 빛나는 무기.'}, w4:{n:'정령 무기',t:'weapon',p:900,atk:24,f:'정령석의 빛이 깃든 전설급 명품.'},
   a1:{n:'가죽 갑옷',t:'armor',p:30,def:3,f:'몸통을 감싸는 가볍고 질긴 가죽 갑옷.'}, a2:{n:'강철 흉갑',t:'armor',p:100,def:7,f:'배와 허리를 두르는 철판 갑옷.'},
-  a3:{n:'미스릴 비늘 갑옷',t:'armor',p:300,def:13,f:'짐승 뼈와 미스릴 비늘을 끈으로 엮은 갑옷.'}, a4:{n:'정령 갑옷',t:'armor',p:950,def:20,f:'정령석 비늘이 빛을 머금은 갑옷.'},
+  a3:{n:'흑요석 비늘 갑옷',t:'armor',p:300,def:13,f:'짐승 뼈와 흑요석 비늘을 끈으로 엮은 갑옷.'}, a4:{n:'정령 갑옷',t:'armor',p:950,def:20,f:'정령석 비늘이 빛을 머금은 갑옷.'},
   // 장신구: 목걸이 neck · 팔찌 wrist · 반지 ring(2개까지)
   acc3:{n:'바람 깃 목걸이',t:'acc',slot:'neck',p:200,st:{AGI:3},f:'매의 깃털을 은사슬에 꿴 목걸이. 걸음이 가벼워진다.'},
   n1:{n:'곡옥 목걸이',t:'acc',slot:'neck',p:420,st:{LUK:2,SEN:2},f:'곡옥을 꿴 목걸이. 행운과 눈썰미를 부른다.'},
@@ -503,15 +503,15 @@ const IT = {
   r1:{n:'은반지',t:'acc',slot:'ring',p:190,st:{VIT:3},f:'수수한 은반지. 손에 힘이 들어간다.'},
   r2:{n:'산호빛 반지',t:'acc',slot:'ring',p:220,st:{INT:3},f:'대합 껍데기 안쪽의 빛을 갈아 박은 반지.'},
 };
-// 무기 이름: 파이널판타지14식 '재료 + 무기 종류'로 알아보기 쉽게
+// 무기 이름: 파이널판타지14식 (3단계는 흑요석) '재료 + 무기 종류'로 알아보기 쉽게
 const WEAPON_N = {
-  samurai:['수련용 목도','강철 태도','미스릴 태도','정령검 「천운」'],
-  monk:['떡갈나무 봉','강철 봉','미스릴 봉','정령의 금강봉'],
-  thief:['견습 단검','강철 쌍단검','미스릴 쌍단검','정령의 쌍단검'],
-  brawler:['가죽 너클','강철 너클','미스릴 건틀릿','정령의 건틀릿'],
-  healer:['참나무 지팡이','은방울 지팡이','미스릴 지팡이','정령의 신목 지팡이'],
-  onmyoji:['견습 마도서','강철 장정 마도서','미스릴 마도서','정령의 마도서'],
-  hunter:['견습 표창','강철 표창','미스릴 수리검','정령의 대수리검'],
+  samurai:['수련용 목도','강철 태도','흑요석 태도','정령검 「천운」'],
+  monk:['떡갈나무 봉','강철 봉','흑요석 봉','정령의 금강봉'],
+  thief:['견습 단검','강철 쌍단검','흑요석 쌍단검','정령의 쌍단검'],
+  brawler:['가죽 너클','강철 너클','흑요석 건틀릿','정령의 건틀릿'],
+  healer:['참나무 지팡이','은방울 지팡이','흑요석 지팡이','정령의 신목 지팡이'],
+  onmyoji:['견습 마도서','강철 장정 마도서','흑요석 마도서','정령의 마도서'],
+  hunter:['견습 표창','강철 표창','흑요석 수리검','정령의 대수리검'],
 };
 const WEAPON_KIND = {samurai:'태도', monk:'봉', thief:'쌍단검', brawler:'너클', healer:'지팡이', onmyoji:'마도서', hunter:'표창'};
 // 탐사 중 떨어지는 고장별 장비: 능력치는 같은 레벨대 제작 장비와 비슷하고, 이름은 고장마다 다르다.
@@ -525,7 +525,7 @@ const REGION_GEAR = [
   {p:'적철', a:'붉은 바위 흉갑', x:{n:'홍옥 팔찌',slot:'wrist',st:{STR:3}}, f:'협곡의 붉은 쇠로 벼린 물건. 손에 쥐면 묵직하다.'},
   {p:'안개결', a:'물안개 비늘 갑옷', x:{n:'이슬방울 반지',slot:'ring',st:{INT:3}}, f:'안개 호수 사당에 바쳐져 있던 물건. 늘 차갑게 젖어 있다.'},
   {p:'홍엽', a:'단풍 무늬 갑옷', x:{n:'단풍 매듭 목걸이',slot:'neck',st:{AGI:3,LUK:1}}, f:'단풍 고개 찻집 터에서 주운 물건. 붉은 잎 무늬가 새겨져 있다.'},
-  {p:'용암', a:'흑요석 갑옷', x:{n:'불씨 팔찌',slot:'wrist',st:{STR:3,VIT:1}}, f:'화산의 열기로 담금질된 물건. 아직도 따뜻하다.'},
+  {p:'용암', a:'용암석 갑옷', x:{n:'불씨 팔찌',slot:'wrist',st:{STR:3,VIT:1}}, f:'화산의 열기로 담금질된 물건. 아직도 따뜻하다.'},
   {p:'옛 신사의', a:'낡은 신관 갑옷', x:{n:'빛바랜 부적 반지',slot:'ring',st:{SPI:3,INT:1}}, f:'무너진 신사 배전 밑에서 나온 물건. 희미한 신력이 남아 있다.'},
   {p:'설화', a:'설원 털가죽 갑옷', x:{n:'눈꽃 결정 목걸이',slot:'neck',st:{VIT:3,SPI:2}}, f:'눈 속에 반쯤 묻혀 있던 물건. 녹지 않는 눈꽃이 붙어 있다.'},
   {p:'빙결', a:'얼음 수정 갑옷', x:{n:'서리 수정 반지',slot:'ring',st:{INT:3,SEN:2}}, f:'얼음 동굴 깊은 곳에서 캐낸 물건. 숨을 불면 서리가 핀다.'},
@@ -743,6 +743,7 @@ const TITLES = [
   {id:'ranch2',n:'목장 일꾼',d:'가축에게서 산물을 50번 거뒀다.',c:S => st_(S,'ranch') >= 50},
   {id:'beast',n:'짐승들의 친구',d:'동료 두 마리와 함께 지낸다.',c:S => S.comps.length >= 2},
   {id:'beast5',n:'둥지의 대가족',d:'동료를 다섯 마리 길렀다.',c:S => S.comps.length >= 5},
+  {id:'onsen',n:'온천 마니아',d:'온천에서 20번 쉬었다.',c:S => st_(S,'rest') >= 20},
   {id:'master',n:'한 우물을 판 사람',d:'생활 숙련도 하나를 250(달인)까지 올렸다.',c:S => Object.values(S.prof || {}).some(v => v >= 250)},
   {id:'rich',n:'잡화점의 단골',d:'1만 냥을 모았다.',c:S => S.gold >= 10000},
   {id:'rich2',n:'옛 지방의 거상',d:'10만 냥을 모았다.',c:S => S.gold >= 100000},
@@ -906,10 +907,14 @@ function atkOf(st){ return 6 + st[JOBS[S.job]?.atk || 'STR']*2 + weaponAtk() + S
 function defOf(st){ return st.VIT + armorDef() + S.lv*0.8; }
 // 같은 레벨의 '보통' 개척자 기준값 — 몬스터는 이 값에 맞춰 강해진다
 const atkE = L => 6 + 2*(8 + 0.6*(L-1)) + L*2, defE = L => 6 + 1.6*L, hpE = L => 128 + 13.2*L;
-function regenMult(){ const fb = foodBuff(); return fb && fb.regen ? 2 : 1; }
+// 온천 휴식: 자연 회복 5배 (10분에 25%). 식사 회복 버프와 함께면 더 빠르다
+const REST_MULT = 5;
+const restActive = () => S && S.rest && S.rest.until > now();
+function regenMult(){ const fb = foodBuff(); return (fb && fb.regen ? 2 : 1) * (restActive() ? REST_MULT : 1); }
 function curHP(){
   const mx = maxHP();
   if (S.hp == null) { S.hp = mx; S.hpAt = now(); }
+  if (S.rest && now() >= S.rest.until && typeof endRest === 'function') endRest(true); // 앱을 닫아 둔 사이 휴식이 끝났으면 끝난 시각까지만 5배로 계산
   if (S.exp) return Math.min(mx, S.hp);
   const rate = mx * 0.05 / (10*MIN) * regenMult() * SPD(); // 10분에 5%
   return Math.min(mx, S.hp + (now() - S.hpAt) * rate);
@@ -1288,7 +1293,26 @@ const curTick = E => Math.floor((now() - E.start)/E.tick);
 
 // ===================== 탐사 =====================
 function regionOpen(ri){ return ri >= 0 && ri < REG.length; }
+// ---- 온천 휴식 ----
+function startRest(mins){
+  if (baseLocked()) return lockToast();
+  if (travelState()) return toast('길을 걷는 중에는 쉴 수 없습니다.');
+  setHP(curHP());
+  if (curHP() >= maxHP()) return toast('이미 체력이 가득합니다.');
+  S.rest = {start:now(), until:now() + mins*MIN/SPD(), mins}; setHP(curHP()); stat('rest');
+  sfx('water'); save(); pubDirty(); renderSheet(); render(); toast(`따뜻한 온천에 몸을 담갔다. ${mins}분 동안 체력이 5배 빨리 찬다.`, 'good');
+}
+function endRest(quiet){
+  if (!S.rest) return;
+  const mx = maxHP(), fb = foodBuff(), base = mx * 0.05 / (10*MIN) * (fb && fb.regen ? 2 : 1) * SPD();
+  const end = Math.min(now(), S.rest.until);
+  if (S.hp != null && S.hpAt < end) { S.hp = Math.min(mx, S.hp + (end - S.hpAt) * base * REST_MULT); S.hpAt = end; }
+  S.rest = null; save(); pubDirty();
+  if (!quiet) toast('온천에서 나왔다. 몸이 한결 가볍다.');
+}
+function restTick(){ if (S.rest && now() >= S.rest.until){ endRest(true); notify('harvest', '휴식 끝', `온천에서 푹 쉬었다. 체력 ${Math.floor(curHP())}/${maxHP()}`, 'rest' + S.hpAt); render(); renderSheet(true); } }
 function startLong(ri, hours, pots){
+  if (S.rest) endRest(true);
   if (S.exp) return toast('이미 장기 탐사 중입니다.');
   if (travelState()) return toast('길을 걷는 중입니다. 도착한 뒤에 할 수 있어요.');
   if (S.loc !== ri) return toast(`지금 있는 곳은 ${REG[S.loc].n}입니다. 지도에서 ${josa(REG[ri].n,'으로','로')} 먼저 이동하세요.`);
@@ -1353,6 +1377,7 @@ function settleExp(kind){
 }
 let shortRun = null;
 function startShort(ri){
+  if (S.rest) endRest(true);
   if (S.short.d !== dayKey()) S.short = {d:dayKey(), n:0};
   if (S.short.n >= 10) return toast('오늘의 단기 탐사 10회를 모두 썼습니다. 자정에 초기화됩니다.');
   if (shortRun) return;
@@ -1970,6 +1995,7 @@ function travelLines(T){
   return out;
 }
 async function startTravel(to){
+  if (S.rest && !S.exp) endRest(true);
   if (to === S.loc && !S.travel) return;
   if (S.exp) return toast('장기 탐사 중에는 이동할 수 없습니다.');
   if (travelState()) return toast('이미 길을 걷는 중입니다.');
@@ -2122,7 +2148,7 @@ function partyCard(){
 }
 // ===================== 거점 실시간: 같은 시설에 있는 사람 · 담소 · 마주침 =====================
 // 시설에 들어가 있으면 공개 프로필에 at:{f, ts} 를 남긴다. 2분 30초 안의 기록만 '지금 여기 있음'으로 본다.
-const FAC = {kitchen:'부엌', farm:'논밭', pen:'축사', nest:'둥지', craft:'공방', tasks:'뒷산 일터', shop:'잡화점', subjob:'신사', board:'게시판', fish:'강가 낚시터'};
+const FAC = {kitchen:'부엌', farm:'논밭', pen:'축사', nest:'둥지', craft:'공방', tasks:'뒷산 일터', shop:'잡화점', subjob:'신사', board:'게시판', fish:'강가 낚시터', rest:'온천'};
 const SOCIAL_SHEETS = ['profile', 'gift', 'mail'];
 const AT_FRESH = 150000;
 let HERE = null, hereBeat = 0;
@@ -2290,6 +2316,7 @@ function pushDue(){
     } else add(E.start + E.dur, 'exp', '장기 탐사 완료', `${REG[E.region].n}에서 무사히 돌아왔습니다. 보상을 받으러 오세요.`, 'exp' + E.id, {tab:'explore'});
   }
   if (S.travel) add(S.travel.arrive, 'exp', '도착', `${REG[S.travel.to].n}에 도착했습니다.`, 'arrive' + S.travel.arrive, {tab:'explore'});
+  if (S.rest) add(S.rest.until, 'harvest', '휴식 끝', '온천에서 푹 쉬었다. 체력이 많이 찼다.', 'rest' + S.rest.until);
   if (S.task) add(S.task.start + S.task.dur, 'harvest', '생활 작업', `${TASKS[S.task.kind].n}${pp(TASKS[S.task.kind].n,'을','를')} 마쳤습니다.`, 'task' + S.task.start);
   S.farm.forEach((f, i) => { if (f) add(f.at + f.dur, 'harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
   if (S.nest) add(S.nest.at + S.nest.dur, 'hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
@@ -2568,6 +2595,7 @@ function viewTop(){
   if (td) chips.push(`<button class="chip bad" data-act="sheet" data-s="fx" data-a="tired">지친 몸${td.weak?'(약화)':''} · <span class="num" data-cd="${td.until}"></span></button>`);
   if (encActive()) chips.push(`<button class="chip gold" data-act="sheet" data-s="fx" data-a="enc">격려 경험치 +10% · <span class="num" data-cd="${S.buffs.enc}"></span></button>`);
   if (isMarried()) chips.push('<button class="chip gold" data-act="sheet" data-s="fx" data-a="married">부부 버프 경험치 +10%</button>');
+  if (restActive()) chips.push(`<button class="chip good" data-act="sheet" data-s="rest">♨ 휴식 중 · <span class="num" data-cd="${S.rest.until}"></span></button>`);
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
   const nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
@@ -2600,6 +2628,7 @@ const BASE = [
   {k:'task', n:'뒷산 일터', g:'생활 작업', x:56, y:62, act:'sheet', s:'tasks'},
   {k:'shrine', n:'신사', g:'서브 직업', x:172, y:46, act:'sheet', s:'subjob'},
   {k:'fish', n:'강가 낚시터', g:'', x:300, y:50, act:'openFish', s:''},
+  {k:'rest', n:'온천', g:'휴식', x:40, y:138, act:'sheet', s:'rest'},
 ];
 function baseGlyph(k){
   const roof = (w) => `<path d="M${-w} -2 L0 ${-w*0.7} L${w} -2 Z" class="b-roof"/>`;
@@ -2613,6 +2642,7 @@ function baseGlyph(k){
     case 'craft': return `${roof(16)}<rect x="-12" y="-2" width="24" height="14" class="b-wall"/><rect x="6" y="-20" width="5" height="14" class="b-wall"/><path d="M8 -24c-2-3 2-4 0-7" class="b-smoke"/><path d="M-6 4l6 6M0 4l-6 6" class="b-ink thin"/>`;
     case 'task': return `<path d="M-22 12L-6 -12L4 2L12 -6L24 12Z" class="b-tree"/><path d="M-4 12l3-6 3 6" class="b-ink thin"/>`;
     case 'shrine': return `<path d="M-16 -12h32M-13 -7h26M-10 -12v22M10 -12v22" class="b-torii"/>`;
+    case 'rest': return `<ellipse cx="0" cy="6" rx="18" ry="7" class="b-river" stroke="var(--ink-2)" stroke-width="1.2"/><path d="M-8 -2c-3-4 3-6 0-10M0 -4c-3-4 3-6 0-10M8 -2c-3-4 3-6 0-10" class="b-smoke"/>`;
     case 'fish': return `<path d="M-14 6q6-5 12 0t12 0M-12 12q6-5 12 0t12 0" class="b-wave"/><path d="M-8 -14l14 14" class="b-ink"/><path d="M6 0v6" class="b-ink thin"/>`;
   }
   return '';
@@ -2620,6 +2650,7 @@ function baseGlyph(k){
 function baseStatus(k){
   const ready = S.farm.filter(f => f && now() >= f.at + f.dur).length;
   if (k === 'farm') return ready ? `수확 ${ready}` : '';
+  if (k === 'rest') return restActive() ? '휴식 중' : curHP() < maxHP()*0.6 ? '쉬기' : '';
   if (k === 'pen') return penReady() ? `수확 ${penReady()}` : penHungry() ? `먹이 ${penHungry()}` : '';
   if (k === 'nest') return S.nest && now() >= S.nest.at + S.nest.dur ? '부화!' : '';
   if (k === 'task') return S.task && now() >= S.task.start + S.task.dur ? '완료' : '';
@@ -2663,6 +2694,7 @@ TABS.home = () => {
     ${tile('sheet', 'craft', '공방', '<span class="st">대장간 · 세공소 · 약방</span>', 'data-s="craft"')}
     ${tile('sheet', 'task', '뒷산 일터', taskTxt, 'data-s="tasks"')}
     ${tile('openFish', 'fishing', '강가 낚시터', `<span class="st">강 · 바다 · 호수 · 지금은 ${tod}</span>`)}
+    ${tile('sheet', 'rest', '온천 (휴식)', `<span class="st ${restActive() ? 'on' : ''}">${restActive() ? `휴식 중 · <span class="num" data-cd="${S.rest.until}"></span>` : curHP() < maxHP() ? `체력 회복 5배 · ${Math.floor(curHP())}/${maxHP()}` : '체력이 가득하다'}</span>`, 'data-s="rest"')}
     ${tile('sheet', 'shop', '잡화점', '<span class="st">사고팔기 · 씨앗 · 가축</span>', 'data-s="shop"')}
     ${tile('sheet', 'board', '게시판', `<span class="st ${dn?'on':''}">${dn ? `구조 요청 ${dn}` : ST.mode==='cloud' ? '구조 요청 · 토벌대 · 소식' : '마을 소식'}</span>`, 'data-s="board"')}
     ${tile('sheet', 'sub', '신사 (서브 직업)', `<span class="st">${SUBS[S.sub].n}${syn()?' · <b style="color:var(--moss)">궁합 보너스</b>':''}</span>`, 'data-s="subjob"')}
@@ -3117,7 +3149,7 @@ SHEETS.settings = () => {
 };
 
 // ===================== V2 시트 =====================
-const BASE_SHEETS = ['kitchen','farm','pen','nest','craft','tasks','shop','subjob','board'];
+const BASE_SHEETS = ['rest','kitchen','farm','pen','nest','craft','tasks','shop','subjob','board'];
 SHEETS.shop = () => {
   const t = UI.shopTab || 'buy';
   const sellable = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && sellPrice(k) > 0 && !['ticket','ring'].includes(k))
@@ -3243,6 +3275,7 @@ function pwaBox(){
 function activeEffects(){
   const out = [], fb = foodActive(), td = tiredActive(), es = expState();
   if (fb){ const r = RECIPES.find(x => x.id === fb.id); if (r) out.push({good:true, n:`식사 · ${r.n}${fb.q ? ' (정성 가득)' : ''}`, d:r.bd + (fb.q ? ' · 효과 1.5배' : ''), until:fb.until}); }
+  if (restActive()) out.push({good:true, n:'온천 휴식', d:'체력 자연 회복 5배', until:S.rest.until});
   if (encActive()) out.push({good:true, n:'격려', d:'경험치 +10%', until:S.buffs.enc});
   if (isMarried()) out.push({good:true, n:'부부의 연', d:'경험치 +10% (상시)'});
   if (syn()) out.push({good:true, n:`궁합 · ${JOBS[S.job].n} × ${SUBS[S.sub].n}`, d:SYN[`${S.job}:${S.sub}`].b});
@@ -3271,6 +3304,7 @@ SHEETS.help = () => {
       ${row('🐾', '펫 동료', '탐사 체력 소모 감소(레벨마다 더), 보상 +5%', '둥지에서 야생동물의 알을 부화시키면. 여러 마리 기를 수 있고 데리고 다니는 두 마리만 효과가 있다')}
       ${row('🔥', '소환수 동료', '전투마다 함께 공격한다 (음양사는 1.5배)', '둥지에서 요괴의 알을 부화시키면')}
       ${row('✨', '서브 직업 궁합', '주 직업과 맞는 서브 직업이면 추가 보너스', '신사에서 궁합 표시가 있는 서브 직업을 고르면')}
+      ${row('♨', '온천 휴식', '자연 회복 5배 (10분에 25%) · 10~30분', '거점의 온천에서 쉬면. 탐사·이동·토벌을 시작하면 끝난다')}
       ${row('🌿', '자연 회복 2배', '체력이 10분에 5% → 10%씩 찬다', '된장국·군고구마·약초죽·단팥죽을 먹으면')}
     </div>
     <h3 style="margin-top:14px;color:var(--seal)">디버프 (나쁜 효과)</h3>
@@ -3336,6 +3370,7 @@ SHEETS.fx = k => {
       '단기 탐사 대박 확률 −30%, 체력 소모 1.5배'], td.until,
       '<b>푸는 법</b> · 약초죽(−3시간) · 단팥죽(−2시간) · 친구의 위로(−2시간) · 연인의 애정 표현(−4시간) · 친구가 보낸 요리(약화). 탐사에서 쓰러져 구조되거나 실려 오면 12시간 동안 걸린다.');
   }
+  if (k === 'rest') return card('온천 휴식', true, ['체력 자연 회복 <b>5배</b> (10분에 최대 체력의 25%)', '자연 회복 요리와 함께면 10배'], S.rest && S.rest.until, '거점의 온천에서 10~30분 쉴 수 있다. 탐사·이동·토벌을 시작하면 끝난다.');
   if (k === 'enc') return card('격려', true, ['얻는 경험치 <b>+10%</b>', '부부 버프와 함께 쌓인다'], S.buffs.enc, '같은 곳에 있는 개척자가 하루 한 번 격려해 주면 2시간 동안 생긴다.');
   if (k === 'married') return card('부부의 연', true, ['얻는 경험치 <b>+10%</b> (계속)', '격려와 함께 쌓인다'], 0, '연인에게 세공소에서 만든 청혼 반지로 청혼해 부부가 되면 생긴다. 관계를 정리하면 사라진다.');
   if (k === 'exp'){
@@ -3368,6 +3403,19 @@ function grantBox(){
     <div class="row" style="margin-top:6px"><select id="grantItem" aria-label="아이템" class="grow">${opts}</select><input id="grantN" type="number" min="1" max="999" value="1" aria-label="개수" style="width:5.5em"></div>
     <div class="row wrapf" style="margin-top:6px"><button class="btn sm seal" data-act="grant">지급하기</button><button class="btn sm ghost" data-act="grantQuick" data-k="ticket">전직 증서 1장</button><button class="btn sm ghost" data-act="grantQuick" data-k="scroll">비전서 조각 5개</button><button class="btn sm ghost" data-act="grantQuick" data-k="cure">각성약 5개</button></div></div>`;
 }
+
+// 온천 휴식
+SHEETS.rest = () => {
+  const mx = maxHP(), hp = curHP(), on = restActive(), fb = foodBuff();
+  const perMin = mx * 0.05 / 10 * (fb && fb.regen ? 2 : 1);
+  const needMin = Math.ceil((mx - hp) / (perMin * REST_MULT));
+  const opt = m => { const gain = Math.min(mx - hp, Math.round(perMin * REST_MULT * m)); return `<button class="btn ${m === 30 ? 'seal' : ''}" data-act="rest" data-m="${m}" ${hp >= mx ? 'disabled' : ''} style="flex-direction:column;height:auto;padding:10px 14px;flex:1"><b>${m}분</b><span class="tiny">체력 +${gain}</span></button>`; };
+  return sheetHead('온천 · 휴식') + `<p class="small muted" style="margin-top:0">마을 뒤편에 김이 오르는 작은 온천. 몸을 담그고 있으면 체력이 평소보다 <b>5배</b> 빨리 찬다 (10분에 최대 체력의 25%).${fb && fb.regen ? ' 자연 회복 요리 버프까지 더해 10배!' : ''}</p>
+  <div class="card"><div class="row small"><b class="grow">체력</b><span class="num">${Math.floor(hp)} / ${mx}</span></div><div class="bar" style="margin-top:6px"><i style="width:${hp/mx*100}%;background:var(--moss)"></i></div>
+  <p class="tiny muted" style="margin:6px 0 0">${hp >= mx ? '체력이 가득하다.' : on ? `휴식 중 · 남은 시간 <span class="num" data-cd="${S.rest.until}"></span>` : `가득 찰 때까지 약 ${needMin}분`}</p></div>
+  ${on ? `<button class="btn full" style="margin-top:10px" data-act="restEnd">온천에서 나오기</button>` : `<div class="row" style="margin-top:10px;gap:8px">${opt(10)}${opt(20)}${opt(30)}</div>`}
+  <p class="tiny muted" style="margin:8px 0 0">휴식 중에 탐사를 떠나거나 다른 고장으로 걸어가거나 토벌전을 시작하면 휴식이 끝난다. 거점의 다른 시설은 그대로 쓸 수 있다.</p>`;
+};
 // ===================== 토벌전: 실시간 턴제 전투 (혼자 · 토벌대) =====================
 // 매 턴 직접 행동을 고른다: 공격 · 고유 스킬 · 피하기 · 숨기 · 회복 · 도주.
 // 우두머리는 다음 행동을 미리 드러낸다(강공 예고 등). 20초 안에 고르지 않으면 자동으로 피한다.
@@ -3479,6 +3527,7 @@ function newBattle(ri, opts = {}){
 
 // ---- 화면 쪽 ----
 function startBattle(ri, raid){
+  if (S.rest) endRest(true);
   if (BT && BT.st === 'fight') return openSheet('battle');
   if (S.exp) return toast('장기 탐사 중에는 도전할 수 없습니다.');
   if (travelState()) return toast('길을 걷는 중입니다. 도착한 뒤에 할 수 있어요.');
@@ -3904,6 +3953,7 @@ const ACT = {
   buyAnimal: d => buyAnimal(d.k), feedAnimal: d => feedAnimal(d.id), collectAnimal: d => collectAnimal(d.id), releaseAnimal: d => releaseAnimal(d.id),
   setTitle: d => { S.title = d.k; save(); pubDirty(); renderSheet(); render(); toast(`칭호 「${curTitle()}」를 달았다.`, 'good'); },
   fav: d => toggleFav(d.u),
+  rest: d => startRest(+d.m), restEnd: () => { endRest(); renderSheet(); render(); },
   compOut: d => compOut(d.id),
   helpTab: d => { UI.helpTab = d.t; renderSheet(); },
   cancelTravel: () => cancelTravel(),
@@ -4048,7 +4098,7 @@ function tick(){
   S.farm.forEach((f, i) => { if (f && now() >= f.at + f.dur) notify('harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
   if (S.nest && now() >= S.nest.at + S.nest.dur) notify('hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
   checkTitles();
-  presenceTick(); chatSync(); battleTick();
+  presenceTick(); chatSync(); battleTick(); restTick();
   if (window.FB_MODE && now() % 5000 < 1000) pushSync();
   if (S.settings.infGold && isOp() && S.gold < 99999999){ S.gold = 99999999; }
   S.pen.forEach(a => { if (a.fed && now() >= a.readyAt) notify('harvest', '축사', `${a.name}에게서 ${IT[ANIMALS[a.kind].out[0]].n}${pp(IT[ANIMALS[a.kind].out[0]].n,'을','를')} 거둘 수 있습니다.`, 'pen' + a.id + a.readyAt); });
