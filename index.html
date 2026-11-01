@@ -518,6 +518,11 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .ing .iic.lg{ width:48px; height:48px; } .ing span{ font-size:.7rem; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ing .bc-n{ right:2px; bottom:16px; }
 .ing:disabled{ opacity:.35; }
+.chip.npc-chip{ font-size:.66rem; padding:0 6px; line-height:16px; border-color:#6a8a4a; color:#4a6a2a; background:color-mix(in srgb, #8ab06a 15%, var(--card)); vertical-align:middle; }
+.avatar.npc{ overflow:hidden; padding:0; } .avatar.npc svg{ width:100%; height:100%; display:block; }
+.ing.on .iic svg{ outline:2.5px solid var(--seal); outline-offset:1px; border-radius:50%; } .like-mark{ position:absolute; top:0; right:6px; color:var(--seal); font-size:.9rem; }
+.tr-side{ margin-top:8px; } .tr-side.ok{ border-color:var(--moss); background:color-mix(in srgb, var(--moss) 8%, var(--card)); }
+.ne-form input, .ne-form select, .ne-form textarea{ box-sizing:border-box; max-width:100%; width:100%; } .ne-form .row > .f{ min-width:0; } .ne-form input[type=color]{ height:36px; padding:2px; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -1598,7 +1603,7 @@ function pubObj(){
     exp:S.exp ? {id:S.exp.id, region:S.exp.region, start:S.exp.start, dur:S.exp.dur, tick:S.exp.tick, seed:S.exp.seed, snap:S.exp.snap, wait:S.exp.wait, nt:S.exp.nt || 15000, v:S.exp.v || 0, party:S.exp.party || []} : null,
     loc:S.loc, travel:S.travel ? {from:S.travel.from, to:S.travel.to, start:S.travel.start, arrive:S.travel.arrive} : null, party:S.party || null,
     tiredUntil:tiredActive() ? S.tired.until : 0, comps:activeComps().map(x => ({sp:x.sp, name:x.name, lv:x.lv})), compN:S.comps.length,
-    bosses:Object.keys(S.bosses).length, noReq:!!S.social.noReq, op:isOp() || undefined, at:(typeof HERE !== 'undefined' && HERE) ? {f:HERE, ts:now()} : null};
+    likes:(S.likes || []).slice(0, 5), bosses:Object.keys(S.bosses).length, noReq:!!S.social.noReq, op:isOp() || undefined, at:(typeof HERE !== 'undefined' && HERE) ? {f:HERE, ts:now()} : null};
 }
 async function writePub(force){
   if (ST.mode !== 'cloud') return;
@@ -2014,7 +2019,7 @@ function startSync(){
   unsubs.push(db.collection('mail').where('to','==',ST.uid).onSnapshot(s => { MAIL_IN = s.docs.map(d => ({...d.data(), id:d.id})); mailNotify(); softRender(); }, err));
   unsubs.push(db.collection('mail').where('from','==',ST.uid).onSnapshot(s => { MAIL_OUT = s.docs.map(d => ({...d.data(), id:d.id})); softRender(); }, err));
   unsubs.push(db.collection('news').orderBy('ts','desc').limit(20).onSnapshot(s => { NEWS = s.docs.map(d => ({...d.data(), id:d.id})); softRender(); }, err));
-  pbListen();
+  pbListen(); if (typeof tradeListen === 'function') tradeListen();
   unsubs.push(db.collection('events').where('to','==',ST.uid).onSnapshot(s => { s.docs.forEach(d => handleEvent(d.id, d.data())); }, err));
 }
 let softT = null;
@@ -2182,8 +2187,9 @@ async function giftTo(o, k, n, msg){
   const r = await postSend(o, 'gift', {items:[[k, n]], msg:(msg||'').trim().slice(0, 100), ...(defs ? {defs} : {})}); stat('gift');
   postSent(r, o, `${itemName(k)} ×${n}`);
   const mult = (it.r === 'mochi' ? 2 : 1);
-  const g = met ? await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult, true) : 0;
-  sfx('coin'); toast(`${itemName(k)} ${n}개를 ${PL[o]?.name || '상대'}님의 우편함으로 보냈습니다.${g?` 호감도 +${g}`:met ? '' : ' (멀리서 보낸 선물이라 호감도는 오르지 않아요)'}`); closeSheet(); render();
+  const liked = (PL[o]?.likes || []).includes(base);
+  const g = met ? await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult * (liked ? 2 : 1), true) : 0;
+  sfx('coin'); toast(`${itemName(k)} ${n}개를 ${PL[o]?.name || '상대'}님의 우편함으로 보냈습니다.${g?` 호감도 +${g}${liked ? ' (좋아하는 물건이라 2배!)' : ''}`:met ? '' : ' (멀리서 보낸 선물이라 호감도는 오르지 않아요)'}`); closeSheet(); render();
 }
 function downedList(){
   const out = [];
@@ -2774,7 +2780,7 @@ const ICO = {
   board: ico('<rect x="4" y="4" width="16" height="13" rx="1"/><path d="M8 17v4M16 17v4M7 8h10M7 11h7"/>'),
   sub: ico('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>'),
 };
-const PHOTO = (p, cls='') => `<span class="avatar ${cls}">${p && /^data:image\//.test(p) ? `<img src="${esc(p)}" alt="">` : `<svg viewBox="0 0 40 40" width="70%" aria-hidden="true"><circle cx="20" cy="15" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 36c2-8 8-11 13-11s11 3 13 11" fill="none" stroke="currentColor" stroke-width="2"/></svg>`}</span>`;
+let PHOTO = (p, cls='') => `<span class="avatar ${cls}">${p && /^data:image\//.test(p) ? `<img src="${esc(p)}" alt="">` : `<svg viewBox="0 0 40 40" width="70%" aria-hidden="true"><circle cx="20" cy="15" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 36c2-8 8-11 13-11s11 3 13 11" fill="none" stroke="currentColor" stroke-width="2"/></svg>`}</span>`;
 
 // ===================== 생물 그림 (둥글고 귀엽게) =====================
 function art(sp, cls=''){
@@ -2998,6 +3004,7 @@ function viewTop(){
   if (S.hard) chips.push(`<button class="chip bad" data-act="tab" data-t="explore">⚔ 고난도 탐사${hardPending() ? ' · 선택!' : ''} · <span class="num" data-cd="${S.hard.end}"></span></button>`);
   if (restActive()) chips.push(`<button class="chip good" data-act="sheet" data-s="rest">♨ 휴식 중 · <span class="num" data-cd="${S.rest.until}"></span></button>`);
   { const e = elixActive(); if (e) chips.push(`<button class="chip blue" data-act="tab" data-t="bag">🧪 ${IT[e.id].n} · <span class="num" data-cd="${e.until}"></span></button>`); }
+  { const T = typeof tradeLive === 'function' && tradeLive(); if (T) chips.push(`<button class="chip blue" data-act="tradeOpen">🤝 교환 ${T.st === 'ask' ? '신청 중' : '중'}</button>`); }
   if (festOn()) chips.push(`<button class="chip fest" data-act="sheet" data-s="matsuri">🏮 마츠리 · <span class="num" data-cd="${festEnd()}"></span></button>`);
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
@@ -3567,6 +3574,7 @@ SHEETS.settings = () => {
   <div class="card" style="padding:12px"><b class="small">캐릭터 · 재화</b>
     <div class="row wrapf" style="margin-top:6px"><button class="btn sm seal" data-act="opMaxLv" ${S.lv >= MAX_LV ? 'disabled' : ''}>최대 레벨 (Lv.${MAX_LV})</button><button class="btn sm" data-act="opGold" data-n="100000">+10만 ${CUR}</button><button class="btn sm" data-act="opGold" data-n="1000000">+100만 ${CUR}</button><button class="btn sm ghost" data-act="opItems">재료 한 보따리</button><button class="btn sm ghost" data-act="opRecipes" ${RECIPES.every(r => S.recipes.includes(r.id)) ? 'disabled' : ''}>모든 레시피 습득</button></div>
     ${tog('infGold', `재화 무한 (엽전이 늘 99,999,999${CUR}로 채워진다)`, st.infGold)}</div>
+  <div class="card" style="padding:12px"><b class="small">마을 주민 (NPC)</b><p class="tiny muted" style="margin:2px 0 6px">주민의 이름·칭호·소개·직업·얼굴 색·좋아하는 것·대사를 고친다. 모든 개척자에게 바로 반영된다.</p><button class="btn sm seal" data-act="sheet" data-s="npcEdit">주민 편집 열기</button></div>
   ${musicTools()}
   ${window.FB_MODE ? `<div class="card" style="padding:12px"><b class="small">푸시 알림 키 (웹 푸시 인증서)</b><p class="tiny muted" style="margin:2px 0 6px">Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징 → 웹 푸시 인증서의 '키 쌍'을 붙여 넣으세요. 지금: ${PUSH.cfg && PUSH.cfg.vapid ? '등록됨' : '없음'}</p><div class="row"><input id="vapidKey" type="text" placeholder="B로 시작하는 긴 키" value="${esc(PUSH.cfg?.vapid || '')}" aria-label="웹 푸시 키"><button class="btn sm" data-act="pushKeySave">저장</button></div></div>` : ''}
   ${grantBox()}</div>` : ''}`;
@@ -5231,6 +5239,541 @@ function customAdopt(defs, from){
     customRegister(S.customs[key]);
   }
 }
+// ===================== 마을 주민 (NPC) =====================
+// 서버에 아무것도 쓰지 않는다. 모든 기기가 같은 시각 규칙으로 계산해서, 누구에게나 같은 곳·같은 행동으로 보인다.
+// 호감도와 선물 기록은 각자 기기(세이브)에만 남는다. 이름 옆에 '주민' 표시를 달아 실제 유저와 구분한다.
+const NPC_LOOK_DEF = {hair:'#3a2a3a', skin:'#f6dcc8', robe:'#ffffff', hakama:'#c8322a', acc:'#f0b040', style:'girl'};
+const NPCS = {
+  npc_suzune:{
+    name:'스즈네', job:'healer', sub:'cook', title:'경단 가게 딸', age:19, born:Date.UTC(2026, 10, 1), lv0:9,
+    intro:'마을 입구 경단 가게의 외동딸. 무녀 수행을 하면서 틈틈이 새 요리를 연구한다. 낚시는 서툴지만 좋아한다.',
+    like:['f_dango','f_honeydango','f_mochi','m_ringoame','m_watagashi','f_zenzai','berry','honey'], love:['f_honeydango','m_ringoame'], dislike:['bone','compost','hide'],
+    plan:[[6,'farm','논밭에서 아침 채소를 뽑는다'],[8,'kitchen','가게에 낼 경단을 빚는다'],[10,'exp',''],[13,'kitchen','점심 장사를 돕는다'],[15,'subjob','신사에서 무녀 수행 중'],[17,'fish','강가에서 낚싯대를 드리웠다'],[19,'kitchen','저녁 장사를 정리한다'],[20,'matsuri','축제 노점을 구경한다'],[22,'sleep','잠들었다']],
+    lines:{
+      greet:['아, 안녕하세요! 오늘도 개척하러 가세요?', '{me}님! 마침 경단이 잘 쪄졌어요.', '좋은 아침이에요. 아, 벌써 낮인가요? 헤헤.'],
+      low:['저… 경단 좋아하세요? 우리 가게 꿀경단이 맛있대요.', '무녀 수행은 생각보다 힘들어요. 방울을 오래 흔들면 팔이 아파요.', '낚시는 아직 서툴러요. 붕어밖에 못 낚아 봤어요.'],
+      mid:['{me}님이랑 이야기하면 시간 가는 줄 모르겠어요.', '요즘 새 요리를 연구하고 있어요. 생선이랑 꿀을 섞으면… 아, 그건 실패했어요.', '백무 호수에 가 본 적 있어요? 안개 속에서 빛나는 물고기가 있대요.'],
+      high:['{me}님 몫으로 경단을 따로 빼 뒀어요. 비밀이에요!', '가게를 물려받으면, 제일 먼저 {me}님 이름을 딴 경단을 만들 거예요.', '힘들 땐 언제든 가게에 들러요. 따뜻한 차 정도는 내드릴 수 있으니까.'],
+      night:['쿨… 쿨…', '(곤히 잠들어 있다. 깨우지 말자.)'],
+      chat:{farm:['오늘 무가 아주 잘 자랐어요!', '아침 이슬 맞은 배추가 제일 달아요.'], kitchen:['꿀경단 새로 나왔어요~ 하나씩 드셔 보세요!', '간장을 조금만 더 넣으면… 음, 이 정도?'], fish:['또 붕어다… 그래도 귀여우니까 괜찮아요.', '조용히! 찌가 흔들려요!'], subjob:['방울 소리가 맑으면 좋은 하루래요.', '오늘의 운세는… 중길이에요!'], matsuri:['링고아메 하나만 더… 아니 두 개만…', '축제 북소리 들으면 가슴이 두근거려요!']},
+      gift:{love:'이, 이걸 저한테요?! 제일 좋아하는 거예요… 정말 고마워요!', like:'와, 고마워요! 소중히 먹을게요.', normal:'고마워요. 잘 쓸게요!', dislike:'으음… 이건 어디에 쓰는 거죠…? 그래도 마음은 고마워요.'},
+      thanks:['지난번 선물 고마웠어요. 이거 우리 가게 경단이에요!', '{me}님 생각나서 하나 챙겨 왔어요.'],
+    },
+    news:['{n}님이 새 경단 「꽃잎 경단」을 만들었습니다.','{n}님이 강가에서 붕어를 낚았습니다!'],
+    reward:['f_dango','f_honeydango','f_mochi','berry'],
+    look:{hair:'#3a2a3a', skin:'#f6dcc8', robe:'#ffffff', hakama:'#c8322a', acc:'#f0b040', style:'girl'},
+  },
+  npc_genzo:{
+    name:'겐조', job:'hunter', sub:'fisher', title:'강가의 터줏대감', age:71, born:Date.UTC(2026, 10, 1), lv0:30,
+    intro:'평생 강가에서 낚시만 해 온 무뚝뚝한 영감. 말수는 적지만 물고기 이야기만 나오면 눈이 빛난다. 단것은 질색한다.',
+    like:['f_grilled','f_sashimi','f_sabamiso','f_greentea','f_kushiyaki','f_tuna','eel','salt'], love:['f_tekkadon','f_goldcarp'], dislike:['sugar','honey','m_watagashi','m_ringoame','f_mochi'],
+    plan:[[4,'fish','새벽 강가에서 찌를 노려본다'],[9,'shop','잡화점 앞에서 낚싯줄을 고른다'],[10,'exp',''],[14,'rest','온천에 몸을 담갔다'],[16,'fish','강가에서 다시 낚싯대를 펼쳤다'],[20,'board','게시판 앞에서 소식을 읽는다'],[21,'sleep','일찍 잠들었다']],
+    lines:{
+      greet:['…음.', '왔나.', '오늘은 물때가 좋다.'],
+      low:['낚시는 기다림이다. 젊은 것들은 그걸 몰라.', '…시끄럽게 굴면 고기가 도망간다.', '단것 가져오지 마라. 이가 시리다.'],
+      mid:['자네, 찌를 볼 줄은 아는군.', '황금 잉어? 달 밝은 밤 호수에 가 봐라. 내가 젊을 적엔… 흠.', '고등어는 된장에 졸여야 제맛이지.'],
+      high:['…자네 정도면 내 낚싯대를 물려줘도 되겠어.', '내 손주 녀석보다 낫구먼. 허허.', '힘들면 강가로 와. 물소리 들으면 다 잊혀진다.'],
+      night:['드르렁…', '(코를 골며 자고 있다.)'],
+      chat:{fish:['…쉿.', '오늘은 메기가 잘 문다.', '찌가 움직여도 서두르지 마라.'], rest:['으어… 허리가 녹는구먼.', '온천은 낚시 다음으로 좋다.'], board:['요즘 젊은 것들은 토벌만 하는군.', '흠, 참다랑어 잡았다는 소식은 없나.'], shop:['낚싯줄 값이 또 올랐어.']},
+      gift:{love:'…! 이, 이건… 허허, 자네 보는 눈이 있구먼.', like:'흠. 좋은 걸 가져왔군. 고맙네.', normal:'…받아 두지.', dislike:'단것은 질색이라고 했잖나. …마음만 받겠네.'},
+      thanks:['…지난번엔 고마웠네. 오늘 잡은 놈이야.', '남는 거다. 가져가.'],
+    },
+    news:['{n}님이 강가에서 팔뚝만 한 메기를 낚았습니다!','{n}님이 온천에서 한숨 자다 감기에 걸렸다는 소문입니다.'],
+    reward:['f_mackerel','f_carp','f_trout','f_grilled','eel'],
+    look:{hair:'#e8e4dc', skin:'#e8c4a8', robe:'#4a5a6a', hakama:'#2a3a4a', acc:'#c8a060', style:'old'},
+  },
+  npc_otsuru:{
+    name:'오츠루', job:'brawler', sub:'smith', title:'수다쟁이 대장장이', age:42, born:Date.UTC(2026, 10, 1), lv0:24,
+    intro:'공방의 망치 소리만큼 목소리가 큰 대장장이 아주머니. 마을 소문은 전부 이 사람에게서 시작된다. 고기와 광석을 좋아한다.',
+    like:['meat','boar','f_nabe','f_oyakodon','ore','silver','m_yakisoba','m_corn'], love:['rareore','f_nabe'], dislike:['f_greentea','tea','herb'],
+    plan:[[7,'craft','공방 화로에 불을 지핀다'],[12,'kitchen','부엌에서 고기를 굽는다'],[13,'craft','망치를 두드리는 중'],[17,'tasks','뒷산에서 광석을 캔다'],[19,'board','게시판 앞에서 수다 중'],[20,'matsuri','야끼소바 노점 앞에 줄을 섰다'],[23,'sleep','잠들었다']],
+    lines:{
+      greet:['어머, {me}! 마침 잘 왔어!', '오늘도 씩씩하구나!', '어서 와~ 무기 손볼 거 있니?'],
+      low:['얘, 들었니? 신사 쪽에서 이상한 불빛을 봤대!', '쇠는 두드릴수록 단단해지는 법이야. 사람도 그래!', '풀만 먹으면 힘이 안 나. 고기를 먹어야지!'],
+      mid:['{me}, 너 요즘 소문났어. 열심히 개척한다고~', '정령석 구하면 나한테 가져와. 끝내주게 벼려 줄게!', '우리 남편이? 아유, 화로 앞에서 졸고 있지 뭐.'],
+      high:['너한테만 말하는 건데… 용혈석 녹이는 비법이 있어.', '{me}는 우리 마을 보물이야. 진짜로!', '힘들면 언제든 공방에 와. 따뜻한 밥 한 끼 해 줄게.'],
+      night:['쿠울… (잠꼬대로 누군가 흉을 본다)', '(망치를 껴안고 잠들어 있다.)'],
+      chat:{craft:['땅! 땅! 아, 미안 시끄러웠지?', '이 칼 좀 봐, 예쁘지 않니?'], kitchen:['고기는 센 불에 확!', '누가 내 고기 먹었어?!'], tasks:['이 바위엔 은이 섞여 있어. 냄새로 알지.'], board:['얘들아 그 소식 들었니?', '토벌대 모집이 또 붙었네~'], matsuri:['야끼소바 곱빼기로 주세요!']},
+      gift:{love:'어머어머! 이거 진짜 나 주는 거야? 너 최고다!', like:'아유, 고마워라~ 잘 먹을게!', normal:'어머, 고마워!', dislike:'풀은 좀… 호호, 그래도 고마워.'},
+      thanks:['지난번 고마웠어! 공방에서 남은 거 좀 챙겨 왔어.', '이거 갖고 가. 쓸 데 있을 거야.'],
+    },
+    news:['{n}님이 새 태도를 벼려 냈습니다. 공방이 들썩입니다!','{n}님 말로는, 뇌명 산맥에서 성운석이 떨어졌답니다.'],
+    reward:['ore','silver','ingot','meat','f_nabe'],
+    look:{hair:'#6a3a2a', skin:'#f0c8a8', robe:'#8a5a3a', hakama:'#3a2a22', acc:'#c8322a', style:'woman'},
+  },
+  npc_rentaro:{
+    name:'렌타로', job:'samurai', sub:'lumber', title:'떠돌이 검객', age:24, born:Date.UTC(2026, 10, 1), lv0:16,
+    intro:'수행 길에 마을에 눌러앉은 젊은 검객. 말은 짧고 예의 바르다. 주먹밥을 하루에 열 개씩 먹는다.',
+    like:['f_onigiri','f_unadon','f_oyakodon','f_tkg','rice','f_kushiyaki','e_str','w2'], love:['f_onigiri','f_unadon'], dislike:['m_watagashi','berry'],
+    plan:[[5,'tasks','뒷산에서 목검을 휘두른다'],[8,'exp',''],[16,'rest','온천에서 상처를 달랜다'],[18,'kitchen','부엌에서 주먹밥을 쥔다'],[20,'subjob','신사에서 검을 닦는다'],[22,'sleep','잠들었다']],
+    lines:{
+      greet:['수고가 많으십니다.', '{me} 님, 무운을 빕니다.', '…좋은 아침입니다.'],
+      low:['검은 마음을 비춥니다.', '주먹밥은… 소금만 있으면 충분합니다.', '이 마을은 조용해서 좋습니다.'],
+      mid:['{me} 님의 발걸음이 가벼워졌군요. 수련의 성과입니다.', '적암 협곡의 우두머리는 왼쪽이 약합니다.', '…주먹밥, 하나 드시겠습니까?'],
+      high:['{me} 님 덕분에 이 마을에 머물 이유가 생겼습니다.', '언젠가 함께 천주봉에 오르고 싶습니다.', '제 검은 이제 {me} 님을 지키기 위해 있습니다.'],
+      night:['(벽에 기대어 앉은 채 잠들어 있다. 손은 검 위에.)'],
+      chat:{tasks:['하앗!', '…천 번째.'], rest:['…상처가 아물고 있습니다.'], kitchen:['소금은 손바닥에 고루.', '열 개째입니다.'], subjob:['검을 닦으면 마음도 맑아집니다.']},
+      gift:{love:'…! 주, 주먹밥… 감사합니다. 정말로.', like:'감사히 받겠습니다.', normal:'마음 써 주셔서 감사합니다.', dislike:'…단것은 조금. 하지만 마음은 받겠습니다.'},
+      thanks:['일전의 은혜를 갚고자 합니다.', '수련 중에 얻은 것입니다. 받아 주십시오.'],
+    },
+    news:['{n}님이 뒷산에서 목검 천 번 휘두르기를 마쳤습니다.','{n}님이 주먹밥 열두 개를 먹어 치웠습니다.'],
+    reward:['f_onigiri','wood','hide','pot1','meat'],
+    look:{hair:'#1e1a22', skin:'#f0d0b4', robe:'#3a4a6a', hakama:'#2a2a32', acc:'#a8b0bc', style:'boy'},
+  },
+  npc_mio:{
+    name:'미오', job:'monk', sub:'farmer', title:'논밭의 꼬마 농부', age:12, born:Date.UTC(2026, 10, 1), lv0:5,
+    intro:'할아버지의 논밭을 물려받겠다며 매일 흙투성이가 되는 소녀. 동물을 좋아해서 축사와 둥지를 자주 들여다본다.',
+    like:['berry','imo','f_yakiimo','cabbage','radish','egg','s_rice','f_tamagoyaki'], love:['f_yakiimo','m_watagashi'], dislike:['f_catfish','eel','bone'],
+    plan:[[6,'farm','논밭에서 물을 준다'],[9,'pen','축사에서 닭에게 모이를 준다'],[11,'nest','둥지의 알을 들여다본다'],[12,'kitchen','군고구마를 굽는다'],[14,'farm','잡초를 뽑는다'],[17,'pen','소에게 여물을 준다'],[19,'matsuri','솜사탕 노점 앞에서 기웃거린다'],[21,'sleep','잠들었다']],
+    lines:{
+      greet:['아! {me} 님다!', '안녕하세요! 오늘 무가 엄청 컸어요!', '헤헤, 손이 흙투성이라 악수는 나중에요!'],
+      low:['닭이 오늘 알을 두 개나 낳았어요!', '할아버지가 그랬어요. 흙은 거짓말을 안 한대요.', '군고구마 좋아해요? 저는 세상에서 제일 좋아해요!'],
+      mid:['{me} 님 동료는 이름이 뭐예요? 쓰다듬어 봐도 돼요?', '나중에 크면 마을에서 제일 큰 밭을 가질 거예요!', '둥지에 알이 있는데, 언제 깰까요? 매일 와서 봐요.'],
+      high:['{me} 님는 우리 마을에서 제일 멋져요!', '이거 비밀인데요… 제일 달콤한 고구마는 개척자님 거예요.', '할아버지가 {me} 님 같은 사람이 되래요!'],
+      night:['쿨… 고구마… 쿨…', '(인형을 꼭 끌어안고 자고 있다.)'],
+      chat:{farm:['물 주기 끝!', '이 싹 좀 보세요, 귀엽죠?'], pen:['꼬꼬야 많이 먹어!', '소야, 오늘도 고마워.'], nest:['깨라… 깨라…'], kitchen:['고구마 다 익었다~!'], matsuri:['솜사탕… 사 주시면 안 돼요…?']},
+      gift:{love:'우와아아! 진짜요?! 고마워요!! 평생 기억할게요!', like:'와, 고마워요! 할아버지한테 자랑할래요!', normal:'고마워요!', dislike:'으… 이건 미끌미끌해서 무서워요…'},
+      thanks:['우리 밭에서 난 거예요! 드세요!', '오늘 닭이 낳은 알이에요!'],
+    },
+    news:['{n}님의 밭에서 커다란 무가 뽑혔습니다!','{n}님이 축사의 닭에게 이름을 지어 주었습니다.'],
+    reward:['imo','radish','cabbage','egg','berry'],
+    look:{hair:'#7a4a2a', skin:'#f8dcc4', robe:'#e8c070', hakama:'#6a8a4a', acc:'#e86a8a', style:'kid'},
+  },
+};
+const isNpc = u => typeof u === 'string' && u.startsWith('npc_');
+const npcDays = N => Math.max(0, Math.floor((Date.now() - N.born)/(24*H)));
+const npcLv = N => Math.min(45, N.lv0 + Math.floor(npcDays(N)*0.6));
+function npcNow(id, t = Date.now()){
+  const N = NPCS[id], s = seoul(t);
+  let cur = N.plan[N.plan.length - 1];
+  for (const p of N.plan) if (s.h >= p[0]) cur = p;
+  if (s.h < N.plan[0][0]) cur = N.plan[N.plan.length - 1];
+  let [, at, doing] = cur;
+  if (at === 'matsuri' && !festOn()) { at = 'kitchen'; doing = '가게 문을 닫으며 하루를 정리한다'; }
+  const lv = npcLv(N), ri = clamp(REG.findIndex(r => r.lv > lv) - 1, 0, REG.length - 1);
+  if (at === 'exp') doing = `${REG[ri < 0 ? REG.length - 1 : ri].n}에서 탐사 중`;
+  if (at === 'matsuri' && !festOn()) at = 'kitchen';
+  return {at, doing, lv, online:at !== 'sleep', ri};
+}
+function npcRel(id){ S.npc = S.npc || {}; if (S.npc.npc_haru && !S.npc.npc_suzune){ S.npc.npc_suzune = S.npc.npc_haru; delete S.npc.npc_haru; } return S.npc[id] = S.npc[id] || {aff:0, greet:'', gifts:0, last:0, talk:'', stage:'acq'}; }
+const npcTier = r => r.aff >= 60 ? 'high' : r.aff >= 25 ? 'mid' : 'low';
+const npcLine = (id, txt) => txt.replace(/\{me\}/g, S.char.name);
+function npcAff(id, n){ const r = npcRel(id); const before = r.aff; r.aff = clamp(r.aff + n, 0, 100); if (r.aff >= 30 && r.stage === 'acq') r.stage = 'friend'; return r.aff - before; }
+
+// 그림: 주민 얼굴
+function npcFace(id){
+  const src = NPCS[id] || (typeof NPC_DEF !== 'undefined' && NPC_DEF[id]) || {look:{}};
+  const L = {...NPC_LOOK_DEF, ...src.look}, st = L.style;
+  const K = '#2a1d17';
+  const body = `<path d="M8 40c1-8 6-12 12-12s11 4 12 12z" fill="${L.robe}" stroke="${K}" stroke-width="1"/><path d="M14 40l2-9h8l2 9z" fill="${L.hakama}"/><path d="M17 30l3 4l3-4" fill="none" stroke="${K}" stroke-width="1"/>`;
+  const face = (ry = 8.5) => `<ellipse cx="20" cy="19" rx="7.5" ry="${ry}" fill="${L.skin}" stroke="${K}" stroke-width="1"/>`;
+  const eyes = st === 'old' ? `<path d="M15.5 19.5h3M21.5 19.5h3" stroke="${K}" stroke-width="1.1" stroke-linecap="round"/>` : st === 'boy' ? `<path d="M15.8 19.6l2.6-.4M21.6 19.2l2.6.4" stroke="${K}" stroke-width="1.2" stroke-linecap="round"/><circle cx="17" cy="20.6" r=".9" fill="${K}"/><circle cx="23" cy="20.6" r=".9" fill="${K}"/>` : `<circle cx="17" cy="20" r="1.1" fill="${K}"/><circle cx="23" cy="20" r="1.1" fill="${K}"/>`;
+  const mouth = st === 'old' ? `<path d="M18 25q2 1 4 0" fill="none" stroke="${K}" stroke-width=".9"/>` : st === 'woman' ? `<path d="M17.5 23.6q2.5 2.4 5 0z" fill="#c84a4a" stroke="${K}" stroke-width=".7"/>` : st === 'boy' ? `<path d="M18.5 24.5h3" stroke="${K}" stroke-width=".9" stroke-linecap="round"/>` : `<path d="M18.5 24q1.5 1.2 3 0" fill="none" stroke="${K}" stroke-width=".9" stroke-linecap="round"/>`;
+  const blush = st === 'boy' || st === 'old' ? '' : `<ellipse cx="15.5" cy="22.5" rx="1.6" ry=".9" fill="#f0a0a0" opacity=".7"/><ellipse cx="24.5" cy="22.5" rx="1.6" ry=".9" fill="#f0a0a0" opacity=".7"/>`;
+  let hairB = '', hairF = '', extra = '';
+  if (st === 'girl'){ hairB = `<path d="M10 18c0-8 4-12 10-12s10 4 10 12v8c-2 2-4 2-5 0v-7z" fill="${L.hair}"/><path d="M8 22c-1 6 0 10 2 12" fill="none" stroke="${L.hair}" stroke-width="3" stroke-linecap="round"/>`; hairF = `<path d="M12 15c3-5 13-6 16 0c-4-2-8-2-9 2c-2-3-5-3-7-2z" fill="${L.hair}"/>`; extra = `<path d="M26 11l3-2l1 3z" fill="${L.acc}" stroke="${K}" stroke-width=".6"/>`; }
+  if (st === 'kid'){ hairB = `<path d="M11 18c0-7 4-11 9-11s9 4 9 11v3h-18z" fill="${L.hair}"/><circle cx="10.5" cy="17" r="3" fill="${L.hair}"/><circle cx="29.5" cy="17" r="3" fill="${L.hair}"/>`; hairF = `<path d="M12.5 16c2-5 13-5 15 0c-3-1-5-1-7.5 1c-2-2-5-2-7.5-1z" fill="${L.hair}"/>`; extra = `<circle cx="10.5" cy="14.5" r="1.4" fill="${L.acc}"/><circle cx="29.5" cy="14.5" r="1.4" fill="${L.acc}"/><circle cx="14" cy="24" r=".5" fill="#a07050"/><circle cx="26" cy="23.5" r=".5" fill="#a07050"/>`; }
+  if (st === 'woman'){ hairB = `<path d="M10.5 19c0-8 4-12 9.5-12s9.5 4 9.5 12l-1 4h-17z" fill="${L.hair}"/><circle cx="20" cy="6.5" r="4" fill="${L.hair}"/>`; hairF = `<path d="M12.5 16c2-6 13-6 15 0c-4-3-11-3-15 0z" fill="${L.hair}"/>`; extra = `<path d="M13 36l14-6" stroke="${L.acc}" stroke-width="2.2"/><path d="M17 6.5h6" stroke="${L.acc}" stroke-width="1.4"/>`; }
+  if (st === 'boy'){ hairB = `<path d="M11 18c0-7 4-11 9-11s9 4 9 11l-1 2l-16 0z" fill="${L.hair}"/><path d="M27 9q5-1 6 4" fill="none" stroke="${L.hair}" stroke-width="2.4" stroke-linecap="round"/>`; hairF = `<path d="M12 16l2-6l3 4l3-5l3 5l3-4l2 6c-5-2-11-2-16 0z" fill="${L.hair}"/>`; extra = `<path d="M30 40l-4-14" stroke="${L.acc}" stroke-width="2"/><path d="M28.6 31.5l3-1" stroke="${K}" stroke-width="1.6"/>`; }
+  if (st === 'old'){ hairB = `<path d="M12.5 15c1-5 4-7 7.5-7s6.5 2 7.5 7z" fill="${L.hair}"/>`; hairF = `<path d="M13.5 17.5c1-2 3-2.5 4.5-2M22 15.5c1.5-.5 3.5 0 4.5 2" stroke="${L.hair}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`; extra = `<path d="M15 24c1 6 4 9 5 9s4-3 5-9c-2 2-3 2-5 2s-3 0-5-2z" fill="${L.hair}" stroke="${K}" stroke-width=".6"/><path d="M11 13c3-3 15-3 18 0l2 2h-22z" fill="#c8a868" stroke="${K}" stroke-width=".7"/><path d="M6 15h28" stroke="${K}" stroke-width="1"/>`; }
+  return `<svg viewBox="0 0 40 40" width="100%" aria-hidden="true"><rect width="40" height="40" fill="#f3e6d2"/>${body}${hairB}${face(st === 'kid' ? 8 : 8.5)}${hairF}${eyes}${mouth}${blush}${extra}</svg>`;
+}
+const _PHOTO0 = PHOTO;
+PHOTO = (p, cls = '') => typeof p === 'string' && p.startsWith('npc:') ? `<span class="avatar npc ${cls}">${npcFace(p.slice(4))}</span>` : _PHOTO0(p, cls);
+const npcAsPlayer = id => { const N = NPCS[id], st = npcNow(id); return {uid:id, name:N.name, photo:'npc:' + id, lv:st.lv, job:N.job, sub:N.sub, npc:true, at:st.online ? {f:st.at, ts:Date.now()} : null, seen:Date.now(), loc:st.ri}; };
+
+// 시설에 '지금 여기 있는 사람'으로 보이기 + 마주치면 인사
+const _whoAt0 = whoAt;
+whoAt = f => [..._whoAt0(f), ...Object.keys(NPCS).filter(id => npcNow(id).at === f).map(npcAsPlayer)];
+const _checkMeets0 = checkMeets;
+checkMeets = async () => {
+  for (const id of Object.keys(NPCS)){
+    if (npcNow(id).at !== HERE) continue;
+    const r = npcRel(id); if (r.greet === dayKey()) continue;
+    r.greet = dayKey(); const g = npcAff(id, 2); save();
+    notify('social', '마주침', `${FAC[HERE] || '이곳'}에서 ${NPCS[id].name}${pp(NPCS[id].name,'과','와')} 마주쳤다. 「${npcLine(id, pick(Math.random, NPCS[id].lines.greet))}」 호감도 +${g}`);
+  }
+  const ps = _whoAt0(HERE); if (ps.length) return _checkMeets0();
+};
+// 기존 마주침 함수가 주민을 Firestore 유저로 다루지 않게
+const _metToday0 = metToday;
+metToday = o => isNpc(o) ? npcRel(o).greet === dayKey() : _metToday0(o);
+
+// 담소: 주민이 한 시간에 한 번쯤 한마디 (모든 기기에서 같은 말)
+const _chatHTML0 = chatHTML;
+chatHTML = () => {
+  const room = CHAT.room, extra = [];
+  for (const id of Object.keys(NPCS)){
+    const st = npcNow(id), pool = NPCS[id].lines.chat[room]; if (!pool || st.at !== room) continue;
+    const slot = Math.floor(Date.now()/(40*MIN)), ts = slot*40*MIN + (hashStr(id + slot) % (30*MIN));
+    if (ts <= Date.now()) extra.push({from:id, name:NPCS[id].name + ' · 주민', text:pool[hashStr(id + slot + room) % pool.length], ts, npc:true});
+  }
+  if (!extra.length) return _chatHTML0();
+  const saved = CHAT.msgs; CHAT.msgs = [...saved, ...extra].sort((a, b) => a.ts - b.ts);
+  const out = _chatHTML0(); CHAT.msgs = saved; return out;
+};
+// 마을 소식: 하루 한두 번 주민 소식
+const _newsList0 = newsList;
+newsList = () => {
+  const L = _newsList0().slice(), d0 = seoul().day0;
+  for (const id of Object.keys(NPCS)){
+    const N = NPCS[id], st = npcNow(id, d0 + 13*H);
+    const items = [`${N.name}님이 ${REG[st.ri].n}에서 탐사를 마치고 돌아왔습니다.`, ...(N.news || []).map(x => x.replace('{n}', N.name)), `${N.name}님이 Lv.${npcLv(N)}이 되었습니다.`];
+    const ts = d0 + (11 + hashStr(id + d0) % 9)*H;
+    if (ts < Date.now()) L.push({id:'n_' + id + d0, ts, text:items[hashStr(id + d0 + 'n') % items.length]});
+  }
+  return L.sort((a, b) => b.ts - a.ts).slice(0, 20);
+};
+
+// 교류 탭: 마을 주민 칸
+const _social0 = TABS.social;
+TABS.social = () => {
+  const html = _social0(), mark = '<div class="sec-title"><h2 style="font-size:1.5rem">마을 사람들</h2>';
+  const card = `<div class="sec-title"><h2 style="font-size:1.5rem">마을 주민</h2><span class="small muted">이 마을에 사는 NPC</span></div><div class="card"><div class="list">${Object.keys(NPCS).map(id => { const N = NPCS[id], st = npcNow(id), r = npcRel(id);
+    return `<button class="li click" data-act="sheet" data-s="profile" data-a="${id}"><span class="av-wrap">${PHOTO('npc:' + id)}<i class="on-dot ${st.online ? 'on' : ''}"></i></span><div class="t"><b>${esc(N.name)} <span class="chip npc-chip">주민</span> <span class="small muted num">Lv.${st.lv} ${JOBS[N.job].n}</span></b><span>${esc(st.doing)}</span><span class="tiny muted">${r.stage === 'friend' ? '친구' : '아는 사이'} · 호감도 ${r.aff}</span></div></button>`; }).join('')}</div></div>`;
+  return html.includes(mark) ? html.replace(mark, card + mark) : html + card;
+};
+
+// 주민 프로필
+const _profile0 = SHEETS.profile;
+SHEETS.profile = o => {
+  if (!isNpc(o)) return _profile0(o);
+  const N = NPCS[o], st = npcNow(o), r = npcRel(o), tier = npcTier(r);
+  const say = UI.npcSay && UI.npcSay.id === o && Date.now() - UI.npcSay.at < 90000 ? UI.npcSay.x : null;
+  const here = HERE && st.at === HERE, canMeet = st.online && !baseLocked();
+  const gifts = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && ['food','mat','fish','pot'].includes(IT[k.replace('*','')].t) && !k.startsWith('c_'))
+    .sort((a, b) => (NPCS[o].love.includes(b.replace('*','')) - NPCS[o].love.includes(a.replace('*',''))) || (NPCS[o].like.includes(b.replace('*','')) - NPCS[o].like.includes(a.replace('*',''))));
+  return sheetHead(`${esc(N.name)} <span class="chip npc-chip">주민</span>`) + `
+  <div class="row" style="align-items:flex-start;gap:12px">${PHOTO('npc:' + o, 'lg')}<div class="grow"><div class="small">Lv.${st.lv} · ${JOBS[N.job].n} · ${SUBS[N.sub].n} · ${N.age}세</div><div class="small" style="color:var(--seal)">「${esc(N.title)}」</div>
+    <div class="small muted">${st.online ? `<b style="color:var(--moss)">${esc(st.doing)}</b>` : '잠들었다'}</div></div></div>
+  <p class="small" style="margin:10px 0 0">${esc(N.intro)}</p>
+  <div class="card" style="margin-top:10px"><div class="row"><b class="grow">${r.stage === 'friend' ? '친구' : '아는 사이'}</b><span class="num small">호감도 ${r.aff}/100</span></div><div class="bar gold" style="margin-top:6px"><i style="width:${r.aff}%"></i></div>
+    <p class="tiny muted" style="margin:6px 0 0">좋아하는 것: ${N.like.slice(0, 5).map(k => esc(itemName(k))).join(', ')}${r.aff >= 25 ? '' : ' … (더 친해지면 더 알게 된다)'}</p></div>
+  ${say ? `<div class="comp-say" style="margin-top:10px"><p style="margin:0">「${esc(say)}」</p></div>` : ''}
+  <div class="row wrapf" style="gap:6px;margin-top:10px">
+    <button class="btn sm" data-act="npcTalk" data-u="${o}" ${canMeet ? '' : 'disabled'}>이야기하기</button>
+    <button class="btn sm" data-act="npcGreet" data-u="${o}" ${canMeet && r.greet !== dayKey() ? '' : 'disabled'}>${r.greet === dayKey() ? '오늘 인사함' : '인사'}</button>
+    <button class="btn sm ghost" data-act="npcGiftOpen" data-u="${o}" ${canMeet ? '' : 'disabled'}>선물</button>
+  </div>
+  ${!st.online ? '<p class="tiny muted" style="margin:6px 0 0">지금은 자는 중이라 만날 수 없다.</p>' : here ? '' : `<p class="tiny muted" style="margin:6px 0 0">지금 ${FAC[st.at] ? FAC[st.at] + '에 있다. 그 시설에 들어가면 마주칠 수 있다.' : '탐사 중이다.'} 멀리서도 이야기·선물은 할 수 있다.</p>`}
+  ${UI.npcGift === o ? `<h3 style="margin-top:12px">무엇을 줄까?</h3>${gifts.length ? `<div class="list">${gifts.slice(0, 30).map(k => { const b = k.replace('*',''), lv = N.love.includes(b) ? '♥♥' : N.like.includes(b) ? '♥' : ''; return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${cnt(k) - equippedN(k)}</span> ${lv && r.aff >= 25 ? `<span style="color:var(--seal)">${lv}</span>` : ''}</b></div><button class="btn sm" data-act="npcGift" data-u="${o}" data-k="${k}">주기</button></div>`; }).join('')}</div>` : '<p class="small muted">줄 수 있는 물건이 없다.</p>'}` : ''}
+  <p class="tiny muted" style="margin-top:12px">주민은 마을에 사는 NPC예요. 호감도는 이 기기의 내 기록에만 남아요.</p>`;
+};
+function npcTalk(id){
+  const N = NPCS[id], r = npcRel(id), st = npcNow(id);
+  const pool = !st.online ? N.lines.night : [...N.lines[npcTier(r)], ...(N.lines.chat[st.at] || [])];
+  const x = npcLine(id, pick(Math.random, pool));
+  let g = 0; if (r.talk !== dayKey()){ r.talk = dayKey(); g = npcAff(id, 1); }
+  UI.npcSay = {id, x, at:Date.now()}; save(); if (g) toast(`${N.name}${pp(N.name,'과','와')} 이야기를 나눴다. 호감도 +${g}`, 'good'); renderSheet(true);
+}
+function npcGreet(id){
+  const N = NPCS[id], r = npcRel(id); if (r.greet === dayKey()) return;
+  r.greet = dayKey(); const g = npcAff(id, 2);
+  UI.npcSay = {id, x:npcLine(id, pick(Math.random, N.lines.greet)), at:Date.now()}; save(); toast(`${N.name}에게 인사했다. 호감도 +${g}`, 'good'); renderSheet(true); render();
+}
+function npcGift(id, k){
+  const N = NPCS[id], r = npcRel(id), b = k.replace('*','');
+  if (cnt(k) - equippedN(k) <= 0) return;
+  takeItem(k, 1);
+  const kind = N.love.includes(b) ? 'love' : N.like.includes(b) ? 'like' : N.dislike.includes(b) ? 'dislike' : 'normal';
+  const day = r.gday === dayKey() ? r.gn || 0 : 0; r.gday = dayKey(); r.gn = day + 1;
+  const base = {love:8, like:5, normal:2, dislike:-2}[kind] * (k.endsWith('*') ? 1.5 : 1);
+  const g = npcAff(id, day >= 3 ? Math.min(1, base) : Math.round(base));
+  r.gifts = (r.gifts || 0) + 1; stat('npcGift');
+  UI.npcSay = {id, x:N.lines.gift[kind], at:Date.now()}; UI.npcGift = null;
+  // 친해지면 가끔 답례를 우편으로 보낸다
+  if (r.aff >= 25 && Math.random() < (kind === 'love' ? 0.5 : 0.2) && Date.now() - (r.thx || 0) > 6*H){
+    r.thx = Date.now(); const it = pick(Math.random, N.reward.filter(x => IT[x]));
+    postAdd({kind:'gift', from:id, name:N.name, items:[[it, 1]], msg:npcLine(id, pick(Math.random, N.lines.thanks))});
+    setTimeout(() => notify('social', '선물', `${N.name}님의 답례 선물이 우편함에 도착했습니다.`), 1500);
+  }
+  sfx(kind === 'dislike' ? 'soft' : 'coin'); save();
+  toast(`${N.name}에게 ${itemName(k)}${pp(itemName(k),'을','를')} 주었다. 호감도 ${g >= 0 ? '+' : ''}${g}${day >= 3 ? ' (오늘은 선물을 많이 받아서 덜 기뻐한다)' : ''}`, kind === 'dislike' ? '' : 'good');
+  renderSheet(true); render();
+}
+TITLES.push({id:'npcfriend', n:'주민의 벗', d:'마을 주민과 친구가 되었다.', c:S => Object.values(S.npc || {}).some(r => r.stage === 'friend')});
+// ===================== 좋아하는 것 · 교환 =====================
+
+// ---- 좋아하는 것: 프로필에 최대 5개. 이 물건을 선물받으면 호감도 2배 ----
+const LIKE_MAX = 5;
+const likesOf = u => u === ST.uid ? (S.likes || []) : ((PL[u] && PL[u].likes) || []);
+const likeChips = ks => ks.filter(k => IT[k]).map(k => ichip(k)).join('');
+SHEETS.likes = () => {
+  const L = S.likes = (S.likes || []).filter(k => IT[k]);
+  const f = UI.likeF || 'food';
+  const GF = [['food','요리'],['mat','재료'],['fish','생선'],['pot','약'],['gear','장비']];
+  const keys = Object.keys(IT).filter(k => !k.startsWith('c_') && !['ticket','ring','reset'].includes(k)).filter(k => { const t = IT[k].t; return f === 'pot' ? ['pot','elix','cure'].includes(t) : f === 'gear' ? ['weapon','armor','acc'].includes(t) : t === f; });
+  return sheetHead('좋아하는 것') + `<p class="small muted" style="margin-top:0">프로필에 좋아하는 물건을 ${LIKE_MAX}개까지 골라 둘 수 있다. 다른 개척자가 이 물건을 선물하면 <b>호감도가 두 배</b>로 오른다.</p>
+  <div class="card"><b class="small">고른 것 ${L.length}/${LIKE_MAX}</b><div class="row wrapf" style="gap:6px;margin-top:6px">${L.length ? L.map(k => `<button class="chip ichip" data-act="likeTog" data-k="${k}">${itemIcon(k, 'sm')}${esc(itemName(k))} ×</button>`).join('') : '<span class="tiny muted">아직 없다. 아래에서 골라 보자.</span>'}</div></div>
+  <div class="seg scrollx" style="margin:10px 0">${GF.map(([k, n]) => `<button data-act="likeF" data-f="${k}" aria-pressed="${f === k}">${n}</button>`).join('')}</div>
+  <div class="ing-row">${keys.map(k => `<button class="ing ${L.includes(k) ? 'on' : ''}" data-act="likeTog" data-k="${k}" aria-pressed="${L.includes(k)}" ${!L.includes(k) && L.length >= LIKE_MAX ? 'disabled' : ''}>${itemIcon(k, 'lg')}${L.includes(k) ? '<b class="like-mark">♥</b>' : ''}<span>${esc(itemName(k))}</span></button>`).join('')}</div>`;
+};
+function likeToggle(k){
+  S.likes = S.likes || [];
+  if (S.likes.includes(k)) S.likes = S.likes.filter(x => x !== k);
+  else if (S.likes.length < LIKE_MAX) S.likes.push(k);
+  save(); pubDirty(); renderSheet(true);
+}
+function likesCard(){
+  const L = (S.likes || []).filter(k => IT[k]);
+  return `<div class="card" style="margin-top:10px"><div class="row"><b class="grow">좋아하는 것</b><button class="btn sm ghost" data-act="sheet" data-s="likes">${L.length ? '고치기' : '고르기'}</button></div>
+    ${L.length ? `<div class="row wrapf" style="gap:6px;margin-top:6px">${likeChips(L)}</div><p class="tiny muted" style="margin:6px 0 0">이 물건을 선물받으면 호감도가 두 배로 오른다.</p>` : '<p class="tiny muted" style="margin:6px 0 0">좋아하는 물건을 골라 두면, 그 물건을 선물받을 때 호감도가 두 배로 오른다.</p>'}</div>`;
+}
+// 나 탭에 '좋아하는 것' 카드
+const _me0 = TABS.me;
+TABS.me = () => { const h = _me0(), mark = '<div class="card" style="margin-top:10px"><div class="row"><span class="stamp">'; return h.includes(mark) ? h.replace(mark, likesCard() + mark) : h + likesCard(); };
+// 다른 개척자 프로필에 '좋아하는 것' + 교환 버튼
+const _profile1 = SHEETS.profile;
+SHEETS.profile = o => {
+  const h = _profile1(o); if (isNpc(o) || !PL[o]) return h;
+  const L = likesOf(o).filter(k => IT[k]);
+  const likeHtml = L.length ? `<div class="card" style="margin-top:10px"><b class="small">${esc(PL[o].name)}님이 좋아하는 것</b> <span class="tiny muted">선물하면 호감도 2배</span><div class="row wrapf" style="gap:6px;margin-top:6px">${likeChips(L)}</div></div>` : '';
+  const tradeBtn = `<button class="btn sm" data-act="tradeAsk" data-u="${esc(o)}" ${isOnline(PL[o]) ? '' : 'disabled title="접속 중인 사람과만 교환할 수 있어요"'}>교환</button>`;
+  let out = h;
+  const mark = '<div class="card" style="margin-top:10px">';
+  if (likeHtml) out = out.includes(mark) ? out.replace(mark, likeHtml + mark) : out + likeHtml;
+  const gmark = `<button class="btn sm" data-act="sheet" data-s="gift" data-a="${esc(o)}">선물 (우편)</button>`;
+  out = out.replace(gmark, gmark + tradeBtn);
+  return out;
+};
+// 선물 창: 상대가 좋아하는 물건에 ♥ 표시
+const _gift0 = SHEETS.gift;
+SHEETS.gift = o => {
+  let h = _gift0(o); const L = likesOf(o).filter(k => IT[k]);
+  if (!L.length) return h;
+  for (const k of L) h = h.split(`data-act="gift" data-u="${esc(o)}" data-k="${k}"`).join(`data-act="gift" data-u="${esc(o)}" data-k="${k}" data-like="1"`);
+  for (const k of L){ h = h.split(`<b>${esc(itemName(k))} <span class="cntx">`).join(`<b><span style="color:var(--seal)">♥</span> ${esc(itemName(k))} <span class="cntx">`); }
+  const note = `<div class="card" style="margin:0 0 10px;padding:10px"><b class="small">${esc(PL[o]?.name || '')}님이 좋아하는 것</b> <span class="tiny" style="color:var(--seal)">♥ 선물하면 호감도 2배</span><div class="row wrapf" style="gap:6px;margin-top:6px">${likeChips(L)}</div></div>`;
+  const i = h.indexOf('<label class="f">'); return i > 0 ? h.slice(0, i) + note + h.slice(i) : h;
+};
+
+// ---- 교환: 실시간. 신청 후 1분 안에 답이 없거나, 교환 중 상대가 1분 동안 반응이 없으면 자동 취소 ----
+// trades/{id} = {a, b, an, bn, st:'ask'|'open'|'lock'|'done'|'cancel', ts, at, why, offer:{a:{items:[{k,n}], gold, ok}, b:{...}}, hb:{a, b}, fin:{a, b}}
+const TRADE_WAIT = 60000;
+let TRADES = {};
+const tradeRole = T => T.a === ST.uid ? 'a' : T.b === ST.uid ? 'b' : null;
+const tradeOther = T => tradeRole(T) === 'a' ? 'b' : 'a';
+const tradeLive = () => Object.values(TRADES).find(T => ['ask','open','lock'].includes(T.st) && tradeRole(T));
+function tradeListen(){
+  if (ST.mode !== 'cloud') return;
+  for (const side of ['a','b']) unsubs.push(ST.db.collection('trades').where(side, '==', ST.uid).onSnapshot(s => {
+    for (const k in TRADES) if (TRADES[k][side] === ST.uid) delete TRADES[k];
+    s.docs.forEach(d => { TRADES[d.id] = {...d.data(), id:d.id}; });
+    tradeSync();
+  }, e => console.warn('trade', e)));
+}
+const tradeDoc = id => ST.db.doc('trades/' + id);
+async function tradeAsk(o){
+  if (ST.mode !== 'cloud' || !PL[o]) return;
+  if (!isOnline(PL[o])) return toast('접속 중인 사람과만 교환할 수 있어요.');
+  if (tradeLive()) return toast('이미 진행 중인 교환이 있어요.');
+  if (baseLocked()) return toast('장기 탐사 중에는 교환할 수 없어요.');
+  const id = uid36(), t = now();
+  const T = {a:ST.uid, b:o, an:S.char.name, bn:PL[o].name, st:'ask', ts:t, at:t, offer:{a:{items:[], gold:0, ok:false}, b:{items:[], gold:0, ok:false}}, hb:{a:t, b:0}, fin:{a:false, b:false}};
+  try { await tradeDoc(id).set(T); } catch(e){ return toast('교환을 신청하지 못했어요.', 'warn'); }
+  TRADES[id] = {...T, id}; UI.trade = id; openSheet('trade'); toast(`${PL[o].name}님께 교환을 신청했다. 1분 안에 답이 없으면 취소된다.`);
+}
+async function tradeSet(T, patch){ try { await tradeDoc(T.id).update(patch); } catch(e){ toast('교환 정보를 전하지 못했어요.', 'warn'); } }
+async function tradeCancel(T, why = '교환을 취소했습니다.'){
+  if (!T || !['ask','open'].includes(T.st)) return;
+  tradeReturn(T);
+  await tradeSet(T, {st:'cancel', why, at:now()});
+}
+// 확정할 때 내 물건을 맡겨 둔다(가방에서 빠짐). 취소되면 돌려받는다
+function tradeEscrow(T, items, gold){
+  for (const {k, n} of items){ if (cnt(k) - equippedN(k) < n) return false; }
+  if (S.gold < gold) return false;
+  for (const {k, n} of items) takeItem(k, n); S.gold -= gold;
+  S.escrow = S.escrow || {}; S.escrow[T.id] = {items, gold}; save(); return true;
+}
+function tradeReturn(T){
+  const E = S.escrow && S.escrow[T.id]; if (!E) return;
+  for (const {k, n} of E.items) addItem(k, n); S.gold += E.gold; delete S.escrow[T.id]; save();
+}
+function tradeSync(){
+  if (!S || !S.char) return;
+  escrowRecover();
+  for (const T of Object.values(TRADES)){
+    const r = tradeRole(T); if (!r) continue;
+    const o = tradeOther(T), t = now();
+    // 끝난 교환: 맡긴 물건 정리
+    if (T.st === 'cancel' && S.escrow && S.escrow[T.id]){ tradeReturn(T); }
+    if (T.st === 'cancel' && !(S.tradeSeen || {})[T.id]){ S.tradeSeen = {...(S.tradeSeen || {}), [T.id]:1}; if (T.at > t - 120000) toast(T.why || '교환이 취소되었습니다.'); if (SHEET && SHEET.k === 'trade' && UI.trade === T.id) closeSheet(); save(); }
+    // 상대가 내용을 바꿔 내 확정이 풀렸으면 맡긴 물건을 돌려받는다
+    if (T.st === 'open' && !T.offer[r].ok && S.escrow && S.escrow[T.id]) tradeReturn(T);
+    // 신청받음
+    if (T.st === 'ask' && r === 'b' && !(S.tradeSeen || {})[T.id + 'ask'] && t - T.ts < TRADE_WAIT){
+      S.tradeSeen = {...(S.tradeSeen || {}), [T.id + 'ask']:1}; UI.trade = T.id; openSheet('trade'); sfx('bell');
+      notify('social', '교환 신청', `${T.an}님이 교환을 신청했습니다. 1분 안에 답해 주세요.`);
+    }
+    // 둘 다 확정 → 잠금 → 각자 상대 물건 받기
+    if (T.st === 'open' && T.offer.a.ok && T.offer.b.ok && r === 'a') tradeSet(T, {st:'lock', at:t});
+    if (T.st === 'lock' && !T.fin[r] && !(S.tradeDone || {})[T.id]){
+      S.tradeDone = {...(S.tradeDone || {}), [T.id]:1};
+      const got = T.offer[o];
+      for (const {k, n} of got.items || []) if (IT[k]) addItem(k, n);
+      S.gold += got.gold || 0;
+      if (S.escrow) delete S.escrow[T.id];
+      stat('trade'); save(); sfx('rare');
+      const txt = [...(got.items || []).map(({k, n}) => `${itemName(k)} ${n}개`), ...(got.gold ? [`${got.gold}${CUR}`] : [])].join(', ') || '아무것도';
+      toast(`교환 완료! ${txt}${pp(txt.replace(/[^가-힣]+$/, '') || '것','을','를')} 받았다.`, 'good');
+      tradeSet(T, {fin:{[r]:true}, at:t});
+      if (SHEET && SHEET.k === 'trade') renderSheet(true);
+    }
+    if (T.st === 'lock' && T.fin.a && T.fin.b && r === 'a') tradeSet(T, {st:'done'});
+  }
+  if (SHEET && SHEET.k === 'trade') renderSheet(true);
+}
+// 매초: 1분 시간 제한 · 살아 있다는 신호
+let tradeHb = 0;
+function tradeTick(){
+  const T = tradeLive(); if (!T) return;
+  const r = tradeRole(T), o = tradeOther(T), t = now();
+  if (T.st === 'ask' && t - T.ts > TRADE_WAIT){ if (r === 'a') tradeCancel(T, `${T.bn}님이 1분 동안 답하지 않아 교환이 취소되었습니다.`); else { T.st = 'cancel'; tradeSync(); } return; }
+  if (T.st === 'open'){
+    if (t - tradeHb > 15000){ tradeHb = t; tradeSet(T, {hb:{[r]:t}}); }
+    if (T.hb[o] && t - T.hb[o] > TRADE_WAIT) return tradeCancel(T, '상대가 1분 동안 반응이 없어 교환이 취소되었습니다.');
+  }
+  if (SHEET && SHEET.k === 'trade'){ const el = document.getElementById('trCd'); if (el) el.textContent = Math.max(0, Math.ceil((TRADE_WAIT - (t - T.ts))/1000)) + '초'; }
+}
+async function tradeAccept(yes){
+  const T = TRADES[UI.trade]; if (!T || T.st !== 'ask') return;
+  if (!yes) return tradeCancel(T, `${S.char.name}님이 교환을 거절했습니다.`);
+  if (baseLocked()) return toast('장기 탐사 중에는 교환할 수 없어요.');
+  await tradeSet(T, {st:'open', at:now(), hb:{a:now(), b:now()}});
+}
+async function tradeOfferAdd(k, n){
+  const T = TRADES[UI.trade]; if (!T || T.st !== 'open') return;
+  const r = tradeRole(T), my = T.offer[r]; if (my.ok) return toast('확정을 풀어야 바꿀 수 있어요.');
+  const items = my.items.slice(), cur = items.find(x => x.k === k), have = cnt(k) - equippedN(k);
+  const nn = Math.min(have, (cur ? cur.n : 0) + n);
+  if (nn <= 0){ const i = items.findIndex(x => x.k === k); if (i >= 0) items.splice(i, 1); } else if (cur) cur.n = nn; else if (items.length < 8) items.push({k, n:nn}); else return toast('한 번에 8가지까지 올릴 수 있어요.');
+  const o = tradeOther(T);
+  await tradeSet(T, {offer:{[r]:{items, gold:my.gold, ok:false}, [o]:{ok:false}}, at:now()});
+}
+async function tradeGold(){
+  const T = TRADES[UI.trade]; if (!T || T.st !== 'open') return;
+  const r = tradeRole(T), my = T.offer[r]; if (my.ok) return toast('확정을 풀어야 바꿀 수 있어요.');
+  const g = clamp(parseInt(document.getElementById('trGold')?.value) || 0, 0, S.gold);
+  const o = tradeOther(T);
+  await tradeSet(T, {offer:{[r]:{gold:g}, [o]:{ok:false}}, at:now()});
+}
+async function tradeOk(){
+  const T = TRADES[UI.trade]; if (!T || T.st !== 'open') return;
+  const r = tradeRole(T), my = T.offer[r];
+  if (!my.ok){
+    if (!my.items.length && !my.gold && !T.offer[tradeOther(T)].items.length && !T.offer[tradeOther(T)].gold) return toast('주고받을 물건을 올려 주세요.');
+    if (!tradeEscrow(T, my.items, my.gold)) return toast('올린 물건이 가방에 모자라요.', 'warn');
+    await tradeSet(T, {offer:{[r]:{ok:true}}, at:now()});
+  } else { tradeReturn(T); await tradeSet(T, {offer:{[r]:{ok:false}}, at:now()}); }
+}
+SHEETS.trade = () => {
+  const T = TRADES[UI.trade]; if (!T) return sheetHead('교환') + '<p class="muted">끝난 교환입니다.</p>';
+  const r = tradeRole(T), o = tradeOther(T), on = r === 'a' ? T.bn : T.an;
+  const side = (s, mine) => { const of = T.offer[s]; return `<div class="card tr-side ${of.ok ? 'ok' : ''}"><div class="row"><b class="grow">${mine ? '내가 줄 것' : esc(on) + '님이 줄 것'}</b>${of.ok ? '<span class="chip good">확정</span>' : '<span class="chip">고르는 중</span>'}</div>
+    <div class="row wrapf" style="gap:6px;margin-top:6px;min-height:28px">${of.items.length ? of.items.map(({k, n}) => mine && T.st === 'open' && !of.ok ? `<button class="chip ichip" data-act="trOff" data-k="${k}" data-n="-1">${itemIcon(k, 'sm')}${esc(itemName(k))} ×${n} −</button>` : ichip(k, n)).join('') : '<span class="tiny muted">아직 없음</span>'}${of.gold ? `<span class="chip gold">${of.gold}${CUR}</span>` : ''}</div></div>`; };
+  if (T.st === 'ask') return sheetHead('교환') + (r === 'b'
+    ? `<div class="card"><p style="margin:0"><b>${esc(T.an)}</b>님이 교환을 신청했습니다.</p><p class="small muted" style="margin:6px 0 0"><b id="trCd">60초</b> 안에 답하지 않으면 자동으로 취소됩니다.</p></div><div class="row" style="gap:8px;margin-top:12px"><button class="btn ghost grow" data-act="trYes" data-v="0">거절</button><button class="btn seal grow" data-act="trYes" data-v="1">교환하기</button></div>`
+    : `<div class="card"><p style="margin:0"><b>${esc(T.bn)}</b>님의 답을 기다리는 중…</p><p class="small muted" style="margin:6px 0 0"><b id="trCd">60초</b> 안에 답이 없으면 자동으로 취소됩니다.</p></div><button class="btn ghost full" style="margin-top:12px" data-act="trCancel">신청 취소</button>`);
+  if (T.st === 'lock' || T.st === 'done') return sheetHead('교환') + `<div class="card" style="text-align:center"><p style="margin:0;font-size:1.2rem">🤝 교환 완료!</p></div>${side(o, false)}${side(r, true)}<button class="btn full" style="margin-top:10px" data-act="closeSheet">닫기</button>`;
+  const my = T.offer[r];
+  const inv = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && !['ticket','ring'].includes(k) && !k.startsWith('c_'));
+  return sheetHead(`교환 · ${esc(on)}`) + `<p class="small muted" style="margin-top:0">물건을 올리고 둘 다 <b>확정</b>하면 바로 바뀐다. 상대가 내용을 바꾸면 확정이 풀린다. 1분 동안 반응이 없으면 자동 취소.</p>
+  ${side(o, false)}${side(r, true)}
+  <div class="row" style="gap:8px;margin-top:10px"><button class="btn ghost" data-act="trCancel">취소</button><button class="btn ${my.ok ? '' : 'seal'} grow" data-act="trOk">${my.ok ? '확정 풀기' : '확정'}</button></div>
+  ${my.ok ? '' : `<h3 style="margin-top:14px">내 가방에서 올리기</h3><div class="row" style="margin-bottom:8px"><span class="small">엽전</span><input id="trGold" type="number" min="0" max="${S.gold}" value="${my.gold || 0}" class="grow" aria-label="엽전"><button class="btn sm" data-act="trGold">올리기</button></div>
+  <div class="ing-row">${inv.map(k => { const on2 = my.items.find(x => x.k === k); return `<button class="ing ${on2 ? 'on' : ''}" data-act="trOff" data-k="${k}" data-n="1">${itemIcon(k, 'lg')}<b class="bc-n num">${cnt(k) - equippedN(k) - (on2 ? on2.n : 0)}</b><span>${esc(itemName(k))}</span></button>`; }).join('')}</div>`}`;
+};
+// 앱을 다시 열었을 때 끝난 교환에 맡겨 둔 물건이 남아 있으면 돌려받는다
+function escrowRecover(){
+  if (!S || !S.escrow) return;
+  for (const id of Object.keys(S.escrow)){ const T = TRADES[id]; if (T && (T.st === 'cancel')) tradeReturn(T); else if (T && T.st === 'done' && (S.tradeDone || {})[id]) delete S.escrow[id]; }
+}
+TITLES.push({id:'trade1', n:'물물교환', d:'다른 개척자와 교환을 마쳤다.', c:S => st_(S,'trade') >= 1});
+// ===================== 운영 도구: 마을 주민 편집 =====================
+// 운영자가 고친 내용은 config/npcs 에 저장되고, 모든 개척자 화면에 바로 반영된다 (읽기만, 서버비 거의 없음).
+const NPC_DEF = JSON.parse(JSON.stringify(NPCS)); // 처음 값 (되돌리기용)
+let NPC_OV = {};
+const NPC_LINE_KEYS = [['greet','인사'],['low','처음 친해질 때'],['mid','친한 사이'],['high','아주 친한 사이'],['night','잠잘 때']];
+function npcApply(ov){
+  NPC_OV = ov || {};
+  for (const id of Object.keys(NPC_DEF)){
+    const base = JSON.parse(JSON.stringify(NPC_DEF[id])), o = NPC_OV[id] || {};
+    for (const k of ['name','title','intro','job','sub']) if (typeof o[k] === 'string' && o[k].trim()) base[k] = o[k].trim().slice(0, k === 'intro' ? 200 : 20);
+    if (o.age != null && !isNaN(+o.age)) base.age = clamp(Math.round(+o.age), 1, 120);
+    if (o.lv0 != null && !isNaN(+o.lv0)) base.lv0 = clamp(Math.round(+o.lv0), 1, 60);
+    if (o.look) base.look = {...base.look, ...o.look};
+    for (const k of ['like','love','dislike']) if (Array.isArray(o[k])) base[k] = o[k].filter(x => IT[x]).slice(0, 12);
+    for (const [k] of NPC_LINE_KEYS) if (Array.isArray(o[k]) && o[k].length) base.lines[k] = o[k].map(x => String(x).slice(0, 120)).slice(0, 12);
+    if (Array.isArray(o.gifts) && o.gifts.length === 4) base.lines.gift = {love:o.gifts[0], like:o.gifts[1], normal:o.gifts[2], dislike:o.gifts[3]};
+    base.off = !!o.off;
+    NPCS[id] = base;
+  }
+  for (const id of Object.keys(NPCS)) if (NPCS[id].off) delete NPCS[id];
+  if (typeof SCREEN !== 'undefined' && SCREEN === 'game'){ render(); renderSheet(true); }
+}
+function npcWatch(){
+  if (!ST.rdb) return;
+  try { ST.rdb.doc('config/npcs').onSnapshot(d => npcApply(d.exists ? (d.data() || {}).list : {}), () => {}); } catch(e){}
+}
+const _musicWatch0 = musicWatch;
+musicWatch = () => { _musicWatch0(); npcWatch(); };
+
+// 편집 화면
+SHEETS.npcEdit = () => {
+  if (!isOp()) return sheetHead('주민 편집') + '<p>운영자만 쓸 수 있어요.</p>';
+  const ids = Object.keys(NPC_DEF), id = ids.includes(UI.npcE) ? UI.npcE : ids[0];
+  const D = NPC_DEF[id], o = NPC_OV[id] || {}, cur = {...D, ...o, look:{...NPC_LOOK_DEF, ...D.look, ...(o.look || {})}};
+  const lines = k => (o[k] || D.lines[k] || []).join('\n');
+  const list = k => (o[k] || D[k] || []).filter(x => IT[x]);
+  const draft = UI.npcDraft && UI.npcDraft.id === id ? UI.npcDraft : (UI.npcDraft = {id, like:list('like'), love:list('love'), dislike:list('dislike')});
+  const itemOpts = Object.keys(IT).filter(k => ['food','mat','fish','pot','elix'].includes(IT[k].t) && !k.startsWith('c_')).sort((a, b) => IT[a].n.localeCompare(IT[b].n, 'ko')).map(k => `<option value="${k}">${esc(IT[k].n)}</option>`).join('');
+  const chipList = k => `<div class="row wrapf" style="gap:4px;margin-top:4px">${draft[k].map(x => `<button class="chip ichip" data-act="npcLikeDel" data-l="${k}" data-k="${x}">${itemIcon(x, 'sm')}${esc(IT[x].n)} ×</button>`).join('') || '<span class="tiny muted">없음</span>'}</div>`;
+  const col = (k, n) => `<label class="f" style="flex:1;min-width:70px">${n}<input type="color" id="ne_${k}" value="${cur.look[k] || '#888888'}"></label>`;
+  const gifts = o.gifts || [D.lines.gift.love, D.lines.gift.like, D.lines.gift.normal, D.lines.gift.dislike];
+  return sheetHead('마을 주민 편집', '<span class="chip seal" style="border-color:var(--seal);color:var(--seal)">운영자</span>') + `
+  <p class="small muted" style="margin-top:0">저장하면 모든 개척자 화면에 바로 반영된다. 비워 둔 칸은 처음 값을 쓴다.</p>
+  <div class="seg scrollx" style="margin-bottom:10px">${ids.map(x => `<button data-act="npcESel" data-u="${x}" aria-pressed="${x === id}">${esc((NPC_OV[x] || {}).name || NPC_DEF[x].name)}${(NPC_OV[x] || {}).off ? ' (숨김)' : ''}</button>`).join('')}</div>
+  <div class="row" style="gap:12px;align-items:center">${PHOTO('npc:' + id, 'lg')}<div class="grow"><b>${esc(cur.name)}</b> <span class="chip npc-chip">주민</span><br><span class="tiny muted">처음 이름: ${esc(D.name)} · 아이디 ${id}</span></div></div>
+  <div class="stack ne-form" style="gap:8px;margin-top:10px">
+    <div class="row" style="gap:8px"><label class="f grow">이름<input id="ne_name" maxlength="20" value="${esc(cur.name)}"></label><label class="f" style="width:5.5em">나이<input id="ne_age" type="number" min="1" max="120" value="${cur.age}"></label><label class="f" style="width:5.5em">시작 Lv<input id="ne_lv0" type="number" min="1" max="60" value="${cur.lv0}"></label></div>
+    <label class="f">칭호<input id="ne_title" maxlength="20" value="${esc(cur.title)}"></label>
+    <label class="f">소개<textarea id="ne_intro" rows="3" maxlength="200">${esc(cur.intro)}</textarea></label>
+    <div class="row" style="gap:8px"><label class="f grow">직업<select id="ne_job">${Object.entries(JOBS).map(([k, j]) => `<option value="${k}" ${cur.job === k ? 'selected' : ''}>${j.n}</option>`).join('')}</select></label>
+      <label class="f grow">서브 직업<select id="ne_sub">${Object.entries(SUBS).map(([k, j]) => `<option value="${k}" ${cur.sub === k ? 'selected' : ''}>${j.n}</option>`).join('')}</select></label></div>
+    <div><b class="small">얼굴 색</b><div class="row" style="gap:6px">${col('hair','머리')}${col('skin','피부')}${col('robe','옷')}${col('hakama','하의')}${col('acc','장식')}</div></div>
+    <div><b class="small">좋아하는 것 · 아주 좋아하는 것 · 싫어하는 것</b>
+      <div class="row" style="gap:6px;margin-top:4px"><select id="ne_lk" style="width:7em"><option value="like">좋아함</option><option value="love">아주 좋아함</option><option value="dislike">싫어함</option></select><select id="ne_li" class="grow">${itemOpts}</select><button class="btn sm" data-act="npcLikeAdd">추가</button></div>
+      <p class="tiny muted" style="margin:6px 0 0">좋아함</p>${chipList('like')}<p class="tiny muted" style="margin:6px 0 0">아주 좋아함</p>${chipList('love')}<p class="tiny muted" style="margin:6px 0 0">싫어함</p>${chipList('dislike')}</div>
+    <details class="sub"><summary class="small">대사 고치기 (한 줄에 하나, {me}는 개척자 이름)</summary>
+      ${NPC_LINE_KEYS.map(([k, n]) => `<label class="f" style="margin-top:6px">${n}<textarea id="ne_l_${k}" rows="3">${esc(lines(k))}</textarea></label>`).join('')}
+      <b class="small" style="display:block;margin-top:8px">선물 반응</b>
+      ${['아주 좋아하는 것','좋아하는 것','보통','싫어하는 것'].map((n, i) => `<label class="f" style="margin-top:4px">${n}<input id="ne_g${i}" maxlength="120" value="${esc(gifts[i])}"></label>`).join('')}
+    </details>
+    <label class="check"><input type="checkbox" id="ne_off" ${o.off ? 'checked' : ''}> 이 주민 숨기기 (마을에서 잠시 사라진다)</label>
+  </div>
+  <div class="row" style="gap:8px;margin-top:12px"><button class="btn ghost" data-act="npcEReset">처음 값으로</button><button class="btn seal grow" data-act="npcESave">저장하고 모두에게 반영</button></div>`;
+};
+async function npcESave(){
+  if (!isOp()) return;
+  const ids = Object.keys(NPC_DEF), id = ids.includes(UI.npcE) ? UI.npcE : ids[0], D = NPC_DEF[id], v = k => (document.getElementById('ne_' + k)?.value ?? '');
+  const o = {name:v('name').trim(), title:v('title').trim(), intro:v('intro').trim(), job:v('job'), sub:v('sub'), age:+v('age') || D.age, lv0:+v('lv0') || D.lv0,
+    look:Object.fromEntries(['hair','skin','robe','hakama','acc'].map(k => [k, v(k)])), off:!!document.getElementById('ne_off')?.checked,
+    like:UI.npcDraft.like, love:UI.npcDraft.love, dislike:UI.npcDraft.dislike,
+    gifts:[0,1,2,3].map(i => v('g' + i).trim() || ['', '', '', ''][i])};
+  for (const [k] of NPC_LINE_KEYS){ const el = document.getElementById('ne_l_' + k); if (el){ const ls = el.value.split('\n').map(x => x.trim()).filter(Boolean); if (ls.length) o[k] = ls; } }
+  if (o.gifts.some(x => !x)) delete o.gifts;
+  const all = {...NPC_OV, [id]:o};
+  try { await ST.db.doc('config/npcs').set({list:all, ts:now()}); npcApply(all); toast(`${o.name || D.name} 정보를 저장했습니다. 모든 개척자에게 반영돼요.`, 'good'); }
+  catch(e){ toast('저장하지 못했습니다. (운영자 권한 확인)', 'warn'); }
+}
+async function npcEReset(){
+  if (!isOp()) return;
+  const ids = Object.keys(NPC_DEF), id = ids.includes(UI.npcE) ? UI.npcE : ids[0];
+  if (!await ask('처음 값으로', `${NPC_DEF[id].name}의 정보를 처음 값으로 되돌릴까요?`, '되돌리기')) return;
+  const all = {...NPC_OV}; delete all[id]; UI.npcDraft = null;
+  try { await ST.db.doc('config/npcs').set({list:all, ts:now()}); npcApply(all); toast('처음 값으로 되돌렸습니다.'); } catch(e){ toast('되돌리지 못했습니다.', 'warn'); }
+}
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -5595,6 +6138,13 @@ const ACT = {
   plantAll: d => plantAll(d.k), harvestAll: () => harvestAll(), waterAll: () => waterAll(), compostAll: () => compostAll(),
   bagSel: d => { UI.bagSel = UI.bagSel === d.k ? null : (d.k || null); render(); }, bagView: () => { UI.bagView = UI.bagView === 'list' ? 'grid' : 'list'; render(); },
   fishDeliver: d => fishDeliver(+d.i), forderTog: () => { UI.forderOpen = !UI.forderOpen; },
+  npcESel: d => { UI.npcE = d.u; UI.npcDraft = null; renderSheet(true); },
+  npcLikeAdd: () => { const l = $('#ne_lk').value, k = $('#ne_li').value; const L = UI.npcDraft[l]; if (IT[k] && !L.includes(k) && L.length < 12){ for (const x of ['like','love','dislike']) UI.npcDraft[x] = UI.npcDraft[x].filter(y => y !== k); UI.npcDraft[l].push(k); } renderSheet(true); },
+  npcLikeDel: d => { UI.npcDraft[d.l] = UI.npcDraft[d.l].filter(x => x !== d.k); renderSheet(true); },
+  npcESave: () => npcESave(), npcEReset: () => npcEReset(),
+  tradeAsk: d => tradeAsk(d.u), trYes: d => tradeAccept(d.v === '1'), trCancel: () => tradeCancel(TRADES[UI.trade]), trOk: () => tradeOk(), trOff: d => tradeOfferAdd(d.k, +d.n), trGold: () => tradeGold(),
+  likeTog: d => likeToggle(d.k), likeF: d => { UI.likeF = d.f; renderSheet(true); }, tradeOpen: () => { const T = tradeLive(); if (T){ UI.trade = T.id; openSheet('trade'); } },
+  npcTalk: d => npcTalk(d.u), npcGreet: d => npcGreet(d.u), npcGiftOpen: d => { UI.npcGift = UI.npcGift === d.u ? null : d.u; renderSheet(true); }, npcGift: d => npcGift(d.u, d.k),
   kTab: d => { UI.kTab = d.t; renderSheet(true); },
   potAdd: d => { UI.pot = UI.pot || []; if (UI.pot.length < 4) UI.pot.push(d.k); renderSheet(true); }, potDel: d => { UI.pot.splice(+d.i, 1); renderSheet(true); },
   freeCook: () => freeCook(), dishEdit: d => { UI.dishEdit = d.k; renderSheet(true); }, dishName: d => { renameDish(d.k); UI.dishEdit = null; renderSheet(true); },
@@ -5707,7 +6257,7 @@ function tick(){
   S.farm.forEach((f, i) => { if (f && now() >= f.at + f.dur) notify('harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
   if (S.nest && now() >= S.nest.at + S.nest.dur) notify('hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
   checkTitles();
-  festTick(); eventsRescan(); presenceTick(); chatSync(); battleTick(); restTick(); travelAskTick(); hardTick();
+  festTick(); if (typeof tradeTick === 'function') tradeTick(); eventsRescan(); presenceTick(); chatSync(); battleTick(); restTick(); travelAskTick(); hardTick();
   if (window.FB_MODE && now() % 5000 < 1000) pushSync();
   if (S.settings.infGold && isOp() && S.gold < 99999999){ S.gold = 99999999; }
   S.pen.forEach(a => { if (a.fed && now() >= a.readyAt) notify('harvest', '축사', `${a.name}에게서 ${IT[ANIMALS[a.kind].out[0]].n}${pp(IT[ANIMALS[a.kind].out[0]].n,'을','를')} 거둘 수 있습니다.`, 'pen' + a.id + a.readyAt); });
