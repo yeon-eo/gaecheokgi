@@ -433,6 +433,21 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .post-ic{ width:40px; height:40px; flex:none; border-radius:10px; display:grid; place-items:center; background:var(--paper-2); border:1px solid var(--line); font-size:18px; }
 .post-ic.grant{ background:var(--seal); color:var(--seal-ink); font-family:var(--f-disp, serif); font-weight:700; border-color:var(--seal); }
 .post-msg{ font-size:.85rem; color:var(--ink-2); }
+
+.sclk{ display:block; font-weight:500; color:var(--ink-3); margin-left:0; font-family:var(--f-body); vertical-align:baseline; }
+.chip.fest{ background:color-mix(in srgb, #e0583c 14%, var(--card)); border-color:#d0603e; color:#b8432a; }
+.b-lantern{ fill:#e8603e; stroke:#7a2a18; stroke-width:.8; } .b-lantern.alt{ fill:#f2b84a; }
+.b-fest-roof{ fill:#c94a32; stroke:var(--ink-2); stroke-width:1; } .b-fest-noren{ fill:#f6e3c4; stroke:var(--ink-2); stroke-width:.6; }
+.b-garland .b-lantern{ animation:lant 2.4s ease-in-out infinite; transform-box:fill-box; transform-origin:top center; }
+@keyframes lant{ 0%,100%{ transform:rotate(-4deg) } 50%{ transform:rotate(4deg) } }
+.fest-tile{ border-color:#d0603e !important; background:color-mix(in srgb, #e0583c 10%, var(--card)) !important; }
+.fest-tile .ic{ font-size:22px; }
+.fest-banner{ padding:12px 14px; border-radius:12px; background:linear-gradient(135deg, #2b2340, #4a2a3a); color:#fbe9d0; display:flex; flex-direction:column; gap:4px; }
+.fest-banner b{ font-size:1.05rem; } .fest-banner .num{ color:#ffd27a; }
+.fest-ic{ width:40px; height:40px; flex:none; border-radius:10px; display:grid; place-items:center; font-size:22px; background:var(--paper-2); border:1px solid var(--line); }
+.li.fest-item .t .good-t{ color:var(--moss); font-size:.86rem; }
+.kuji{ text-align:center; border-color:var(--gold); } .kuji.big{ border-color:var(--seal); background:color-mix(in srgb, var(--seal) 8%, var(--card)); }
+.kuji-n{ font-family:var(--f-disp, serif); font-size:1.8rem; color:var(--seal); }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -636,6 +651,20 @@ const RECIPES = [
   {id:'unadon',n:'장어덮밥',need:[['eel',1],['rice',1]],lv:45,b:{dur:6,st:{STR:2,AGI:2,VIT:2,INT:2,SPI:2,SEN:2,LUK:2}},bd:'모든 스탯 +2 (고급)',f:'달콤짭짤한 양념을 발라 구운 장어를 밥 위에 올렸다.'},
 ];
 RECIPES.forEach(r => IT['f_'+r.id] = {n:r.n, t:'food', p:15+r.lv*3, d:r.bd, f:r.f, r:r.id});
+// 마츠리(여름 축제) 노점 음식: 축제 때만 판다. 일반 요리보다 버프가 세다. 부엌에서는 만들 수 없다.
+// xp: 경험치 +% · rew: 장기 탐사 보상 +% · rare: 희귀 발견 +%
+const FEST_FOOD = [
+  {id:'ringoame', n:'링고아메', p:60, b:{dur:3, st:{LUK:4}, rare:0.2}, bd:'운 +4, 희귀 발견 +20%', f:'새빨간 사과에 투명한 설탕옷을 입힌 축제의 꽃. 한 입 깨물면 와삭.'},
+  {id:'yakisoba', n:'야끼소바', p:90, b:{dur:4, st:{STR:3, VIT:3}, cost:-0.12}, bd:'힘 +3, 체력 +3, 체력 소모 12% 감소', f:'철판 위에서 소스를 듬뿍 입혀 볶은 면. 파래 가루와 붉은 생강을 얹었다.'},
+  {id:'takoyaki', n:'타코야끼', p:80, b:{dur:4, st:{AGI:3, SEN:3}, maxhp:30}, bd:'민첩 +3, 감각 +3, 최대 체력 +30', f:'동그란 틀에서 뒤집어 구운 문어 경단. 가쓰오부시가 춤춘다. 뜨거우니 조심!'},
+  {id:'watagashi', n:'솜사탕', p:50, b:{dur:2, st:{SPI:2}, xp:0.15}, bd:'경험치 +15%, 정신 +2', f:'구름처럼 부풀린 설탕실. 입에 넣으면 사르르 사라진다.'},
+  {id:'kakigori', n:'빙수', p:60, b:{dur:2, st:{INT:2}, regen:1, tiredCut:2}, bd:'지친 몸 2시간 단축, 회복 2배, 지능 +2', f:'곱게 간 얼음에 딸기 시럽을 뿌렸다. 머리가 띵할 만큼 시원하다.'},
+  {id:'taiyaki', n:'붕어빵', p:70, b:{dur:3, st:{LUK:2}, rew:0.1}, bd:'장기 탐사 보상 +10%, 운 +2', f:'붕어 모양 틀에 단팥을 가득 넣어 구웠다. 머리부터? 꼬리부터?'},
+  {id:'corn', n:'간장 구운 옥수수', p:70, b:{dur:4, st:{STR:2, VIT:2, SPI:2}, maxhp:20}, bd:'힘 +2, 체력 +2, 정신 +2, 최대 체력 +20', f:'숯불에 굴려 가며 간장을 발라 구웠다. 고소한 냄새에 발길이 멈춘다.'},
+  {id:'ramune', n:'라무네', p:40, b:{dur:2, st:{AGI:3}, cost:-0.06}, bd:'민첩 +3, 체력 소모 6% 감소', f:'유리구슬로 입구를 막은 사이다. 퐁! 하고 구슬을 눌러 따는 맛.'},
+];
+FEST_FOOD.forEach(r => IT['m_' + r.id] = {n:r.n, t:'food', p:Math.round(r.p*0.5), d:r.bd, f:r.f, r:r.id, fest:1});
+
 const PROF_LV = [0,5,12,20,30,45];
 
 const CRAFT = {
@@ -945,9 +974,10 @@ function newSave(){
 const ACC_SLOTS = ['neck','wrist','ring1','ring2'];
 const SLOT_N = {weapon:'무기', armor:'갑옷', neck:'목걸이', wrist:'팔찌', ring1:'반지 ①', ring2:'반지 ②'};
 function baseStats(job){ const b = {}; STATS.forEach(k => b[k] = 5); if (job) JOBS[job].main.forEach(k => b[k] += 3); return b; }
+const foodRec = id => RECIPES.find(x => x.id === id) || FEST_FOOD.find(x => x.id === id);
 function foodActive(){ return S.food && S.food.until > now() ? S.food : null; }
 function tiredActive(){ return S.tired && S.tired.until > now() ? S.tired : null; }
-function foodBuff(){ const f = foodActive(); if (!f) return null; const r = RECIPES.find(x=>x.id===f.id); if (!r) return null; const m = f.q ? 1.5 : 1; const b = {...r.b}; if (b.st){ b.st = {...b.st}; for (const k in b.st) b.st[k] = Math.round(b.st[k]*m); } if (b.cost) b.cost *= m; if (b.maxhp) b.maxhp = Math.round(b.maxhp*m); return b; }
+function foodBuff(){ const f = foodActive(); if (!f) return null; const r = foodRec(f.id); if (!r) return null; const m = f.q ? 1.5 : 1; const b = {...r.b}; if (b.st){ b.st = {...b.st}; for (const k in b.st) b.st[k] = Math.round(b.st[k]*m); } if (b.cost) b.cost *= m; if (b.maxhp) b.maxhp = Math.round(b.maxhp*m); return b; }
 function effStats(){
   const b = baseStats(S.job);
   for (const k of STATS) b[k] += S.alloc[k] || 0;
@@ -1006,7 +1036,7 @@ function needHave(need){ return need.map(([k,n]) => { const have = k==='#fish' ?
 // ===================== 성장 =====================
 const MAX_LV = 60;
 function addXP(n, quiet){
-  n = Math.round(n * (isMarried() ? 1.1 : 1) * (encActive() ? 1.1 : 1));
+  n = Math.round(n * (isMarried() ? 1.1 : 1) * (encActive() ? 1.1 : 1) * (1 + (foodBuff()?.xp || 0)));
   if (S.lv >= MAX_LV){ S.xp = 0; return 0; }
   S.xp += n; let up = 0;
   while (S.lv < MAX_LV && S.xp >= xpNeed(S.lv)){ S.xp -= xpNeed(S.lv); S.lv++; S.pts += (S.lv % 2 === 0) ? 2 : 1; up++; }
@@ -1028,6 +1058,8 @@ function makeSnap(region){
   let rew = 1, rare = 1, egg = 1 + st.SEN*0.04;
   if (td){ cost *= td.weak ? 1.25 : 1.5; rew *= td.weak ? 0.85 : 0.7; }
   if (S.job === 'thief') rare *= 1.3;
+  if (fb?.rare) rare *= 1 + fb.rare;
+  if (fb?.rew) rew *= 1 + fb.rew;
   if (S.job === 'hunter') egg *= 1.5;
   rew *= 1 + pets.reduce((a,c)=>a + 0.05*bondMul(c), 0);
   const pots = [];
@@ -1550,7 +1582,7 @@ function cook(rid){
 function eat(key){
   if (baseLocked()) return lockToast();
   const base = key.replace('*',''), q = key.endsWith('*'), it = IT[base]; if (!it || it.t !== 'food') return;
-  const r = RECIPES.find(x => x.id === it.r); if (!takeItem(key)) return;
+  const r = foodRec(it.r); if (!takeItem(key)) return;
   const durH = r.b.dur * (hasSyn('onmyoji:cook')?1.3:1) * (q?1.25:1);
   setHP(curHP());
   S.food = {id:r.id, q, until: now() + durH*H/SPD()};
@@ -1732,6 +1764,7 @@ function startSync(){
   unsubs.push(db.collection('mail').where('to','==',ST.uid).onSnapshot(s => { MAIL_IN = s.docs.map(d => ({...d.data(), id:d.id})); mailNotify(); softRender(); }, err));
   unsubs.push(db.collection('mail').where('from','==',ST.uid).onSnapshot(s => { MAIL_OUT = s.docs.map(d => ({...d.data(), id:d.id})); softRender(); }, err));
   unsubs.push(db.collection('news').orderBy('ts','desc').limit(20).onSnapshot(s => { NEWS = s.docs.map(d => ({...d.data(), id:d.id})); softRender(); }, err));
+  pbListen();
   unsubs.push(db.collection('events').where('to','==',ST.uid).onSnapshot(s => { s.docs.forEach(d => handleEvent(d.id, d.data())); }, err));
 }
 let softT = null;
@@ -1739,7 +1772,7 @@ function softRender(){ clearTimeout(softT); softT = setTimeout(() => { if (SCREE
 
 async function sendEv(to, type, data={}){
   if (ST.mode !== 'cloud') return;
-  try { await ST.db.collection('events').add({to, from:ST.uid, type, data, ts:now()}); } catch(e){ toast('전하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'warn'); }
+  try { const r = await ST.db.collection('events').add({to, from:ST.uid, type, data, ts:now()}); return r && r.id; } catch(e){ toast('전하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'warn'); return null; }
 }
 // 운영자 계정은 마을 소식과 다른 개척자의 교류 화면에 나오지 않는다
 const isOpUser = p => !!(p && p.op);
@@ -1779,6 +1812,7 @@ function handleEvent(id, ev){
   const today = dayKey();
   if (S.mit.d !== today) S.mit = {d:today, from:{}};
   const canMit = () => !S.mit.from[from];
+  if ((ev.type === 'gift' || ev.type === 'grant') && ev.data && ev.data.pb){ pbFallback(id, from, nm, ev); return; } // 서버 우편함이 처리한다
   switch (ev.type){
     case 'greet': notify('social', '인사', `${nm}님이 인사를 건넸습니다.`); break;
     case 'meet': onMeetEvent(from, nm, ev.data || {}); break;
@@ -1891,7 +1925,8 @@ async function giftTo(o, k, n, msg){
   n = Math.min(n, cnt(k) - equippedN(k)); if (n <= 0) return;
   const base = k.replace('*',''), it = IT[base];
   takeItem(k, n); save();
-  sendEv(o, 'gift', {item:k, n, msg:(msg||'').trim().slice(0, 100)}); stat('gift');
+  const r = await postSend(o, 'gift', {items:[[k, n]], msg:(msg||'').trim().slice(0, 100)}); stat('gift');
+  postSent(r, o, `${itemName(k)} ×${n}`);
   const mult = (it.r === 'mochi' ? 2 : 1);
   const g = await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult, true);
   sfx('coin'); toast(`${itemName(k)} ${n}개를 상대의 우편함으로 보냈습니다.${g?` 호감도 +${g}`:''}`); closeSheet(); render();
@@ -2424,6 +2459,7 @@ function pushDue(){
   }
   if (S.travel) add(S.travel.arrive, 'exp', '도착', `${REG[S.travel.to].n}에 도착했습니다.`, 'arrive' + S.travel.arrive, {tab:'explore'});
   if (S.hard) add(S.hard.end, 'exp', '고난도 탐사', `${REG[S.hard.ri].n} 고난도 탐사가 끝날 시간입니다. 고르지 않은 사건은 자동으로 진행됐어요.`, 'hard' + S.hard.start, {tab:'explore'});
+  add(festNext(), 'event', '🏮 마츠리', '거점에서 마츠리가 열렸습니다! 밤 10시까지 노점에서 링고아메·야끼소바·타코야끼를 팔아요.', 'fest' + seoul(festNext()).key);
   if (S.rest) add(S.rest.until, 'harvest', '휴식 끝', '온천에서 푹 쉬었다. 체력이 많이 찼다.', 'rest' + S.rest.until);
   if (S.task) add(S.task.start + S.task.dur, 'harvest', '생활 작업', `${TASKS[S.task.kind].n}${pp(TASKS[S.task.kind].n,'을','를')} 마쳤습니다.`, 'task' + S.task.start);
   S.farm.forEach((f, i) => { if (f) add(f.at + f.dur, 'harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
@@ -2700,17 +2736,18 @@ function viewTop(){
   if (es){ if (es.st === 'run') chips.push(`<button class="chip blue" data-act="sheet" data-s="fx" data-a="exp">탐사 중 · <span class="num" data-cd="${es.end}"></span></button>`); else if (es.st === 'down') chips.push(`<button class="chip bad" data-act="sheet" data-s="fx" data-a="down">행동불능</button>`); }
   if (shortRun) chips.push('<span class="chip blue">단기 탐사 중</span>');
   if (S.travel && now() < S.travel.arrive) chips.push(`<button class="chip blue" data-act="tab" data-t="explore">${josa(REG[S.travel.to].n,'으로','로')} 이동 · <span class="num" data-cd="${S.travel.arrive}"></span></button>`);
-  if (fb){ const r = RECIPES.find(x=>x.id===fb.id); chips.push(`<button class="chip good" data-act="sheet" data-s="fx" data-a="food">${esc(r.n)}${fb.q?'★':''} · <span class="num" data-cd="${fb.until}"></span></button>`); }
+  if (fb){ const r = foodRec(fb.id); chips.push(`<button class="chip good" data-act="sheet" data-s="fx" data-a="food">${esc(r.n)}${fb.q?'★':''} · <span class="num" data-cd="${fb.until}"></span></button>`); }
   if (td) chips.push(`<button class="chip bad" data-act="sheet" data-s="fx" data-a="tired">지친 몸${td.weak?'(약화)':''} · <span class="num" data-cd="${td.until}"></span></button>`);
   if (encActive()) chips.push(`<button class="chip gold" data-act="sheet" data-s="fx" data-a="enc">격려 경험치 +10% · <span class="num" data-cd="${S.buffs.enc}"></span></button>`);
   if (isMarried()) chips.push('<button class="chip gold" data-act="sheet" data-s="fx" data-a="married">부부 버프 경험치 +10%</button>');
   if (S.travelAsk) chips.push(`<button class="chip blue" data-act="sheet" data-s="travelAsk">조사대 이동 · 답하기 <span class="num" data-cd="${S.travelAsk.deadline}"></span></button>`);
   if (S.hard) chips.push(`<button class="chip bad" data-act="tab" data-t="explore">⚔ 고난도 탐사${hardPending() ? ' · 선택!' : ''} · <span class="num" data-cd="${S.hard.end}"></span></button>`);
   if (restActive()) chips.push(`<button class="chip good" data-act="sheet" data-s="rest">♨ 휴식 중 · <span class="num" data-cd="${S.rest.until}"></span></button>`);
+  if (festOn()) chips.push(`<button class="chip fest" data-act="sheet" data-s="matsuri">🏮 마츠리 · <span class="num" data-cd="${festEnd()}"></span></button>`);
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
   const pU = postUnread(), nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
-  return `<header class="top wrap"><div class="who">${PHOTO(S.char.photo)}<div class="grow"><div class="name">${esc(S.char.name)} <span class="muted small num">Lv.${S.lv}</span></div><div class="tiny muted">${JOBS[S.job].n} · ${SUBS[S.sub].n} · 「${esc(curTitle())}」</div><div class="tgold num">${S.settings.infGold && isOp() ? '∞' : S.gold.toLocaleString()}<span class="tiny"> ${CUR}</span></div></div>
+  return `<header class="top wrap"><div class="who">${PHOTO(S.char.photo)}<div class="grow"><div class="name">${esc(S.char.name)} <span class="muted small num">Lv.${S.lv}</span></div><div class="tiny muted">${JOBS[S.job].n} · ${SUBS[S.sub].n} · 「${esc(curTitle())}」</div><div class="tgold num">${S.settings.infGold && isOp() ? '∞' : S.gold.toLocaleString()}<span class="tiny"> ${CUR}</span><span class="sclk tiny" id="sClk">${seoulClock()}</span></div></div>
     <div class="topbtns">
     <button class="ib" data-act="sheet" data-s="help" aria-label="도움말">${ICO.help}</button>
     <button class="ib" data-act="sheet" data-s="notices" aria-label="공지${cU ? ` ${cU}개 새 글` : ''}">${ICO.notice}<b class="badge" id="bNotice" ${cU ? '' : 'hidden'}>${cU}</b></button>
@@ -2742,9 +2779,12 @@ const BASE = [
   {k:'fish', n:'강가 낚시터', g:'', x:300, y:50, act:'openFish', s:''},
   {k:'rest', n:'온천', g:'휴식', x:40, y:138, act:'sheet', s:'rest'},
 ];
+const FEST_NODE = {k:'matsuri', n:'마츠리', g:'축제 노점', x:251, y:76, act:'sheet', s:'matsuri'};
+const baseNodes = () => festOn() ? [...BASE, FEST_NODE] : BASE;
 function baseGlyph(k){
   const roof = (w) => `<path d="M${-w} -2 L0 ${-w*0.7} L${w} -2 Z" class="b-roof"/>`;
   switch (k){
+    case 'matsuri': return `<path d="M-16 -16h32" class="b-ink"/><path d="M-18 -14L0 -22L18 -14Z" class="b-fest-roof"/><rect x="-14" y="-12" width="28" height="16" class="b-wall"/><rect x="-14" y="-12" width="28" height="5" class="b-fest-noren"/><circle cx="-10" cy="-2" r="3.2" class="b-lantern"/><circle cx="10" cy="-2" r="3.2" class="b-lantern"/><path d="M-6 4h12" class="b-ink thin"/>`;
     case 'board': return `<rect x="-11" y="-16" width="22" height="13" class="b-wall"/><path d="M-13 -18h26M-8 -3v10M8 -3v10" class="b-ink"/><path d="M-7 -12h14M-7 -8h10" class="b-ink thin"/>`;
     case 'shop': return `${roof(18)}<rect x="-14" y="-2" width="28" height="14" class="b-wall"/><rect x="-10" y="0" width="20" height="6" class="b-noren"/><path d="M-3 0v6M3 0v6" class="b-ink thin"/>`;
     case 'kitchen': return `${roof(18)}<rect x="-14" y="-2" width="28" height="14" class="b-wall"/><path d="M8 -14v-6h4v8" class="b-ink"/><path d="M10 -24c-2-3 2-4 0-7" class="b-smoke"/><rect x="-5" y="3" width="10" height="9" class="b-door"/>`;
@@ -2778,7 +2818,8 @@ function baseMapSVG(){
     <path d="M0 0 L120 0 C100 30 60 70 0 96 Z" class="b-hill"/>
     <path d="M44 240 C90 230 120 236 150 226 C200 210 250 222 300 236 M150 226 C160 180 150 150 172 70 M118 214 C120 170 118 150 118 140 M200 200 C208 170 214 150 216 132 M296 212 C298 180 300 160 300 146" class="b-road"/>
     <g class="b-torii" transform="translate(18 236)"><path d="M-12 -14h24M-10 -9h20M-7 -14v16M7 -14v16"/></g>
-    ${BASE.map(b => { const st = baseStatus(b.k); return `<g class="b-node" data-act="${b.act}" ${b.s ? `data-s="${b.s}"` : ''} role="button" tabindex="0" aria-label="${esc(b.n)}${b.g ? ` (${b.g})` : ''}${st ? `, ${st}` : ''}" transform="translate(${b.x} ${b.y})"><circle r="26" class="hit"/>${baseGlyph(b.k)}<text y="28" text-anchor="middle" class="b-label">${esc(b.n)}</text>${(() => { const n = ST.mode === 'cloud' ? whoAt(b.k === 'task' ? 'tasks' : b.k === 'shrine' ? 'subjob' : b.k).length : 0; return n ? `<g transform="translate(-24 -22)" class="b-ppl"><circle r="9"/><text y="3.5" text-anchor="middle">${n}</text></g>` : ''; })()}${st ? `<g transform="translate(16 -24)"><rect x="-2" y="-9" width="${st.length*9+8}" height="15" rx="7" class="b-badge"/><text x="2" y="2" class="b-badge-t">${esc(st)}</text></g>` : ''}</g>`; }).join('')}
+    ${festOn() ? `<g class="b-garland" aria-hidden="true"><path d="M0 18 Q90 40 180 20 T360 18" class="b-ink thin"/>${[20,48,76,104,132,160,188,216,244,272,300,328].map((x, i) => `<g transform="translate(${x} ${18 + Math.sin((x/360)*Math.PI*2)*0 + (i % 2 ? 9 : 12)})"><path d="M0 -6v3" class="b-ink thin"/><ellipse rx="4.5" ry="6" class="b-lantern ${i % 3 === 1 ? 'alt' : ''}"/></g>`).join('')}</g>` : ''}
+    ${baseNodes().map(b => { const st = baseStatus(b.k); return `<g class="b-node" data-act="${b.act}" ${b.s ? `data-s="${b.s}"` : ''} role="button" tabindex="0" aria-label="${esc(b.n)}${b.g ? ` (${b.g})` : ''}${st ? `, ${st}` : ''}" transform="translate(${b.x} ${b.y})"><circle r="26" class="hit"/>${baseGlyph(b.k)}<text y="28" text-anchor="middle" class="b-label">${esc(b.n)}</text>${(() => { const n = ST.mode === 'cloud' ? whoAt(b.k === 'task' ? 'tasks' : b.k === 'shrine' ? 'subjob' : b.k).length : 0; return n ? `<g transform="translate(-24 -22)" class="b-ppl"><circle r="9"/><text y="3.5" text-anchor="middle">${n}</text></g>` : ''; })()}${st ? `<g transform="translate(16 -24)"><rect x="-2" y="-9" width="${st.length*9+8}" height="15" rx="7" class="b-badge"/><text x="2" y="2" class="b-badge-t">${esc(st)}</text></g>` : ''}</g>`; }).join('')}
     ${lock ? `<g class="b-lockmsg"><rect x="60" y="112" width="240" height="46" rx="8"/><text x="180" y="132" text-anchor="middle">장기 탐사 중에는</text><text x="180" y="149" text-anchor="middle">거점을 이용할 수 없습니다</text></g>` : ''}
   </svg>`;
 }
@@ -2799,6 +2840,7 @@ TABS.home = () => {
   ${S.reqs.length ? `<div class="card" style="margin-bottom:10px"><b>받은 요청 ${S.reqs.length}건</b> <button class="btn sm ghost" data-act="tab" data-t="social" style="float:right">교류에서 보기</button></div>` : ''}
   <div class="card map-card">${baseMapSVG()}<p class="tiny muted" style="margin:6px 2px 0">건물을 누르면 들어갈 수 있다.${lock ? ' 지금은 장기 탐사 중이라 잠겨 있다.' : ''}</p></div>
   <div class="tiles" style="margin-top:10px">
+    ${festOn() ? `<button class="tile fest-tile" data-act="sheet" data-s="matsuri"><span class="ic">🏮</span><b>마츠리</b><span class="st on">축제 중 · <span class="num" data-cd="${festEnd()}"></span> 남음</span></button>` : ''}
     ${tile('sheet', 'kitchen', '부엌', `<span class="st ${canCook?'on':''}">${canCook ? `지금 만들 수 있는 요리 ${canCook}` : `아는 레시피 ${knownRecipes().length}`}</span>`, 'data-s="kitchen"')}
     ${tile('sheet', 'farm', '논밭', `<span class="st ${ready?'on':''}">${ready ? `수확 가능 ${ready}` : growing ? `자라는 중 ${growing}/4` : '빈 밭 4칸'}</span>`, 'data-s="farm"')}
     ${tile('sheet', 'pen', '축사', `<span class="st ${penReady()?'on':''}">${penReady() ? `수확 가능 ${penReady()}` : S.pen.length ? `가축 ${S.pen.length}/${PEN_MAX}${penHungry() ? ` · 먹이 필요 ${penHungry()}` : ''}` : '닭·누에·꿀벌·일소'}</span>`, 'data-s="pen"')}
@@ -2909,7 +2951,7 @@ TABS.explore = () => {
     <div class="seg hours" role="group" aria-label="탐사 시간">${[1,2,3].map(h => { const [a, b] = estRewards(h, ri, makeSnap(ri)); return `<button data-act="hours" data-h="${h}" aria-pressed="${hours===h}">${h}시간<span class="tiny">보상 약 ${a}~${b}개</span></button>`; }).join('')}</div>
     <p class="tiny muted" style="margin:-4px 0 0">보상 개수는 대략적인 예상이며, 짐 무게(힘)와 운에 따라 달라진다.</p>
     <div class="stack" style="gap:6px">${potSel('pot1')}${potSel('pot2')}</div>
-    <p class="small" style="margin:0">식사 버프: ${fb ? `<b>${RECIPES.find(r=>r.id===fb.id).n}</b> (남은 <span class="num" data-cd="${fb.until}"></span>)` : '<span class="muted">없음 — 부엌이나 가방에서 먹고 출발하세요</span>'}</p>
+    <p class="small" style="margin:0">식사 버프: ${fb ? `<b>${foodRec(fb.id).n}</b> (남은 <span class="num" data-cd="${fb.until}"></span>)` : '<span class="muted">없음 — 부엌이나 가방에서 먹고 출발하세요</span>'}</p>
     <p class="small" style="margin:0">동행 동료: ${activeComps().length ? activeComps().map(c => esc(c.name)).join(', ') : '<span class="muted">없음</span>'}${tiredActive()?' · <b style="color:var(--seal)">지친 몸 (소모 증가·보상 감소)</b>':''}</p>
     ${lead && !g ? `<button class="btn seal full" data-act="partyGather">조사대원 모아 ${hours}시간 떠나기</button><button class="btn ghost full" data-act="startLong">혼자 ${hours}시간 떠나기</button>`
       : `<button class="btn seal full" data-act="startLong" ${g ? 'disabled' : ''}>${R.n}${pp(R.n,'으로','로')} ${hours}시간 떠나기</button>`}` : ''}`;
@@ -3076,7 +3118,7 @@ SHEETS.kitchen = () => {
   const fb = foodActive();
   return sheetHead('부엌', `<span class="chip">요리 숙련도 ${p}</span>`) + `
   <p class="small muted" style="margin-top:0">요리할수록 숙련도가 올라 새 레시피를 배운다. 숙련도가 높을수록 '정성 가득'(버프 1.5배)이 잘 나온다. 식사 버프는 하나만 유지된다.</p>
-  ${fb ? `<p class="small">지금 버프: <b>${RECIPES.find(r=>r.id===fb.id).n}${fb.q?' (정성 가득)':''}</b> · 남은 <span class="num" data-cd="${fb.until}"></span></p>` : ''}
+  ${fb ? `<p class="small">지금 버프: <b>${foodRec(fb.id).n}${fb.q?' (정성 가득)':''}</b> · 남은 <span class="num" data-cd="${fb.until}"></span></p>` : ''}
   <div class="list">${known.map(r => `<div class="li"><div class="t"><b>${r.n}</b><span>${r.bd} · ${r.b.dur}시간</span><span class="tiny">${haveTxt(r.need)}</span></div><button class="btn sm" data-act="cook" data-r="${r.id}" ${needOk(r.need)?'':'disabled'}>요리</button></div>`).join('')}</div>
   ${next.length ? `<details class="sub" style="margin-top:10px"><summary class="small">아직 모르는 레시피 ${next.length}가지 · 배우는 곳</summary><div class="list">${next.map(r => `<div class="li"><div class="t"><b>${r.n} <span class="tiny muted">${r.bd}</span></b><span>${recipeSource(r)}</span></div></div>`).join('')}</div></details>` : ''}
   ${foods.length ? `<hr class="rule"><h3>먹을 수 있는 요리</h3><div class="list">${foods.map(k => `<div class="li"><span class="cnt">${cnt(k)}</span><div class="t"><b>${esc(itemName(k))}</b><span>${IT[k.replace('*','')].d}</span></div><button class="btn sm seal" data-act="eat" data-k="${k}">먹기</button></div>`).join('')}</div>` : ''}`;
@@ -3253,7 +3295,8 @@ SHEETS.settings = () => {
   </div>
   <p class="tiny muted">${storeNote()}</p>
   ${isOp() ? `<h3 style="margin-top:14px">운영 도구 <span class="chip seal" style="border-color:var(--seal);color:var(--seal)">운영자 전용</span></h3>
-  <div class="stack" style="gap:6px">${tog('fast','시험 모드: 시간을 60배 빠르게 (장기 탐사 1시간 → 1분, 새로 시작하는 타이머부터 적용)', st.fast)}
+  <div class="stack" style="gap:6px">${tog('festForce','마츠리 강제로 열기 (시험용 · 나에게만 보임)', st.festForce)}
+  ${tog('fast','시험 모드: 시간을 60배 빠르게 (장기 탐사 1시간 → 1분, 새로 시작하는 타이머부터 적용)', st.fast)}
   <div class="card" style="padding:12px"><b class="small">캐릭터 · 재화</b>
     <div class="row wrapf" style="margin-top:6px"><button class="btn sm seal" data-act="opMaxLv" ${S.lv >= MAX_LV ? 'disabled' : ''}>최대 레벨 (Lv.${MAX_LV})</button><button class="btn sm" data-act="opGold" data-n="100000">+10만 ${CUR}</button><button class="btn sm" data-act="opGold" data-n="1000000">+100만 ${CUR}</button><button class="btn sm ghost" data-act="opItems">재료 한 보따리</button><button class="btn sm ghost" data-act="opRecipes" ${RECIPES.every(r => S.recipes.includes(r.id)) ? 'disabled' : ''}>모든 레시피 습득</button></div>
     ${tog('infGold', `재화 무한 (엽전이 늘 99,999,999${CUR}로 채워진다)`, st.infGold)}</div>
@@ -3388,7 +3431,7 @@ function pwaBox(){
 // ===================== 도움말: 버프 · 디버프 =====================
 function activeEffects(){
   const out = [], fb = foodActive(), td = tiredActive(), es = expState();
-  if (fb){ const r = RECIPES.find(x => x.id === fb.id); if (r) out.push({good:true, n:`식사 · ${r.n}${fb.q ? ' (정성 가득)' : ''}`, d:r.bd + (fb.q ? ' · 효과 1.5배' : ''), until:fb.until}); }
+  if (fb){ const r = foodRec(fb.id); if (r) out.push({good:true, n:`식사 · ${r.n}${fb.q ? ' (정성 가득)' : ''}`, d:r.bd + (fb.q ? ' · 효과 1.5배' : ''), until:fb.until}); }
   if (restActive()) out.push({good:true, n:'온천 휴식', d:'체력 자연 회복 5배', until:S.rest.until});
   if (encActive()) out.push({good:true, n:'격려', d:'경험치 +10%', until:S.buffs.enc});
   if (isMarried()) out.push({good:true, n:'부부의 연', d:'경험치 +10% (상시)'});
@@ -3466,7 +3509,7 @@ SHEETS.fx = k => {
     <div class="row" style="margin-top:12px"><button class="btn ghost grow" data-act="sheet" data-s="help">도움말 전체 보기</button><button class="btn grow" data-act="closeSheet">닫기</button></div>`;
   if (k === 'food'){
     if (!fb) return card('식사 버프', true, ['지금은 식사 버프가 없다.'], 0, '부엌에서 요리를 만들어 먹으면 생긴다.');
-    const r = RECIPES.find(x => x.id === fb.id), b = foodBuff() || {};
+    const r = foodRec(fb.id), b = foodBuff() || {};
     const L = [`<b>${esc(r.n)}${fb.q ? ' (정성 가득)' : ''}</b> — ${esc(r.f || '')}`];
     if (b.st) L.push('능력치 ' + Object.entries(b.st).map(([s, v]) => `${STN[s]} +${v}`).join(', '));
     if (b.cost) L.push(`탐사 체력 소모 ${Math.round(-b.cost*100)}% 감소`);
@@ -4390,6 +4433,7 @@ function postGive(p){
   for (const [k, n] of p.items || []) if (IT[String(k).replace('*','')]) addItem(k, n);
   if (p.gold) S.gold += p.gold;
   p.got = now(); stat('postGot');
+  if (p.rid && ST.mode === 'cloud') ST.db.doc(`postbox/${ST.uid}/items/${p.rid}`).delete().catch(() => {});
 }
 const postSum = p => [...(p.items || []).map(([k, n]) => `${itemName(k)} ×${n}`), ...(p.gold ? [`${p.gold.toLocaleString()}${CUR}`] : [])].join(', ');
 function postClaim(id){
@@ -4405,8 +4449,158 @@ SHEETS.post = () => {
   const card = p => `<div class="li post ${p.got ? 'got' : ''}"><span class="post-ic ${p.kind}">${p.kind === 'grant' ? '印' : p.kind === 'gift' ? '🎁' : '✉'}</span><div class="t"><b>${p.kind === 'grant' ? '운영자 지급' : esc(p.name || '누군가') + '님의 선물'}</b><span>${esc(postSum(p))}</span>${p.msg ? `<span class="post-msg">「${esc(p.msg)}」</span>` : ''}<span class="tiny muted">${agoTxt(p.ts)}${p.got ? ' · 받음' : ''}</span></div>${p.got ? '' : `<button class="btn sm seal" data-act="postGet" data-id="${p.id}">받기</button>`}</div>`;
   return sheetHead('우편함') + `<p class="small muted" style="margin-top:0">다른 개척자의 선물과 운영자 지급 물품이 이곳에 도착한다. '받기'를 눌러야 가방에 들어간다.</p>
   ${un.length ? `<div class="row" style="margin-bottom:8px"><b class="grow small">받지 않은 우편 ${un.length}통</b><button class="btn sm seal" data-act="postAll">모두 받기</button></div><div class="list">${un.map(card).join('')}</div>` : '<div class="card" style="text-align:center"><p class="muted" style="margin:0">새 우편이 없다.</p></div>'}
-  ${done.length ? `<details class="sub" style="margin-top:12px"><summary class="small">받은 우편 ${done.length}통 (7일 동안 보관)</summary><div class="list" style="margin-top:6px">${done.map(card).join('')}</div></details>` : ''}`;
+  ${done.length ? `<details class="sub" style="margin-top:12px"><summary class="small">받은 우편 ${done.length}통 (7일 동안 보관)</summary><div class="list" style="margin-top:6px">${done.map(card).join('')}</div></details>` : ''}
+  ${sentBox()}`;
 };
+
+// ---- 보낸 우편: 상대가 접속해 우편함에 들어갔는지 확인 ----
+// 우편은 받는 사람이 게임을 열어야 우편함에 들어간다(탐사 중이어도 괜찮다). 그 전까지는 '전달 대기'로 보인다.
+const SENT_STATE = {};
+function postSent(r, to, what){
+  if (!r) return;
+  S.postSent = [{eid:r.eid, pb:r.pbOk ? r.pb : null, to, name:PL[to]?.name || '개척자', what, ts:now()}, ...(S.postSent || [])].slice(0, 30);
+}
+async function postSentCheck(){
+  if (ST.mode !== 'cloud' || !S.postSent) return;
+  for (const p of S.postSent.slice(0, 15)){
+    if (SENT_STATE[p.eid] === 'got' || SENT_STATE[p.eid] === 'done') continue;
+    if (p.pb){ try { const d = await ST.db.doc(`postbox/${p.to}/items/${p.pb}`).get(); SENT_STATE[p.eid] = d.exists ? 'box' : 'got'; } catch(e){ SENT_STATE[p.eid] = 'got'; } continue; }
+    try { const d = await ST.db.doc('events/' + p.eid).get(); SENT_STATE[p.eid] = d.exists ? 'wait' : 'done'; }
+    catch(e){ SENT_STATE[p.eid] = 'done'; } // 상대가 지워 읽을 수 없으면 이미 도착한 것
+  }
+  renderSheet(true);
+}
+const sentBox = () => {
+  const L = S.postSent || []; if (!L.length) return '';
+  return `<details class="sub" style="margin-top:12px"><summary class="small">보낸 우편 ${L.length}통</summary>
+    <p class="tiny muted" style="margin:6px 0">우편은 상대가 접속하지 않아도 바로 상대의 우편함에 들어간다. 상대가 '받기'를 누르면 '받음'으로 바뀐다.</p>
+    <div class="list">${L.map(p => { const st = SENT_STATE[p.eid]; return `<div class="li"><div class="t"><b>${esc(p.name)}님께</b><span>${esc(p.what)}</span><span class="tiny muted">${agoTxt(p.ts)}</span></div><span class="chip ${st === 'got' ? 'good' : st === 'box' || st === 'done' ? 'blue' : st === 'wait' ? '' : ''}">${({got:'받음', box:'우편함 도착', done:'우편함 도착', wait:'전달 대기'})[st] || '확인 중'}</span></div>`; }).join('')}</div></details>`;
+};
+// 이벤트 목록을 가끔 다시 훑어, 놓친 우편·선물이 없게 한다
+let evScanAt = 0;
+async function eventsRescan(){
+  if (ST.mode !== 'cloud' || !S || !S.char || now() - evScanAt < 60000) return;
+  evScanAt = now();
+  try { const s = await ST.db.collection('events').where('to', '==', ST.uid).get(); s.docs.forEach(d => handleEvent(d.id, d.data())); } catch(e){}
+}
+
+// ---- 서버 우편함: 상대가 접속하지 않아도 우편이 그 사람의 우편함(postbox/{uid})에 바로 들어간다 ----
+// 보내는 순서: ① 알림용 사건(events, 푸시 알림·옛 버전 호환) ② 서버 우편함에 우편 한 통.
+// 받는 쪽은 게임을 열면 서버 우편함을 읽어 내 우편함에 넣는다. '받기'를 누르면 서버 우편도 지운다.
+async function postSend(to, kind, body){
+  if (ST.mode !== 'cloud') return null;
+  const pb = uid36(), legacy = kind === 'grant' ? {item:body.items[0] ? body.items[0][0] : 'pot1', n:body.items[0] ? body.items[0][1] : 0} : {item:body.items[0][0], n:body.items[0][1]};
+  const eid = await sendEv(to, kind, {...legacy, ...body, pb});
+  if (!eid) return null;
+  let pbOk = true;
+  try { await ST.db.doc(`postbox/${to}/items/${pb}`).set({from:ST.uid, name:S.char.name, kind, items:body.items, gold:body.gold || 0, msg:body.msg || '', ts:now(), ev:eid}); }
+  catch(e){ pbOk = false; console.warn('postbox', e); }
+  return {eid, pb, pbOk};
+}
+const PB_BUSY = {};
+async function pbIngest(id, x){
+  if (!S || !S.char || !x || PB_BUSY[id]) return;
+  if (postList().some(p => p.rid === id)){ if (postList().find(p => p.rid === id).got) ST.db.doc(`postbox/${ST.uid}/items/${id}`).delete().catch(() => {}); return; }
+  PB_BUSY[id] = 1;
+  const drop = () => ST.db.doc(`postbox/${ST.uid}/items/${id}`).delete().catch(() => {});
+  // 옛 버전으로 이미 받아 간 우편이면(알림 사건이 사라졌으면) 두 번 받지 않게 지운다
+  if (x.ev){ let alive = false; try { alive = (await ST.db.doc('events/' + x.ev).get()).exists; } catch(e){} if (!alive && !postList().some(p => p.rid === id)){ drop(); return; } }
+  if (blocked(x.from) || (x.kind === 'grant' && PL[x.from] && !isOpUser(PL[x.from]))){ drop(); return; }
+  const items = (x.items || []).filter(([k]) => IT[String(k).replace('*','')]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]);
+  const p = {rid:id, kind:x.kind === 'grant' ? 'grant' : 'gift', from:x.from, name:x.kind === 'grant' ? '운영자' : (x.name || PL[x.from]?.name || '누군가'), items, gold:Math.max(0, Math.min(10000000, x.gold || 0)), msg:String(x.msg || '').slice(0, 200), ts:x.ts || now()};
+  postAdd(p);
+  notify('social', p.kind === 'grant' ? '운영자 지급' : '선물', p.kind === 'grant' ? `우편함에 운영자 지급 물품이 도착했습니다: ${postSum(p)}` : `${p.name}님의 선물이 우편함에 도착했습니다: ${postSum(p)}${p.msg ? ` 「${p.msg}」` : ''}`);
+  if (x.ev) ST.db.doc('events/' + x.ev).delete().catch(() => {});
+  save(); softRender();
+}
+// 서버 우편함을 못 읽는 경우(보안 규칙을 아직 안 바꿨을 때 등)를 위해, 20초 안에 안 들어오면 알림 사건으로 대신 받는다
+function pbFallback(evId, from, nm, ev){
+  setTimeout(() => {
+    const d = ev.data || {}; if (!S || postList().some(p => p.rid === d.pb)) { ST.db.doc('events/' + evId).delete().catch(() => {}); return; }
+    pbIngest(d.pb, {from, name:nm, kind:ev.type, items:d.items || [[d.item, d.n]], gold:d.gold, msg:d.msg, ts:ev.ts});
+  }, 20000);
+}
+function pbListen(){
+  if (ST.mode !== 'cloud') return;
+  try { unsubs.push(ST.db.collection(`postbox/${ST.uid}/items`).onSnapshot(s => s.docs.forEach(d => pbIngest(d.id, d.data())), e => console.warn('postbox', e))); } catch(e){}
+}
+// ===================== 서울 시각 · 마츠리(여름 축제) =====================
+// 화면에는 실제 대한민국 서울 시각이 보인다. 매일 서울 시각 오후 8시부터 10시까지 거점에서 마츠리가 열린다.
+const KST = 9*3600e3, FEST_FROM = 20, FEST_TO = 22, FEST_BUY = 5;
+function seoul(t = Date.now()){
+  const d = new Date(t + KST);
+  const day0 = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - KST; // 서울 날짜의 0시 (UTC 기준 ms)
+  return {h:d.getUTCHours(), m:d.getUTCMinutes(), day0, key:`${d.getUTCFullYear()}-${d.getUTCMonth()+1}-${d.getUTCDate()}`};
+}
+function seoulClock(){
+  const s = seoul(), ap = s.h < 12 ? '오전' : '오후', h12 = s.h % 12 || 12;
+  return `서울 ${ap} ${h12}:${String(s.m).padStart(2, '0')}`;
+}
+const festForced = () => !!(S && isOp() && S.settings.festForce);
+function festOn(){ if (festForced()) return true; const s = seoul(); return s.h >= FEST_FROM && s.h < FEST_TO; }
+function festEnd(){ const s = seoul(); return festForced() && !(s.h >= FEST_FROM && s.h < FEST_TO) ? now() + 2*H : s.day0 + FEST_TO*H; }
+function festNext(){ const s = seoul(); const st = s.day0 + FEST_FROM*H; return now() < st ? st : st + 24*H; }
+const festKey = () => seoul().key + (festForced() ? '-op' : '');
+
+// 축제 시작 알림 (앱을 켜 둔 채 8시가 되면)
+function festTick(){
+  if (!S || SCREEN !== 'game') return;
+  const el = document.getElementById('sClk'); if (el) el.textContent = seoulClock();
+  const on = festOn();
+  if (on && S.festNoti !== festKey()){ S.festNoti = festKey(); save(); notify('event', '🏮 마츠리', '거점에서 마츠리가 열렸습니다! 밤 10시까지 노점에서 링고아메·야끼소바·타코야끼를 팔아요.'); render(); }
+  if (on !== FEST_WAS){ FEST_WAS = on; render(); if (!on && SHEET && SHEET.k === 'matsuri') renderSheet(true); }
+}
+let FEST_WAS = null;
+
+// 노점에서 사기 (축제 한 번에 음식마다 5개까지)
+function festBought(id){ if (!S.fest || S.fest.k !== festKey()) S.fest = {k:festKey(), b:{}, kuji:0}; return S.fest.b[id] || 0; }
+function festBuy(id, eatNow){
+  if (!festOn()) return toast('축제가 끝났습니다. 내일 밤 8시에 다시 열려요.');
+  if (baseLocked()) return lockToast();
+  const r = FEST_FOOD.find(x => x.id === id); if (!r) return;
+  if (festBought(id) >= FEST_BUY) return toast(`${r.n}${pp(r.n,'은','는')} 이번 축제에서 ${FEST_BUY}개까지만 살 수 있어요.`);
+  if (S.gold < r.p && !(S.settings.infGold && isOp())) return toast('엽전이 부족합니다.', 'warn');
+  if (!(S.settings.infGold && isOp())) S.gold -= r.p;
+  S.fest.b[id] = (S.fest.b[id] || 0) + 1; stat('festBuy');
+  addItem('m_' + id); sfx('coin');
+  if (eatNow) return eat('m_' + id);
+  save(); toast(`${r.n}${pp(r.n,'을','를')} 샀다. (-${r.p}${CUR}) 가방에 넣어 두었다.`); renderSheet(true); render();
+}
+// 운세 뽑기: 축제마다 한 번 공짜
+const KUJI = [
+  {n:'대길', w:8, t:'모든 일이 술술 풀리는 날. 노점 아저씨가 덤을 얹어 준다.', give:[['m_ringoame',1],['m_taiyaki',1]], gold:200},
+  {n:'중길', w:20, t:'좋은 인연이 가까이 있다. 오늘은 누구에게든 먼저 인사해 보자.', give:[['m_watagashi',1]], gold:100},
+  {n:'소길', w:30, t:'작은 행운이 발밑에 굴러온다.', give:[['m_ramune',1]], gold:50},
+  {n:'길', w:27, t:'평온한 하루. 맛있는 것을 먹으면 더 좋아진다.', give:[], gold:60},
+  {n:'흉', w:15, t:'조심해서 나쁠 것 없는 날. 나뭇가지에 묶어 두고 가면 액운이 물러간다고 한다.', give:[['m_kakigori',1]], gold:0},
+];
+function festKuji(){
+  if (!festOn()) return; festBought('');
+  if (S.fest.kuji) return toast('운세는 축제마다 한 번만 뽑을 수 있어요.');
+  const k = wpick(Math.random, KUJI.map(x => [x, x.w]));
+  S.fest.kuji = k.n; for (const [it, n] of k.give) addItem(it, n); S.gold += k.gold; stat('kuji'); if (k.n === '대길') stat('kujiBig');
+  UI.kuji = {n:k.n, t:k.t, at:now(), give:[...k.give.map(([it, n]) => `${itemName(it)} ×${n}`), ...(k.gold ? [`${k.gold}${CUR}`] : [])]};
+  sfx(k.n === '대길' ? 'rare' : 'soft'); save(); renderSheet(true); render();
+}
+
+SHEETS.matsuri = () => {
+  const on = festOn();
+  if (!on) return sheetHead('마츠리') + `<div class="card" style="text-align:center"><p style="margin:0">🏮 축제는 매일 <b>서울 시각 밤 8시 ~ 10시</b>에 열린다.</p><p class="small muted" style="margin:6px 0 0">다음 축제까지 <b class="num" data-cd="${festNext()}"></b> · 지금 ${seoulClock()}</p></div>`;
+  festBought('');
+  const k = UI.kuji && now() - UI.kuji.at < 120000 ? UI.kuji : null;
+  return sheetHead('🏮 마츠리') + `<div class="fest-banner"><b>여름밤 축제가 한창이다!</b><span class="small">초롱불 아래 노점이 줄지어 섰다. 끝나기까지 <b class="num" data-cd="${festEnd()}"></b></span></div>
+  <h3 style="margin-top:12px">노점 먹거리 <span class="tiny muted">축제마다 음식별 ${FEST_BUY}개까지</span></h3>
+  <div class="list">${FEST_FOOD.map(r => { const b = festBought(r.id), left = FEST_BUY - b; return `<div class="li fest-item"><span class="fest-ic">${FEST_IC[r.id] || '🍡'}</span><div class="t"><b>${r.n} <span class="tiny muted num">${r.p}${CUR}</span></b><span class="good-t">${r.bd} · ${r.b.dur}시간</span><span class="tiny muted">${r.f}</span></div><div class="stack" style="gap:4px"><button class="btn sm seal" data-act="festBuy" data-id="${r.id}" data-e="1" ${left <= 0 ? 'disabled' : ''}>사서 먹기</button><button class="btn sm ghost" data-act="festBuy" data-id="${r.id}" ${left <= 0 ? 'disabled' : ''}>사 두기 ${left}/${FEST_BUY}</button></div></div>`; }).join('')}</div>
+  <p class="tiny muted" style="margin:6px 0 0">사 둔 음식은 가방에서 축제가 끝난 뒤에도 먹을 수 있다. 식사 버프는 한 번에 하나만 적용된다.</p>
+  <h3 style="margin-top:14px">운세 뽑기 <span class="tiny muted">축제마다 한 번, 공짜</span></h3>
+  ${k ? `<div class="card kuji ${k.n === '대길' ? 'big' : ''}"><b class="kuji-n">${k.n}</b><p class="small" style="margin:6px 0">${k.t}</p>${k.give.length ? `<span class="tiny">받은 것: ${k.give.join(', ')}</span>` : ''}</div>`
+    : S.fest.kuji ? `<p class="small muted">이번 축제의 운세: <b>${S.fest.kuji}</b></p>` : `<button class="btn full" data-act="festKuji">🎋 운세 뽑기</button>`}
+  ${facPanel('matsuri')}`;
+};
+const FEST_IC = {ringoame:'🍎', yakisoba:'🍜', takoyaki:'🐙', watagashi:'☁️', kakigori:'🍧', taiyaki:'🐟', corn:'🌽', ramune:'🫧'};
+FAC.matsuri = '축제 마당';
+MEET_V.matsuri = ['초롱불 아래에서 {n}님과 마주쳤다. 링고아메를 하나씩 들고 인사를 나눴다.', '{n}님과 같은 노점 앞에 줄을 섰다. 웃으며 인사를 나눴다.', '축제 북소리 사이로 {n}님이 손을 흔들었다. 반갑게 인사했다.'];
+BASE_SHEETS.push('matsuri');
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -4684,7 +4878,7 @@ function autoFish(){
 const ACT = {
   askYes: () => askDone(true), askNo: () => askDone(false),
   closeSheet: () => closeSheet(),
-  sheet: d => { if (BASE_SHEETS.includes(d.s) && baseLocked()) return lockToast(); openSheet(d.s, d.a); },
+  sheet: d => { if (BASE_SHEETS.includes(d.s) && baseLocked()) return lockToast(); openSheet(d.s, d.a); if (d.s === 'post') postSentCheck(); },
   tab: d => { if (d.t === 'explore' && S && S.hard) UI.exTab = 'hard'; UI.tab = d.t; closeSheet(); render(); window.scrollTo(0,0); sfx('click'); },
   authTab: d => { AUTHTAB = d.t; render(); },
   doSignup: async () => { const e = await doSignup($('#a_id').value, $('#a_pw').value, $('#a_pw2').value, $('#a_auto').checked); if (e) return $('#a_err').textContent = e; afterLogin(); },
@@ -4765,6 +4959,7 @@ const ACT = {
   leaveParty: async () => { if (await ask('조사대 나가기', '조사대를 나오면 혼자 다니게 됩니다.', '나가기')) leaveParty(); },
   partyGather: () => partyGather(UI.hours || 1), partyReady: () => partyReady(), partyGo: () => partyGo(), partyCancel: () => partyCancel(),
   grant: () => { if (!isOp()) return; const to = $('#grantTo').value, k = $('#grantItem').value, n = clamp(parseInt($('#grantN').value) || 0, 0, 999), g = clamp(parseInt($('#grantG').value) || 0, 0, 10000000); if (!n && !g) return toast('개수나 엽전을 적어 주세요.'); opGrant(to, n ? k : '', n, g, ($('#grantMsg').value || '').trim().slice(0, 200)); },
+  festBuy: d => festBuy(d.id, !!d.e), festKuji: () => festKuji(),
   postGet: d => postClaim(d.id), postAll: () => postClaimAll(),
   grantQuick: d => { if (!isOp()) return; const el = $('#grantTo'); opGrant(el ? el.value : 'self', d.k, d.k === 'ticket' ? 1 : 5); },
   alloc: d => allocStat(d.k),
@@ -4807,11 +5002,12 @@ async function opGrant(to, k, n, gold = 0, msg = ''){
   if (to === 'all'){
     const ids = Object.keys(PL).filter(u => u !== ST.uid);
     if (!await ask('모든 개척자에게 지급', `${ids.length + 1}명(나 포함)의 우편함에 ${what}${pp(what,'을','를')} 보냅니다.`, '보내기')) return;
-    self(); for (const u of ids) await sendEv(u, 'grant', data);
+    self(); for (const u of ids) postSent(await postSend(u, 'grant', data), u, what); save();
     return toast(`${ids.length + 1}명의 우편함에 ${what}${pp(what,'을','를')} 보냈습니다.`, 'good');
   }
   if (to === 'self' || to === ST.uid){ self(); return toast(`내 우편함에 ${what}${pp(what,'이','가')} 도착했습니다.`, 'good'); }
-  sendEv(to, 'grant', data); toast(`${PL[to]?.name || '개척자'}님의 우편함으로 ${what}${pp(what,'을','를')} 보냈습니다.`, 'good');
+  postSent(await postSend(to, 'grant', data), to, what); save();
+  toast(`${PL[to]?.name || '개척자'}님의 우편함으로 ${what}${pp(what,'을','를')} 보냈습니다.`, 'good');
 }
 function readPhoto(file){
   const r = new FileReader();
@@ -4871,7 +5067,7 @@ function tick(){
   S.farm.forEach((f, i) => { if (f && now() >= f.at + f.dur) notify('harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
   if (S.nest && now() >= S.nest.at + S.nest.dur) notify('hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
   checkTitles();
-  presenceTick(); chatSync(); battleTick(); restTick(); travelAskTick(); hardTick();
+  festTick(); eventsRescan(); presenceTick(); chatSync(); battleTick(); restTick(); travelAskTick(); hardTick();
   if (window.FB_MODE && now() % 5000 < 1000) pushSync();
   if (S.settings.infGold && isOp() && S.gold < 99999999){ S.gold = 99999999; }
   S.pen.forEach(a => { if (a.fed && now() >= a.readyAt) notify('harvest', '축사', `${a.name}에게서 ${IT[ANIMALS[a.kind].out[0]].n}${pp(IT[ANIMALS[a.kind].out[0]].n,'을','를')} 거둘 수 있습니다.`, 'pen' + a.id + a.readyAt); });
