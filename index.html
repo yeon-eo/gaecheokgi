@@ -503,6 +503,8 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .plot-t{ display:flex; flex-direction:column; line-height:1.25; } .plot-t b{ font-size:.95rem; } .plot-t span{ font-size:.78rem; color:var(--ink-3); } .plot-t .rd{ color:var(--moss); font-weight:700; }
 .plot-bar{ height:5px; border-radius:3px; background:var(--paper-2); overflow:hidden; } .plot-bar i{ display:block; height:100%; background:var(--moss); }
 .farm-sel, .farm-pick{ margin-top:10px; }
+.forder{ margin-top:10px; } .forder .li.done{ opacity:.55; }
+.shop-h{ font-size:1rem; margin:14px 0 4px; color:var(--ink-2); } .shop-h:first-child{ margin-top:0; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -593,13 +595,23 @@ const IT = {
   ore:{n:'철광석',t:'mat',p:12,f:'붉은 녹이 스민 무거운 돌.'},
   silver:{n:'은광석',t:'mat',p:25,f:'희게 빛나는 광맥에서 캔 돌.'},
   ingot:{n:'은괴',t:'mat',p:90,f:'은광석을 녹여 부은 덩이. 장신구의 바탕이 된다.'},
-  rareore:{n:'정령석',t:'mat',p:120,f:'안에서 희미한 빛이 맥박처럼 뛰는 돌.',d:'상급 무구·반지 재료'},
+  rareore:{n:'정령석',t:'mat',p:120,f:'안에서 희미한 빛이 맥박처럼 뛰는 돌.',d:'상급 무구·반지 재료 · 백무 호수(Lv.20)부터 나온다'},
+  dragonore:{n:'용혈석',t:'mat',p:320,f:'용의 피가 굳었다는 검붉은 돌. 손에 쥐면 뜨겁게 고동친다.',d:'최상급 무구 재료 · 폐신사 터(Lv.32)부터 나온다'},
+  skyore:{n:'성운석',t:'mat',p:700,f:'밤하늘 조각을 담은 듯 별빛이 소용돌이치는 돌. 하늘 기둥 근처에만 떨어진다.',d:'전설 무구 재료 · 뇌명 산맥(Lv.44)부터 나온다'},
   gem:{n:'보석 원석',t:'mat',p:100,f:'비취와 수정이 섞인 원석. 갈면 곡옥가 된다.'},
   wood:{n:'삼나무 목재',t:'mat',p:5,f:'곧게 자란 삼나무. 향이 좋아 무구 손잡이로 쓴다.'},
   sap:{n:'옻진',t:'mat',p:12,f:'옻나무에서 받은 진. 약과 칠의 재료.'},
   talisman:{n:'부적 조각',t:'mat',p:30,f:'요괴가 지니고 있던 부적의 찢어진 조각.'},
   soul:{n:'영혼석',t:'mat',p:150,f:'요괴가 남긴 맑은 구슬. 손에 쥐면 서늘하다.'},
   pot1:{n:'회복 환약',t:'pot',p:60,heal:40,d:'체력 40 회복. 장기 탐사에 챙기면 위험할 때 자동으로 먹는다.',f:'약초를 빻아 콩알만 하게 빚은 환약. 쓰지만 효과는 확실하다.'},
+  pot3:{n:'특급 환약',t:'pot',p:420,heal:250,d:'체력 250 회복.',f:'영약초와 꿀로 빚은 금빛 환약. 한 알에 기운이 넘쳐흐른다.'},
+  e_str:{n:'장사의 비약',t:'elix',p:140,d:'3시간 동안 힘 +5',f:'멧돼지 기름을 우려 만든 붉은 비약. 팔에 힘이 불끈.',b:{dur:3,st:{STR:5}}},
+  e_agi:{n:'질풍의 비약',t:'elix',p:140,d:'3시간 동안 민첩 +5',f:'깃털을 달여 만든 가벼운 비약. 몸이 바람처럼 가볍다.',b:{dur:3,st:{AGI:5}}},
+  e_vit:{n:'철벽의 비약',t:'elix',p:140,d:'3시간 동안 체력 +5, 최대 체력 +30',f:'뼈를 오래 고아 만든 탁한 비약. 몸이 바위처럼 단단해진다.',b:{dur:3,st:{VIT:5},maxhp:30}},
+  e_luk:{n:'길조의 비약',t:'elix',p:160,d:'3시간 동안 운 +5, 희귀 발견 +15%',f:'꿀과 조개껍데기 가루를 섞은 금빛 비약. 좋은 일이 생길 것 같다.',b:{dur:3,st:{LUK:5},rare:0.15}},
+  e_sen:{n:'혜안의 비약',t:'elix',p:140,d:'3시간 동안 감각 +5',f:'버섯을 달인 푸른 비약. 멀리 있는 것까지 또렷하게 보인다.',b:{dur:3,st:{SEN:5}}},
+  e_fish:{n:'어유 환약',t:'elix',p:120,d:'4시간 동안 자연 회복 2배, 최대 체력 +20',f:'생선 기름을 짜서 굳힌 환약. 비린내만 참으면 몸에 그만이다.',b:{dur:4,regen:1,maxhp:20}},
+  e_clear:{n:'맑은 정신 탕약',t:'elix',p:150,d:'마시는 즉시 지친 몸이 풀린다',f:'찻잎과 꿀을 진하게 달인 탕약. 흐릿하던 머리가 맑아진다.',b:{dur:0,clearTired:1}},
   pot2:{n:'상급 환약',t:'pot',p:160,heal:100,d:'체력 100 회복.',f:'옻진을 섞어 굳힌 검은 환약. 한 알이면 기운이 솟는다.'},
   cure:{n:'각성약',t:'cure',p:150,d:'쓰러진 동료를 그 자리에서 일으키는 치료제.',f:'코끝에 대기만 해도 정신이 번쩍 든다는 각성약.'},
   scroll:{n:'요리 비전서 조각',t:'sp',p:80,d:'읽으면 아직 모르는 레시피 하나를 배운다.',f:'이름 모를 요리사가 남긴 두루마리의 한 쪽.'},
@@ -609,8 +621,12 @@ const IT = {
   // 무구 (이름은 직업마다 다르게 보인다 — WEAPON_N)
   w1:{n:'수련용 무기',t:'weapon',p:20,atk:3,f:'수련용으로 깎은 가벼운 무기. 처음 손에 익히기 좋다.'}, w2:{n:'강철 무기',t:'weapon',p:80,atk:7,f:'마을 대장간에서 두드린 강철 무기.'},
   w3:{n:'흑요석 무기',t:'weapon',p:260,atk:14,f:'화산에서 난 흑요석을 정령석과 함께 벼려 검게 빛나는 무기.'}, w4:{n:'정령 무기',t:'weapon',p:900,atk:24,f:'정령석의 빛이 깃든 전설급 명품.'},
+  w5:{n:'용혈 무기',t:'weapon',p:2200,atk:31,f:'용혈석을 녹여 부은 붉은 무기. 휘두를 때마다 열기가 인다.'}, w6:{n:'성운 무기',t:'weapon',p:5000,atk:39,f:'성운석의 별빛을 벼려 낸 무기. 밤하늘이 칼날 위를 흐른다.'},
   a1:{n:'가죽 갑옷',t:'armor',p:30,def:3,f:'몸통을 감싸는 가볍고 질긴 가죽 갑옷.'}, a2:{n:'강철 흉갑',t:'armor',p:100,def:7,f:'배와 허리를 두르는 철판 갑옷.'},
   a3:{n:'흑요석 비늘 갑옷',t:'armor',p:300,def:13,f:'짐승 뼈와 흑요석 비늘을 끈으로 엮은 갑옷.'}, a4:{n:'정령 갑옷',t:'armor',p:950,def:20,f:'정령석 비늘이 빛을 머금은 갑옷.'},
+  a5:{n:'용혈 갑옷',t:'armor',p:2300,def:26,f:'용혈석 비늘을 겹쳐 엮은 갑옷. 불길도 비켜 간다.'}, a6:{n:'성운 갑옷',t:'armor',p:5200,def:32,f:'성운석 조각이 별자리처럼 박힌 갑옷.'},
+  r3:{n:'용혈 반지',t:'acc',slot:'ring',p:1600,st:{STR:3,VIT:3,SPI:2},f:'용혈석을 깎아 만든 붉은 반지. 손가락이 따뜻하다.'},
+  n3:{n:'성운 곡옥',t:'acc',slot:'neck',p:3600,st:{LUK:4,SEN:4,AGI:3},f:'성운석을 곡옥 모양으로 깎은 목걸이. 별빛이 길을 비춘다.'},
   // 장신구: 목걸이 neck · 팔찌 wrist · 반지 ring(2개까지)
   acc3:{n:'바람 깃 목걸이',t:'acc',slot:'neck',p:200,st:{AGI:3},f:'매의 깃털을 은사슬에 꿴 목걸이. 걸음이 가벼워진다.'},
   n1:{n:'곡옥 목걸이',t:'acc',slot:'neck',p:420,st:{LUK:2,SEN:2},f:'곡옥을 꿴 목걸이. 행운과 눈썰미를 부른다.'},
@@ -624,13 +640,13 @@ const IT = {
 };
 // 무기 이름: 파이널판타지14식 (3단계는 흑요석) '재료 + 무기 종류'로 알아보기 쉽게
 const WEAPON_N = {
-  samurai:['수련용 목도','강철 태도','흑요석 태도','정령검 「천운」'],
-  monk:['떡갈나무 봉','강철 봉','흑요석 봉','정령의 금강봉'],
-  thief:['견습 단검','강철 쌍단검','흑요석 쌍단검','정령의 쌍단검'],
-  brawler:['가죽 너클','강철 너클','흑요석 건틀릿','정령의 건틀릿'],
-  healer:['참나무 지팡이','은방울 지팡이','흑요석 지팡이','정령의 신목 지팡이'],
-  onmyoji:['견습 마도서','강철 장정 마도서','흑요석 마도서','정령의 마도서'],
-  hunter:['견습 표창','강철 표창','흑요석 수리검','정령의 대수리검'],
+  samurai:['수련용 목도','강철 태도','흑요석 태도','정령검 「천운」','용혈도 「홍련」','성운검 「천랑」'],
+  monk:['떡갈나무 봉','강철 봉','흑요석 봉','정령의 금강봉','용혈 금강봉','성운 여의봉'],
+  thief:['견습 단검','강철 쌍단검','흑요석 쌍단검','정령의 쌍단검','용혈 쌍단검','성운 쌍단검'],
+  brawler:['가죽 너클','강철 너클','흑요석 건틀릿','정령의 건틀릿','용혈 건틀릿','성운 건틀릿'],
+  healer:['참나무 지팡이','은방울 지팡이','흑요석 지팡이','정령의 신목 지팡이','용혈 신목 지팡이','성운 신목 지팡이'],
+  onmyoji:['견습 마도서','강철 장정 마도서','흑요석 마도서','정령의 마도서','용혈 마도서','성운 마도서'],
+  hunter:['견습 표창','강철 표창','흑요석 수리검','정령의 대수리검','용혈 대수리검','성운 대수리검'],
 };
 const WEAPON_KIND = {samurai:'태도', monk:'봉', thief:'쌍단검', brawler:'너클', healer:'지팡이', onmyoji:'마도서', hunter:'표창'};
 // 탐사 중 떨어지는 고장별 장비: 능력치는 같은 레벨대 제작 장비와 비슷하고, 이름은 고장마다 다르다.
@@ -703,6 +719,14 @@ const RECIPES = [
   {id:'honeydango',n:'꿀경단',need:[['glut',2],['honey',1]],lv:30,b:{dur:3,st:{LUK:2,AGI:2}},bd:'운 +2, 민첩 +2',f:'구운 경단에 맑은 꿀을 끼얹었다. 벌 소리가 들리는 맛.'},
   {id:'tempura',n:'모둠튀김',need:[['#fish',1],['wheat',1],['egg',1]],lv:45,b:{dur:4,st:{AGI:2,SEN:2,STR:1}},bd:'민첩 +2, 감각 +2, 힘 +1',f:'얇은 튀김옷을 입혀 바삭하게 튀겼다. 장터에서 가장 인기 있는 맛.'},
   {id:'zenzai',n:'단팥죽',need:[['redbean',2],['glut',1],[['sugar','honey'],1]],lv:45,b:{dur:3,regen:1,tiredCut:2,st:{SPI:2}},bd:'지친 몸 2시간 단축, 회복 2배, 정신 +2',f:'구운 떡을 띄운 뜨끈한 단팥죽. 추운 날의 위로.'},
+  // 생선 요리 (V7)
+  {id:'kushiyaki',n:'생선 꼬치구이',need:[['#fish',1],['salt',1]],lv:3,b:{dur:2,st:{STR:1,AGI:1},cost:-0.05},bd:'힘 +1, 민첩 +1, 체력 소모 5% 감소',f:'작은 생선을 꼬치에 꿰어 숯불에 바삭하게 구웠다.'},
+  {id:'sabamiso',n:'고등어 된장조림',need:[['f_mackerel',1],['miso',1]],lv:15,b:{dur:3,st:{VIT:3},maxhp:20},bd:'체력 +3, 최대 체력 +20',f:'기름 오른 고등어를 된장에 자작하게 졸였다. 밥도둑.'},
+  {id:'sashimi',n:'모둠회',need:[['#fish',2],['salt',1]],lv:20,b:{dur:3,st:{AGI:3,SEN:2}},bd:'민첩 +3, 감각 +2',f:'갓 잡은 생선을 얇게 저며 접시에 꽃처럼 펼쳤다.'},
+  {id:'koikoku',n:'잉어 된장국',need:[['f_carp',1],['miso',1],['radish',1]],lv:25,b:{dur:3,st:{SPI:3},regen:1},bd:'정신 +3, 회복 2배',f:'잉어를 통째로 된장에 고아 낸 보양국. 산모에게 먼저 건넨다.'},
+  {id:'taimeshi',n:'도미 솥밥',need:[['f_seabream',1],['rice',1]],lv:25,b:{dur:4,st:{LUK:3},rew:0.08},bd:'운 +3, 장기 탐사 보상 +8%',f:'도미를 통째로 얹어 지은 솥밥. 경사스러운 날의 밥.'},
+  {id:'oden',n:'어묵탕',need:[['#fish',2],['radish',1],['wheat',1]],lv:30,b:{dur:4,st:{VIT:2,STR:2},tiredCut:1},bd:'체력 +2, 힘 +2, 지친 몸 1시간 단축',f:'생선살을 곱게 쳐 빚은 어묵을 무와 함께 뭉근히 끓였다.'},
+  {id:'tekkadon',n:'참다랑어 덮밥',need:[['f_tuna',1],['rice',1]],lv:40,b:{dur:6,st:{STR:3,AGI:3,VIT:3,INT:3,SPI:3,SEN:3,LUK:3}},bd:'모든 스탯 +3 (최고급)',f:'붉은 참다랑어 살을 밥 위에 가득 올렸다. 바다의 왕의 맛.'},
   {id:'unadon',n:'장어덮밥',need:[['eel',1],['rice',1]],lv:45,b:{dur:6,st:{STR:2,AGI:2,VIT:2,INT:2,SPI:2,SEN:2,LUK:2}},bd:'모든 스탯 +2 (고급)',f:'달콤짭짤한 양념을 발라 구운 장어를 밥 위에 올렸다.'},
 ];
 RECIPES.forEach(r => IT['f_'+r.id] = {n:r.n, t:'food', p:15+r.lv*3, d:r.bd, f:r.f, r:r.id});
@@ -725,27 +749,32 @@ const PROF_LV = [0,5,12,20,30,45];
 const CRAFT = {
   smith:{n:'대장간',sub:'smith',list:[
     {out:'ingot',need:[['silver',3]]},
-    {out:'w1',need:[['wood',3]]},{out:'w2',need:[['ore',3],['wood',1]]},{out:'w3',need:[['ore',6],['rareore',1]]},{out:'w4',need:[['rareore',3],['gem',2],['soul',1]]},
-    {out:'a1',need:[['hide',3]]},{out:'a2',need:[['ore',4],['hide',2]]},{out:'a3',need:[['ore',6],['bone',4],['rareore',1]]},{out:'a4',need:[['rareore',3],['soul',2],['hide',4]]},
+    {out:'w1',need:[['wood',3]]},{out:'w2',need:[['ore',3],['wood',1]]},{out:'w3',need:[['ore',6],['rareore',1]]},{out:'w4',need:[['rareore',3],['gem',2],['soul',1]]},{out:'w5',need:[['dragonore',3],['rareore',2],['soul',2]]},{out:'w6',need:[['skyore',3],['dragonore',2],['gem',3]]},
+    {out:'a1',need:[['hide',3]]},{out:'a2',need:[['ore',4],['hide',2]]},{out:'a3',need:[['ore',6],['bone',4],['rareore',1]]},{out:'a4',need:[['rareore',3],['soul',2],['hide',4]]},{out:'a5',need:[['dragonore',3],['rareore',2],['hide',6]]},{out:'a6',need:[['skyore',3],['dragonore',2],['bone',6]]},
   ]},
   jewel:{n:'세공소',sub:'jeweler',list:[
     {out:'acc3',need:[['feather',5],['ingot',1]]},{out:'n1',need:[['gem',2],['soul',1]]},{out:'n2',need:[['silk',3],['gem',1]]},
     {out:'acc1',need:[['talisman',3],['ingot',1]]},{out:'b1',need:[['ingot',1],['silk',2]]},{out:'b2',need:[['wood',3],['gem',1]]},
     {out:'acc2',need:[['gem',1],['ingot',1]]},{out:'r1',need:[['ingot',2]]},{out:'r2',need:[['clam',5],['ingot',1]]},
+    {out:'r3',need:[['dragonore',2],['ingot',2]]},{out:'n3',need:[['skyore',2],['gem',2],['silk',3]]},
     {out:'ring',need:[['rareore',2],['gem',2],['ingot',2]]},
   ]},
   apoth:{n:'약방',sub:'apoth',list:[
     {out:'pot1',need:[['herb',2]]},{out:'pot2',need:[['herb',3],['sap',1]]},{out:'cure',need:[['herb',3],['mushroom',1],['sap',1]]},{out:'cure',need:[['rareherb',1],['sap',1]],alt:1},
+    {out:'pot3',need:[['rareherb',1],['herb',2],['honey',1]]},
+    {out:'e_fish',need:[['#fish',2],['herb',1]]},
+    {out:'e_str',need:[['herb',2],[['boar','meat'],1],['sap',1]]},{out:'e_agi',need:[['herb',2],['feather',2]]},{out:'e_vit',need:[['herb',2],['bone',2]]},
+    {out:'e_sen',need:[['herb',2],['mushroom',2]]},{out:'e_luk',need:[['herb',2],['clam',1],['honey',1]]},{out:'e_clear',need:[['herb',1],['tea',2],['honey',1]]},
   ]},
 };
-const SHOP = ['salt','miso','wheat','sugar','s_rice','s_glut','s_barley','s_radish','s_cabbage','s_bean','s_redbean','s_tea','s_herb','s_soba','s_imo','pot1','reset'];
+const SHOP = ['rice','glut','barley','bean','redbean','radish','cabbage','egg','tea','salt','miso','wheat','sugar','s_rice','s_glut','s_barley','s_radish','s_cabbage','s_bean','s_redbean','s_tea','s_herb','s_soba','s_imo','pot1','reset'];
 
 // 가축: 축사(축사)에서 기른다
 const ANIMALS = {
-  chick:{n:'닭',k:'鶏',buy:300,feed:['rice','barley','bean','buckwheat'],h:6,out:['egg',1,2],f:'새벽마다 목청껏 우는 닭. 곡식을 주면 달걀을 낳는다.'},
-  silkworm:{n:'누에',k:'蚕',buy:250,feed:['mulberry'],h:12,out:['silk',1,2],f:'뽕잎만 먹고 자라 반짝이는 실을 뽑는다.'},
-  bee:{n:'꿀벌통',k:'蜂',buy:400,feed:null,h:12,out:['honey',1,2],f:'먹이를 주지 않아도 들꽃을 돌며 꿀을 모은다.'},
-  cow:{n:'일소',k:'牛',buy:900,feed:['cabbage','barley','radish'],h:12,out:['compost',2,3],f:'밭을 갈던 순한 소. 채소를 주면 퇴비를 남긴다.'},
+  chick:{n:'닭',k:'鶏',buy:300,feed:['rice','barley','bean','buckwheat'],h:3,out:['egg',1,2],f:'새벽마다 목청껏 우는 닭. 곡식을 주면 달걀을 낳는다.'},
+  silkworm:{n:'누에',k:'蚕',buy:250,feed:['mulberry'],h:6,out:['silk',1,2],f:'뽕잎만 먹고 자라 반짝이는 실을 뽑는다.'},
+  bee:{n:'꿀벌통',k:'蜂',buy:400,feed:null,h:6,out:['honey',1,2],f:'먹이를 주지 않아도 들꽃을 돌며 꿀을 모은다.'},
+  cow:{n:'일소',k:'牛',buy:900,feed:['cabbage','barley','radish'],h:6,out:['compost',2,3],f:'밭을 갈던 순한 소. 채소를 주면 퇴비를 남긴다.'},
 };
 const PEN_MAX = 4;
 // 몬스터: L=레벨, t: a 야생동물 / y 요괴
@@ -970,6 +999,19 @@ const SUM_SP = ['wisp','kappa','tanu','fox9','yuki'];
     IT['gx'+i] = {n:g.x.n, t:'acc', slot:g.x.slot, p:120 + lv*12, st:g.x.st, f:g.f, drop:i};
   });
 })();
+
+// 상위 광석은 그 레벨대 고장에서만: 정령석 백무 호수(5)~, 용혈석 폐신사 터(8)~, 성운석 뇌명 산맥(11)~
+const ORE_TIER = [['rareore', 5], ['dragonore', 8], ['skyore', 11]];
+const orePool = ri => ORE_TIER.filter(([, r]) => ri >= r).map(([k]) => k);
+const rarePool = (ri, base = ['scroll','gem','talisman','soul','rareherb']) => [...base, ...orePool(ri)];
+// 높은 고장 몬스터는 용혈석·성운석을 가끔 떨군다. 낮은 고장 몬스터는 정령석을 떨구지 않는다
+for (const [k, m] of Object.entries(MON)){
+  const ri = REG.findIndex(r => r.mons.includes(k)); if (ri < 0) continue;
+  // dr6: V6 이후 탐사에서 쓰는 떨굼 목록 (진행 중인 옛 탐사 결과가 바뀌지 않게 따로 둔다)
+  m.dr6 = m.dr.filter(([it]) => !(it === 'rareore' && ri < 5));
+  if (ri >= 8 && m.t === 'y') m.dr6.push(['dragonore', 0.03 + (ri - 8)*0.01]);
+  if (ri >= 11) m.dr6.push(['skyore', 0.02]);
+}
 // ===================== 아이템 그림 =====================
 // 모든 아이템에 둥근 배지 그림을 붙인다. 그림은 SVG 로 직접 그린다(외부 이미지 없음).
 // 배지: 어두운 원 + 가는 테두리, 그 위에 굵은 외곽선의 알록달록한 물건.
@@ -1054,7 +1096,7 @@ const ICON = {
   salt:['jar','#f4f4f6','#c0c8d4'], miso:['jar','#a4703c','#e2c08a'], sugar:['jar','#6e4a32','#c99a6a'], honey:['honey','#e8a83a','#ffd86a'], sap:['jar','#7a2a1e','#c0503a'], compost:['sack','#7a5a3a','#5a3a22'],
   mushroom:['mushroom','#a8613a','#f0d8b8'], berry:['berries','#c8324a','#5a9a3a'], clam:['shell','#e8cfa8','#b09070'], meat:['meat','#d0605a','#f4d4c4'], boar:['bonemeat','#b8483e','#f0c8b4'],
   hide:['pelt','#b0804e','#7a5232'], bone:['bone','#f4ecdc'], feather:['feather','#f2f0e8','#9aa4b0'], egg:['egg','#f6ead6','#d8b48a'], silk:['spool','#fbf6ea','#d8cfc0'],
-  ore:['rock','#8a8e98','#c46a3a'], silver:['rock','#a8b0bc','#eef2f8'], ingot:['ingot','#cfd6e0','#f4f8fc'], rareore:['crystal','#7ad0e8','#d8f6ff'], gem:['crystal','#e05a8a','#ffc4d8'],
+  ore:['rock','#8a8e98','#c46a3a'], silver:['rock','#a8b0bc','#eef2f8'], ingot:['ingot','#cfd6e0','#f4f8fc'], rareore:['crystal','#7ad0e8','#d8f6ff'], dragonore:['crystal','#d8342a','#ffb0a0'], skyore:['orb','#2a2a6a','#d8c8ff'], gem:['crystal','#e05a8a','#ffc4d8'],
   wood:['log','#b07a4a','#e8c494'], talisman:['paper','#f4e8c8','#c8322a'], soul:['orb','#7a6ae0','#c8b8ff'],
   pot1:['bottle','#f0e6e6','#e04a4a'], pot2:['bottle','#f6efe0','#f0b030'], cure:['bottle','#e6eef6','#4a8ae0'],
   scroll:['scroll','#f4e8c8','#a8442e'], ticket:['cert','#f6eed8','#c8322a'], reset:['paper','#e8dcf4','#7a4ab8'], ring:['ring','#f0c040','#ff7aa0'],
@@ -1067,6 +1109,10 @@ const ICON = {
   f_yakiimo:['yakiimo','#8a3a6a','#f6c84a'], f_tamagoyaki:['roll','#f6d04a','#e0a830'], f_dango:['skewer','#f6b8c8','#fbfaf4'], f_bibim:['don','#f0e6d0','#7aa84a'], f_nimono:['bowl','#c8a060','#f4ecdc'],
   f_soba:['zaru','#8a7a5a','#c4b48a'], f_clamsoup:['bowl','#eef0e8','#e8cfa8'], f_nabe:['nabe','#c88a4a','#d0605a'], f_udon:['bowl','#e8c890','#f6f0e0'], f_chawan:['cup','#f6e4a0','#f8e8b0'],
   f_kayu:['bowl','#f4eee0','#7aae5a'], f_mochi:['mochi','#fbf8f2','#e8d8c0'], f_barleyset:['don','#e4d0a0','#c88a4a'], f_oyakodon:['don','#f6d070','#d8904a'], f_honeydango:['skewer','#f0c060','#e8a83a'],
+  f_kushiyaki:['skewer','#c8a070','#a08060','#d0b080'], f_sabamiso:['plate','#4a7a9a','#a4703c'], f_sashimi:['plate','#f08080','#ffd0c8'], f_koikoku:['bowl','#b8884a','#c08a3a'],
+  f_taimeshi:['nabe','#f0e0c0','#e86a6a'], f_oden:['nabe','#d8b070','#f0e0c0'], f_tekkadon:['don','#d84a5a','#f0a0a8'],
+  pot3:['bottle','#f6f0e0','#b884e0'], e_str:['bottle','#f6e6e0','#d84a2a'], e_agi:['bottle','#e6f6ee','#4ac08a'], e_vit:['bottle','#efeae0','#a08a6a'], e_luk:['bottle','#fff6e0','#f6c830'],
+  e_sen:['bottle','#e6eef8','#5a8ae0'], e_fish:['jar','#e8c870','#c8a040'], e_clear:['cup','#7aa04a','#c8e0a0'],
   f_tempura:['tempura','#f0c060','#e8603a'], f_zenzai:['bowl','#7a3030','#fbf8f2'], f_unadon:['don','#a8603a','#5a3a22'],
   // 축제
   m_ringoame:['apple','#e0303a','#6ab04a'], m_yakisoba:['zaru','#a86a3a','#d89a5a'], m_takoyaki:['balls','#d8a060','#7a4a2a'], m_watagashi:['cotton','#ffc4dc','#ffffff'],
@@ -1074,7 +1120,7 @@ const ICON = {
 };
 // 고장별 장비 색 (0~12)
 const REG_TINT = [['#9ad4e8','#3a7aa8'],['#9ad08a','#3a8a4a'],['#8ab07a','#4a6a3a'],['#b08a5a','#5a3a22'],['#d06a4a','#7a2a1a'],['#a8c0d0','#5a7a90'],['#e8804a','#b8402a'],['#ff8a3a','#5a2a1a'],['#c8b8a0','#7a6a52'],['#eef4fa','#9ab0c8'],['#bfe8ff','#5aa8d8'],['#f0e070','#6a5ab0'],['#d8e8ff','#e8c060']];
-const TIER_TINT = {1:['#b8a088','#6a4a32'], 2:['#c8d0d8','#5a6a7a'], 3:['#4a3a5a','#9a7ad0'], 4:['#9ae8f0','#f0d070']};
+const TIER_TINT = {1:['#b8a088','#6a4a32'], 2:['#c8d0d8','#5a6a7a'], 3:['#4a3a5a','#9a7ad0'], 4:['#9ae8f0','#f0d070'], 5:['#e04a3a','#f6c040'], 6:['#4a4ab0','#e8d8ff']};
 const WEP_GL = {samurai:'sword', monk:'staff', thief:'daggers', brawler:'knuckle', healer:'wand', onmyoji:'book', hunter:'shuriken'};
 function iconSpec(k){
   const b = String(k).replace('*',''), it = IT[b]; if (!it) return ['orb','#888','#ccc'];
@@ -1119,7 +1165,7 @@ const josa = (w, a, b) => { const c = w.charCodeAt(w.length-1); if (c < 0xAC00 |
 const pick = (rng, arr) => arr[Math.floor(rng()*arr.length)];
 function wpick(rng, list){ const tot = list.reduce((a,x)=>a+x[1],0); let r = rng()*tot; for (const x of list){ r -= x[1]; if (r <= 0) return x[0]; } return list[list.length-1][0]; }
 // 무구는 직업마다 이름이 다르다
-const itemName = (k, job) => { const b = k.replace('*',''); let n = IT[b]?.n || k; if (/^w[1-4]$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_N[j]) n = WEAPON_N[j][+b[1]-1]; } else if (/^gw\d+$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_KIND[j]) n = `${REGION_GEAR[+b.slice(2)].p} ${WEAPON_KIND[j]}`; } return n + (k.endsWith('*') ? ' (정성 가득)' : ''); };
+const itemName = (k, job) => { const b = k.replace('*',''); let n = IT[b]?.n || k; if (/^w[1-6]$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_N[j]) n = WEAPON_N[j][+b[1]-1]; } else if (/^gw\d+$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_KIND[j]) n = `${REGION_GEAR[+b.slice(2)].p} ${WEAPON_KIND[j]}`; } return n + (k.endsWith('*') ? ' (정성 가득)' : ''); };
 // 동료는 여러 마리 기를 수 있지만 함께 다니는 건 두 마리까지
 const COMP_MAX = 12, COMP_OUT = 2;
 const activeComps = () => (S.comps || []).filter(c => c.out !== false).slice(0, COMP_OUT);
@@ -1170,9 +1216,10 @@ function effStats(){
   for (const k of STATS) b[k] += S.alloc[k] || 0;
   for (const sl of ACC_SLOTS){ const it = S.equip[sl] && IT[S.equip[sl]]; if (it && it.st) for (const k in it.st) b[k] += it.st[k]; }
   const fb = foodBuff(); if (fb && fb.st) for (const k in fb.st) b[k] += fb.st[k];
+  const eb = elixBuff(); if (eb && eb.st) for (const k in eb.st) b[k] += eb.st[k];
   return b;
 }
-function maxHP(st = effStats()){ const fb = foodBuff(); return Math.round(80 + st.VIT*8 + S.lv*10 + (fb?.maxhp || 0)); }
+function maxHP(st = effStats()){ const fb = foodBuff(), eb = elixBuff(); return Math.round(80 + st.VIT*8 + S.lv*10 + (fb?.maxhp || 0) + (eb?.maxhp || 0)); }
 function weaponAtk(){ return S.equip.weapon ? IT[S.equip.weapon].atk : 0; }
 function armorDef(){ return S.equip.armor ? IT[S.equip.armor].def : 0; }
 function atkOf(st){ return 6 + st[JOBS[S.job]?.atk || 'STR']*2 + weaponAtk() + S.lv*1.5; }
@@ -1182,7 +1229,7 @@ const atkE = L => 6 + 2*(8 + 0.6*(L-1)) + L*2, defE = L => 6 + 1.6*L, hpE = L =>
 // 온천 휴식: 자연 회복 5배 (10분에 25%). 식사 회복 버프와 함께면 더 빠르다
 const REST_MULT = 5;
 const restActive = () => S && S.rest && S.rest.until > now();
-function regenMult(){ const fb = foodBuff(); return (fb && fb.regen ? 2 : 1) * (restActive() ? REST_MULT : 1); }
+function regenMult(){ const fb = foodBuff(), eb = elixBuff(); return (fb && fb.regen ? 2 : 1) * (eb && eb.regen ? 2 : 1) * (restActive() ? REST_MULT : 1); }
 function curHP(){
   const mx = maxHP();
   if (S.hp == null) { S.hp = mx; S.hpAt = now(); }
@@ -1246,6 +1293,7 @@ function makeSnap(region){
   if (td){ cost *= td.weak ? 1.25 : 1.5; rew *= td.weak ? 0.85 : 0.7; }
   if (S.job === 'thief') rare *= 1.3;
   if (fb?.rare) rare *= 1 + fb.rare;
+  { const eb = elixBuff(); if (eb?.rare) rare *= 1 + eb.rare; }
   if (fb?.rew) rew *= 1 + fb.rew;
   if (S.job === 'hunter') egg *= 1.5;
   rew *= 1 + pets.reduce((a,c)=>a + 0.05*bondMul(c), 0);
@@ -1348,7 +1396,7 @@ function simulate(E, upto){
       if (m.hp <= 0){
         const gx = Math.round(6 + m.L*4); xp += gx; kills[m.id] = (kills[m.id]||0) + 1;
         const drops = [];
-        for (const [it, ch] of MON[m.id].dr){ if (rng() < ch*s.rew && carried < s.cap){ items[it] = (items[it]||0) + 1; carried++; drops.push(IT[it].n); } }
+        for (const [it, ch] of ((E.v || 0) >= 6 && MON[m.id].dr6) || MON[m.id].dr){ if (rng() < ch*s.rew && carried < s.cap){ items[it] = (items[it]||0) + 1; carried++; drops.push(IT[it].n); } }
         if (s.job === 'thief' && carried < s.cap && rng() < 0.4){ const it = wpick(rng, R.mats); items[it] = (items[it]||0) + 1; carried++; drops.push(`${IT[it].n}(「${J.sk.n}」)`); }
         let t = `${josa(m.n,'을','를')} 쓰러뜨렸다! 경험치 +${gx}` + (drops.length ? ` · ${drops.join(', ')} 획득` : '');
         if (eggFight){ egg = {kind:'summon', sp:pick(rng, SUM_SP)}; t += ' · 요괴가 지키던 알을 손에 넣었다!'; }
@@ -1384,7 +1432,7 @@ function simulate(E, upto){
     }
     const found = Object.entries(got).map(([it, n]) => `${IT[it].n} ${n}개`);
     if (found.length){ parts.push(fillFind(rng, found)); kind = 'item'; }
-    if (rng() < chance(RARE*s.rare*durB, gh) && carried < s.cap){ const it = pick(rng, ['scroll','gem','rareore','talisman','soul','rareherb']); items[it] = (items[it]||0) + 1; carried++; parts.push(`반짝이는 것이 눈에 띄었다… ${IT[it].n}!`); kind = 'rare'; }
+    if (rng() < chance(RARE*s.rare*durB, gh) && carried < s.cap){ const it = pick(rng, (E.v || 0) >= 6 ? rarePool(E.region) : ['scroll','gem','rareore','talisman','soul','rareherb']); items[it] = (items[it]||0) + 1; carried++; parts.push(`반짝이는 것이 눈에 띄었다… ${IT[it].n}!`); kind = 'rare'; }
     // V4: 그 고장 레벨대 장비가 가끔 떨어진다 (1시간 약 25%, 3시간 약 60%)
     if ((E.v || 0) >= 4 && carried < s.cap && rng() < chance(0.28*durB, gh)){
       const r = rng(), gi = r < 0.4 ? 'gw' + E.region : r < 0.75 ? 'ga' + E.region : 'gx' + E.region;
@@ -1580,7 +1628,7 @@ function startRest(mins){
 }
 function endRest(quiet){
   if (!S.rest) return;
-  const mx = maxHP(), fb = foodBuff(), base = mx * 0.05 / (10*MIN) * (fb && fb.regen ? 2 : 1) * SPD();
+  const mx = maxHP(), fb = foodBuff(), eb = elixBuff(), base = mx * 0.05 / (10*MIN) * (fb && fb.regen ? 2 : 1) * (eb && eb.regen ? 2 : 1) * SPD();
   const end = Math.min(now(), S.rest.until);
   if (S.hp != null && S.hpAt < end) { S.hp = Math.min(mx, S.hp + (end - S.hpAt) * base * REST_MULT); S.hpAt = end; }
   S.rest = null; save(); pubDirty();
@@ -1609,7 +1657,7 @@ function startLong(ri, hours, pots){
     if (buddy){ snap.rew = +(snap.rew*1.1).toFixed(3); addAff(buddy, 3, true); }
   }
   const fast = SPD() > 1;
-  S.exp = {id:uid36(), region:ri, start:now(), dur:hours*H/SPD(), tick:NT/SPD(), nt:NT, v:5, seed:(Math.random()*2**31)|0, snap, wait:3*H/SPD(), buddy};
+  S.exp = {id:uid36(), region:ri, start:now(), dur:hours*H/SPD(), tick:NT/SPD(), nt:NT, v:6, seed:(Math.random()*2**31)|0, snap, wait:3*H/SPD(), buddy};
   if (buddy) toast(`${PL[buddy]?.name || '절친'}님도 이 지역을 탐사 중이라 동행 보너스(보상 +10%)를 받습니다.`, 'good');
   sfx('go'); save(); pubDirty(); render();
 }
@@ -1678,7 +1726,7 @@ function finishShort(){
   for (let i=0;i<k;i++){ const it = wpick(rng, R.mats.filter(([x]) => IT[x].p < 50)); got[it] = (got[it]||0) + 1; }
   const coin = rng() < Math.min(0.8, 0.15 + L*0.02) ? Math.round((3 + L) * (1 + ri*0.3)) : 0; S.gold += coin;
   let jackpot = null;
-  if (rng() < (0.03 + L*0.006) * (S.job==='thief'?1.4:1) * (tiredActive()?0.7:1)){ jackpot = pick(rng, ['gem','rareore','scroll','soul','pot2','talisman']); got[jackpot] = (got[jackpot]||0) + 1; }
+  if (rng() < (0.03 + L*0.006) * (S.job==='thief'?1.4:1) * (tiredActive()?0.7:1)){ jackpot = pick(rng, rarePool(ri, ['gem','scroll','soul','pot2','talisman'])); got[jackpot] = (got[jackpot]||0) + 1; }
   for (const x in got) addItem(x, got[x]);
   setHP(curHP() - 2*(tiredActive()?1.5:1));
   const xp = addXP(5 + ri*2);
@@ -1696,7 +1744,7 @@ function applyRaid(ri, res, size, announce = true){
     S.bosses[ri] = true; S.codex.mon['boss'+ri] = (S.codex.mon['boss'+ri]||0) + 1;
     const g = 150*(ri+1), xp = addXP(80*(ri+1)*(first?1:0.4));
     S.gold += g;
-    const loot = {rareore:1 + (ri>3?1:0), gem:1, scroll:1}; if (ri >= 2) loot.soul = 1;
+    const loot = {gem:1 + (ri < 5 ? 1 : 0), scroll:1}; if (ri >= 2) loot.soul = 1; if (ri >= 5) loot.rareore = 1 + (ri >= 7 ? 1 : 0); if (ri >= 8) loot.dragonore = 1 + (ri >= 10 ? 1 : 0); if (ri >= 11) loot.skyore = 1;
     for (const k in loot) addItem(k, loot[k]);
     if (first && announce) postNews(`${S.char.name}님${size>1?'의 토벌대가':'이'} ${REG[ri].n}의 우두머리 ${josa(BOSS[ri].n,'을','를')} 토벌했습니다.`);
     setHP(curHP()*0.6);
@@ -1731,7 +1779,7 @@ function collectTask(){
   const u = T.mins/10, rng = Math.random, got = {}, mult = (S.sub === TASKS[T.kind].sub) ? (T.kind==='clean'?1.5:1.3) : 1;
   const add = (k, n) => { n = Math.floor(n*mult + rng()); if (n > 0) got[k] = (got[k]||0) + n; };
   let gold = 0;
-  if (T.kind === 'mine'){ add('ore', 2*u); if (prof('miner') >= 10) add('silver', 0.6*u); if (rng() < (0.06 + (hasSyn('thief:miner')?0.12:0))*u) got.gem = (got.gem||0)+1; if (prof('miner') >= 25 && rng() < 0.05*u) got.rareore = 1; }
+  if (T.kind === 'mine'){ add('ore', 2*u); if (prof('miner') >= 10) add('silver', 0.6*u); if (rng() < (0.06 + (hasSyn('thief:miner')?0.12:0))*u) got.gem = (got.gem||0)+1; if (prof('miner') >= 25 && S.lv >= 20 && rng() < 0.05*u) got.rareore = 1; }
   if (T.kind === 'log'){ add('wood', 3*u); add('sap', 0.5*u); }
   if (T.kind === 'gather'){ add('herb', 1.2*u*(hasSyn('monk:gatherer')?1.5:1)); add('mushroom', u); add('sansai', u); add('berry', 0.8*u); add('mulberry', 1.2*u); if (hasSyn('monk:gatherer') && rng() < 0.12*u) got.rareherb = 1; }
   if (T.kind === 'clean'){ gold = Math.round(30*u*mult); S.gold += gold; }
@@ -1819,7 +1867,8 @@ function useItem(k){
   if (k === 'scroll'){ const p = prof('cook'); const cand = RECIPES.filter(r => p < r.lv && !S.recipes.includes(r.id)); if (!cand.length) return toast('더 배울 레시피가 없습니다.'); takeItem('scroll'); const r = cand[0]; S.recipes.push(r.id); sfx('rare'); save(); toast(`두루마리를 읽었다. 새 레시피: ${r.n}`, 'good'); render(); renderSheet(); }
   else if (k === 'reset'){ ask('스탯 초기화', '분배한 스탯 포인트를 모두 돌려받습니다. 부적 1개가 사라집니다.', '초기화').then(ok => { if (!ok || !takeItem('reset')) return; resetAlloc(); toast('스탯 포인트를 돌려받았다.', 'good'); }); }
   else if (k === 'ticket'){ openSheet('jobchange'); }
-  else if (k === 'pot1' || k === 'pot2') usePotion(k);
+  else if (k === 'pot1' || k === 'pot2' || k === 'pot3') usePotion(k);
+  else if (IT[k]?.t === 'elix') drinkElix(k);
 }
 function resetAlloc(){ setHP(curHP()); for (const s of STATS){ S.pts += S.alloc[s]; S.alloc[s] = 0; } setHP(curHP()); save(); pubDirty(); render(); renderSheet(); }
 function allocStat(k){ if (S.pts <= 0) return; const before = maxHP(); setHP(curHP()); S.alloc[k]++; S.pts--; if (k === 'VIT') setHP(S.hp + (maxHP()-before)); sfx('click'); save(); render(); }
@@ -2452,7 +2501,7 @@ async function partyGo(){
   const P = myParty(); if (!P || P.leader !== ST.uid || !P.gather) return;
   const g = P.gather, roster = g.ready || {};
   if (Object.keys(roster).length < 2) return toast('아직 준비된 조사대원이 없습니다.');
-  const go = {id:g.id, region:g.region, start:now(), dur:g.hours*H/SPD(), tick:NT/SPD(), nt:NT, v:5, seed:(Math.random()*2**31)|0, roster};
+  const go = {id:g.id, region:g.region, start:now(), dur:g.hours*H/SPD(), tick:NT/SPD(), nt:NT, v:6, seed:(Math.random()*2**31)|0, roster};
   try { await ST.db.doc('parties/' + P.id).update({go, gather:null}); } catch(e){ toast('출발하지 못했습니다.', 'warn'); }
 }
 // 조사대장 넘기기: 대장이 대원 한 명을 골라 넘긴다. 모집 중이던 탐사는 취소된다
@@ -2934,6 +2983,7 @@ function viewTop(){
   if (S.travelAsk) chips.push(`<button class="chip blue" data-act="sheet" data-s="travelAsk">조사대 이동 · 답하기 <span class="num" data-cd="${S.travelAsk.deadline}"></span></button>`);
   if (S.hard) chips.push(`<button class="chip bad" data-act="tab" data-t="explore">⚔ 고난도 탐사${hardPending() ? ' · 선택!' : ''} · <span class="num" data-cd="${S.hard.end}"></span></button>`);
   if (restActive()) chips.push(`<button class="chip good" data-act="sheet" data-s="rest">♨ 휴식 중 · <span class="num" data-cd="${S.rest.until}"></span></button>`);
+  { const e = elixActive(); if (e) chips.push(`<button class="chip blue" data-act="tab" data-t="bag">🧪 ${IT[e.id].n} · <span class="num" data-cd="${e.until}"></span></button>`); }
   if (festOn()) chips.push(`<button class="chip fest" data-act="sheet" data-s="matsuri">🏮 마츠리 · <span class="num" data-cd="${festEnd()}"></span></button>`);
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
@@ -3206,12 +3256,13 @@ const BAGF = [['all','전체'],['food','요리'],['pot','약'],['mat','재료'],
 function statTxt(it){ return it.atk ? `공격 +${it.atk}` : it.def ? `방어 +${it.def}` : it.st ? Object.entries(it.st).map(([s,v])=>`${STN[s]} +${v}`).join(' ') : ''; }
 TABS.bag = () => {
   const f = UI.bag, lock = baseLocked();
-  const keys = Object.keys(S.inv).filter(k => cnt(k) > 0).filter(k => { const t = IT[k.replace('*','')]?.t; if (!t) return false; if (f==='all') return true; if (f==='pot') return t==='pot'||t==='cure'; if (f==='gear') return ['weapon','armor','acc'].includes(t); return t === f; })
+  const keys = Object.keys(S.inv).filter(k => cnt(k) > 0).filter(k => { const t = IT[k.replace('*','')]?.t; if (!t) return false; if (f==='all') return true; if (f==='pot') return t==='pot'||t==='cure'||t==='elix'; if (f==='gear') return ['weapon','armor','acc'].includes(t); return t === f; })
     .sort((a,b) => (IT[a.replace('*','')].t).localeCompare(IT[b.replace('*','')].t) || itemName(a).localeCompare(itemName(b), 'ko'));
   const row = k => { const b = k.replace('*',''), it = IT[b], eqn = equippedN(k); let acts = '';
     const dis = lock ? 'disabled' : '';
     if (it.t === 'food') acts += `<button class="btn sm" data-act="eat" data-k="${k}" ${dis}>먹기</button>`;
     if (it.t === 'pot') acts += `<button class="btn sm" data-act="use" data-k="${k}" ${dis}>먹기</button>`;
+    if (it.t === 'elix') acts += `<button class="btn sm" data-act="use" data-k="${k}" ${dis}>마시기</button>`;
     if (['weapon','armor','acc'].includes(it.t)){
       const sl = slotOf(b), lbl = sl === 'ring' ? (eqn >= cnt(k) ? '빼기' : eqn ? '하나 더 끼기' : '끼기') : eqn ? '해제' : '장착';
       acts += `<button class="btn sm ${eqn?'seal':''}" data-act="equip" data-k="${k}" ${dis}>${lbl}</button>`;
@@ -3226,7 +3277,7 @@ TABS.bag = () => {
     : UI.bagView === 'list' ? `<div class="card">${`<div class="list">${keys.map(row).join('')}</div>`}</div>`
     : (() => {
         const sel = keys.includes(UI.bagSel) ? UI.bagSel : null;
-        const grp = k => { const t = IT[k.replace('*','')].t; return t === 'food' ? 0 : (t === 'pot' || t === 'cure') ? 1 : ['weapon','armor','acc'].includes(t) ? 2 : t === 'mat' ? 3 : t === 'fish' ? 4 : t === 'seed' ? 5 : 6; };
+        const grp = k => { const t = IT[k.replace('*','')].t; return t === 'food' ? 0 : (t === 'pot' || t === 'cure' || t === 'elix') ? 1 : ['weapon','armor','acc'].includes(t) ? 2 : t === 'mat' ? 3 : t === 'fish' ? 4 : t === 'seed' ? 5 : 6; };
         const GN = ['요리','약','장비','재료','생선','씨앗','특수'];
         const cell = k => `<button class="bag-cell ${k === sel ? 'sel' : ''}" data-act="bagSel" data-k="${k}" aria-pressed="${k === sel}" aria-label="${esc(itemName(k))} ${cnt(k)}개"><span class="bc-ic">${itemIcon(k, 'lg')}<b class="bc-n num">${cnt(k)}</b>${equippedN(k) ? '<i class="bc-eq">장착중</i>' : ''}</span><span class="bc-name">${esc(itemName(k))}</span></button>`;
         const groups = [];
@@ -3466,7 +3517,7 @@ SHEETS.codex = () => {
   const body = t === 'mon'
     ? `<div class="list">${mons.map(k => { const n = S.codex.mon[k]; return `<div class="li"><div class="t"><b>${n ? MON[k].n : '???'}</b><span>${n ? `${MON[k].t==='y'?'요괴':'야생동물'} · Lv.${MON[k].L} · ${MON[k].w} · 드롭: ${MON[k].dr.map(([i])=>IT[i].n).join(', ')}` : '아직 만나지 못했다'}</span></div>${n ? `<span class="small num">${n}마리</span>` : ''}</div>`; }).join('')}
        ${BOSS.map((b,i) => `<div class="li"><div class="t"><b>${S.codex.mon['boss'+i] ? b.n : '???'} <span class="chip">우두머리</span></b><span>${S.codex.mon['boss'+i] ? b.d : REG[i].n + '의 우두머리'}</span></div></div>`).join('')}</div>`
-    : `<div class="list">${FISH.map(f => { const n = S.codex.fish[f.id]; return `<div class="li"><div class="t"><b>${n ? f.n : '???'}</b><span>${SPOTN[f.spot]} · ${TIMEN[f.time]}${f.rare?' · 희귀':''} · 난이도 ${'●'.repeat(f.d)}</span></div>${n ? `<span class="small num">${n}마리</span>` : ''}</div>`; }).join('')}</div>`;
+    : `<div class="list">${FISH.map(f => { const n = S.codex.fish[f.id]; return `<div class="li" ${n ? '' : 'style="opacity:.55"'}>${n ? itemIcon(f.id) : '<span class="iic md" style="display:grid;place-items:center;border-radius:50%;background:#3b2f42;color:#a898a8;font-weight:700">?</span>'}<div class="t"><b>${n ? f.n : '???'}</b><span>${SPOTN[f.spot]} · ${TIMEN[f.time]}${f.rare?' · 희귀':''} · 난이도 ${'●'.repeat(f.d)}</span>${n && (S.fishRec||{})[f.id] ? `<span class="tiny">최대 기록 <b>${fishCmTxt(S.fishRec[f.id])}</b> · 이 종의 최대 ${fishCmTxt(FISH_CM[f.id][1])}</span>` : ''}</div>${n ? `<span class="small num">${n}마리</span>` : ''}</div>`; }).join('')}</div>`;
   const mc = mons.filter(k => S.codex.mon[k]).length, fc = FISH.filter(f => S.codex.fish[f.id]).length;
   return sheetHead('도감') + `<div class="seg" style="margin-bottom:10px"><button data-act="codexTab" data-t="mon" aria-pressed="${t==='mon'}">몬스터 ${mc}/${mons.length}</button><button data-act="codexTab" data-t="fish" aria-pressed="${t==='fish'}">물고기 ${fc}/${FISH.length}</button></div>${body}`;
 };
@@ -3513,7 +3564,9 @@ SHEETS.shop = () => {
   const t = UI.shopTab || 'buy';
   const sellable = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && sellPrice(k) > 0 && !['ticket','ring'].includes(k))
     .sort((a,b) => IT[a.replace('*','')].t.localeCompare(IT[b.replace('*','')].t) || itemName(a).localeCompare(itemName(b), 'ko'));
-  const buyList = `<div class="list">${SHOP.map(k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">보유 ${cnt(k)}</span></b>${IT[k].f ? `<span class="flav">${esc(IT[k].f)}</span>` : ''}<span>${esc(IT[k].d || '')}</span></div><div class="acts"><button class="btn sm" data-act="buy" data-k="${k}" data-n="1" ${S.gold<IT[k].p?'disabled':''}>${IT[k].p}${CUR}</button>${IT[k].p <= 30 ? `<button class="btn sm ghost" data-act="buy" data-k="${k}" data-n="5" ${S.gold<IT[k].p*5?'disabled':''}>5개</button>` : ''}</div></div>`).join('')}</div>`;
+  const bRow = k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">보유 ${cnt(k)}</span></b>${IT[k].f ? `<span class="flav">${esc(IT[k].f)}</span>` : ''}<span>${esc(IT[k].d || '')}</span></div><div class="acts"><button class="btn sm" data-act="buy" data-k="${k}" data-n="1" ${S.gold<IT[k].p?'disabled':''}>${IT[k].p}${CUR}</button>${IT[k].p <= 30 ? `<button class="btn sm ghost" data-act="buy" data-k="${k}" data-n="5" ${S.gold<IT[k].p*5?'disabled':''}>5개</button>` : ''}</div></div>`;
+  const bGroups = [['요리 재료', SHOP.filter(k => IT[k].t === 'mat')], ['씨앗', SHOP.filter(k => IT[k].t === 'seed')], ['약 · 특수', SHOP.filter(k => !['mat','seed'].includes(IT[k].t))]];
+  const buyList = bGroups.filter(([, ks]) => ks.length).map(([n, ks]) => `<h3 class="shop-h">${n}</h3><div class="list">${ks.map(bRow).join('')}</div>`).join('');
   const sellList = sellable.length ? `<div class="list">${sellable.map(k => { const free = cnt(k) - equippedN(k); return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b><span>한 개 ${sellPrice(k)}${CUR}${equippedN(k) ? ' · 장착 중인 것은 제외' : ''}</span></div><div class="acts"><button class="btn sm" data-act="sell" data-k="${k}">팔기</button>${free > 1 ? `<button class="btn sm ghost" data-act="sellAll" data-k="${k}">모두 ${sellPrice(k)*free}${CUR}</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">팔 수 있는 물건이 없다.</p>';
   return sheetHead('잡화점', `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`) + `
   <p class="small muted" style="margin-top:0">"어서 오시게. 없는 것 빼고 다 있다네." — 주인 할멈</p>
@@ -3565,7 +3618,7 @@ SHEETS.gift = o => {
   const GF = [['all','전체'],['food','요리'],['pot','약'],['gear','장비'],['mat','재료'],['fish','생선'],['seed','씨앗']];
   const typeOf = k => IT[k.replace('*','')]?.t;
   const keys = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && !['ticket','ring'].includes(k))
-    .filter(k => { const t = typeOf(k); if (f === 'all') return true; if (f === 'pot') return t === 'pot' || t === 'cure'; if (f === 'gear') return ['weapon','armor','acc'].includes(t); return t === f; })
+    .filter(k => { const t = typeOf(k); if (f === 'all') return true; if (f === 'pot') return t === 'pot' || t === 'cure' || t === 'elix'; if (f === 'gear') return ['weapon','armor','acc'].includes(t); return t === f; })
     .sort((a, b) => typeOf(a).localeCompare(typeOf(b)) || itemName(a).localeCompare(itemName(b), 'ko'));
   return sheetHead('선물하기') + `<p class="small muted" style="margin-top:0">${esc(PL[o]?.name||'')}님께 보낼 물건을 고르세요. 요리·장비·약·재료 무엇이든 보낼 수 있다. 요리와 장비는 호감도가 더 오르고, 지친 친구에게 요리를 대접하면 피로가 덜해진다.</p>
   <p class="tiny" style="margin:-4px 0 8px">📮 선물은 상대의 우편함으로 간다. 상대가 탐사 중이거나 접속하지 않았어도 보낼 수 있다. ${meetBlock(o) ? '<b>지금은 직접 만날 수 없어 호감도는 오르지 않는다.</b>' : '지금 직접 건넬 수 있어 호감도도 오른다.'}</p>
@@ -3834,7 +3887,7 @@ function battleStep(bt, act, rng, inv){
     switch (me.job){
       case 'samurai': { const [d] = hit(2.4); L.push(['skill', `${nm}! 칼집에서 뽑은 일섬이 ${d} 피해를 냈다.`]); break; }
       case 'monk': { const [d] = hit(1.3); const ok = b.t === 'y' || rng() < 0.5; if (ok) bt.buff.sealed = 1; L.push(['skill', `${nm}! ${d} 피해${ok ? ' — 우두머리가 결계에 묶여 다음 행동을 못 한다.' : ' — 결계가 튕겨 나갔다.'}`]); break; }
-      case 'thief': { const [d] = hit(1.6); let t = `${nm}! ${d} 피해`; if (!bt.stole){ bt.stole = pick(rng, ['rareore','gem','talisman','soul']); t += ` — 품에서 ${IT[bt.stole].n}${pp(IT[bt.stole].n,'을','를')} 슬쩍했다!`; } L.push(['skill', t]); break; }
+      case 'thief': { const [d] = hit(1.6); let t = `${nm}! ${d} 피해`; if (!bt.stole){ bt.stole = pick(rng, rarePool(bt.ri, ['gem','talisman','soul'])); t += ` — 품에서 ${IT[bt.stole].n}${pp(IT[bt.stole].n,'을','를')} 슬쩍했다!`; } L.push(['skill', t]); break; }
       case 'brawler': { const ds = [hit(0.75)[0], hit(0.75)[0], hit(0.75)[0]]; L.push(['skill', `${nm}! 짝, 짝, 짝 — ${ds.join(' + ')} 피해`]); break; }
       case 'healer': { const h = Math.round(me.max*0.35); me.hp = Math.min(me.max, me.hp + h); bt.buff.down = 0; if (bt.raidId) bt.healSeq = (bt.healSeq || 0) + 1; const [d] = hit(0.8); L.push(['skill', `${nm}!${bt.raidId ? ' 방울 소리가 토벌대 전체로 퍼진다 — 대원들의 체력도 20% 회복.' : ''} 방울 소리에 체력 +${h}, 저주가 풀렸다. 정화의 기운이 ${d} 피해.`]); break; }
       case 'onmyoji': { const [d] = hit(2.0, true); L.push(['skill', `${nm}! 종이 식신 떼가 방어를 뚫고 ${d} 피해.`]); break; }
@@ -4175,7 +4228,7 @@ function hardReward(H, r, mult){
   if (r.rareherb && Math.random() < r.rareherb * rm) add('rareherb', 1);
   if (r.scroll && Math.random() < r.scroll * rm) add('scroll', 1);
   if (r.ingot && Math.random() < r.ingot * rm) add('ingot', 1);
-  if (r.rare && Math.random() < Math.min(0.95, r.rare * rm)) add(pick(Math.random, HARD_RARE), 1);
+  if (r.rare && Math.random() < Math.min(0.95, r.rare * rm)) add(pick(Math.random, [...HARD_RARE.filter(k => k !== 'rareore'), ...orePool(H.ri)]), 1);
   if (r.gear && Math.random() < r.gear * rm){ const g = pick(Math.random, ['gw','ga','gx']) + H.ri; add(g, 1); }
   if (r.egg && !H.egg && Math.random() < r.egg){ H.egg = Math.random() < 0.6 ? {kind:'pet', sp:pick(Math.random, PET_SP)} : {kind:'summon', sp:pick(Math.random, SUM_SP)}; got.push(H.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'); }
   if (r.gold){ const g = Math.round(r.gold * (8 + Math.random()*16) * (1 + H.ri*0.5) * lm); H.gold += g; got.push(`엽전 ${g}${CUR}`); }
@@ -4201,7 +4254,7 @@ function hardFight(H, kind, danger, ambush){
   }
   if (H.hp <= 0) return {win:false, down:true};
   if (m.hp <= 0){
-    const drops = []; for (const [it, ch] of MON[id].dr) if (Math.random() < ch * 1.2){ hardAddItem(H, it, 1); drops.push(IT[it].n); }
+    const drops = []; for (const [it, ch] of MON[id].dr6 || MON[id].dr) if (Math.random() < ch * 1.2){ hardAddItem(H, it, 1); drops.push(IT[it].n); }
     const x = 6 + m.L*4; H.xp += x;
     S.codex.mon[id] = (S.codex.mon[id] || 0) + 1; stat(m.t === 'y' ? 'yokai' : 'animal');
     hardLog(H, `${r}합 만에 ${josa(m.n,'을','를')} 쓰러뜨렸다! 피해 ${dealt}, 받은 피해 ${taken} · 경험치 +${x}${drops.length ? ' · ' + drops.join(', ') : ''}`, 'win');
@@ -4913,6 +4966,82 @@ SHEETS.farm = () => {
   ${picking ? picker() : selPanel()}
   <p class="tiny muted" style="margin:10px 2px 0">실제 시간이 지나면 자란다. 물을 주면 +1, 퇴비를 뿌리면 +2. 돌보지 않아도 시들지 않는다.${S.sub==='farmer' ? ' 농부라서 20% 빨리 자라고 1개 더 거둔다.' : ''}</p>`;
 };
+// ===================== 비약 · 생선 크기 기록 · 생선 주문 =====================
+
+// ---- 비약: 식사 버프와 따로 하나 더 걸 수 있는 약효 ----
+function elixActive(){ return S && S.elix && S.elix.until > now() ? S.elix : null; }
+function elixBuff(){ const e = elixActive(); return e && IT[e.id] ? IT[e.id].b : null; }
+async function drinkElix(k){
+  if (baseLocked()) return lockToast();
+  const it = IT[k]; if (!it || it.t !== 'elix') return;
+  if (it.b.clearTired){
+    if (!tiredActive()) return toast('지금은 지친 몸이 아니에요. 지쳤을 때 마시면 바로 풀린다.');
+    if (!takeItem(k)) return;
+    S.tired = null; stat('elix'); sfx('eat'); save(); pubDirty(); toast(`${it.n}${pp(it.n,'을','를')} 마셨다. 지친 몸이 말끔히 풀렸다!`, 'good'); render(); renderSheet(); return;
+  }
+  const cur = elixActive();
+  if (cur && cur.id !== k && !await ask('비약 바꾸기', `${IT[cur.id].n}의 약효가 남아 있어요. 새 비약으로 바꿀까요?`, '바꾸기')) return;
+  if (!takeItem(k)) return;
+  setHP(curHP());
+  S.elix = {id:k, until:now() + it.b.dur*H*(S.sub === 'apoth' ? 1.25 : 1)/SPD()};
+  setHP(curHP()); stat('elix'); sfx('eat'); save(); pubDirty();
+  toast(`${it.n}${pp(it.n,'을','를')} 마셨다. ${it.d}`, 'good');
+  if (S.exp) toast('지금 진행 중인 탐사에는 출발할 때의 상태가 적용됩니다.');
+  render(); renderSheet();
+}
+
+// ---- 생선 크기: 낚을 때마다 크기가 정해지고, 종류마다 가장 큰 기록이 남는다 ----
+const FISH_CM = {f_crucian:[12,32], f_ayu:[15,30], f_trout:[20,45], f_catfish:[30,90], eel:[40,100], f_mackerel:[25,50], f_seabream:[25,70], f_rockfish:[20,50], f_tuna:[100,300], f_carp:[30,90], f_smelt:[8,16], f_goldcarp:[40,110]};
+function fishSize(f){
+  const [a, b] = FISH_CM[f.id] || [10, 40];
+  const luck = 1 + prof('fisher')*0.004 + (S.sub === 'fisher' ? 0.1 : 0);
+  const r = Math.min(1, Math.pow(Math.random(), 1.8 / luck));
+  const cm = Math.round((a + (b - a)*r)*10)/10;
+  S.fishRec = S.fishRec || {};
+  const rec = cm > (S.fishRec[f.id] || 0); if (rec) S.fishRec[f.id] = cm;
+  if (r > 0.92) stat('bigfish');
+  return {cm, rec, big:r > 0.92};
+}
+const fishCmTxt = cm => cm >= 100 ? `${(cm/100).toFixed(2)}m` : `${cm}cm`;
+
+// ---- 오늘의 생선 주문: 하루 세 건, 낚시터에서 납품 ----
+function fishOrders(){
+  if (S.forder && S.forder.d === dayKey()) return S.forder.list;
+  const rng = mulberry32(hashStr(ST.uid + dayKey() + 'fish') >>> 0), list = [];
+  const pool = FISH.filter(f => !f.rare);
+  for (let i = 0; i < 3; i++){
+    const f = wpick(rng, pool.filter(x => !list.some(o => o.id === x.id)).map(x => [x, 1/x.d]));
+    const n = 1 + Math.floor(rng()*(f.d <= 2 ? 3 : 2));
+    const who = pick(rng, ['주막 주인', '신사의 무녀', '잡화점 할멈', '이웃 마을 상인', '어린 개척자', '떠돌이 요리사']);
+    const bonus = rng() < 0.35 ? pick(rng, ['pot2', 'e_fish', 'scroll', 'honey', 'f_onigiri']) : null;
+    list.push({id:f.id, n, who, gold:Math.round(f.p*n*1.8 + 20), xp:6 + f.d*4*n, bonus, done:false});
+  }
+  S.forder = {d:dayKey(), list}; save();
+  return list;
+}
+function fishDeliver(i){
+  const o = fishOrders()[i]; if (!o || o.done) return;
+  if (cnt(o.id) < o.n) return toast(`${IT[o.id].n}${pp(IT[o.id].n,'이','가')} ${o.n - cnt(o.id)}마리 모자라요.`);
+  takeItem(o.id, o.n); o.done = true;
+  S.gold += o.gold; const xp = addXP(o.xp); if (o.bonus) addItem(o.bonus);
+  addProf('fisher', 2); stat('forder'); sfx('coin'); save();
+  toast(`${o.who}에게 ${IT[o.id].n} ${o.n}마리를 건넸다. 엽전 +${o.gold}${CUR} · 경험치 +${xp}${o.bonus ? ` · 덤으로 ${itemName(o.bonus)}` : ''}`, 'good');
+  if (typeof renderFish === 'function' && FG) renderFish(); renderSheet(true);
+}
+function fishOrderBox(){
+  const L = fishOrders(), done = L.filter(o => o.done).length;
+  return `<details class="sub forder" ${UI.forderOpen ? 'open' : ''}><summary class="small" data-act="forderTog">📜 오늘의 생선 주문 ${done}/${L.length}</summary>
+    <div class="list" style="margin-top:6px">${L.map((o, i) => `<div class="li ${o.done ? 'done' : ''}">${itemIcon(o.id)}<div class="t"><b>${IT[o.id].n} ×${o.n} <span class="cntx">가진 것 ${cnt(o.id)}</span></b><span>${o.who} · ${o.gold}${CUR} · 경험치 ${o.xp}${o.bonus ? ` · 덤 ${itemName(o.bonus)}` : ''}</span></div>${o.done ? '<span class="chip good">납품 완료</span>' : `<button class="btn sm ${cnt(o.id) >= o.n ? 'seal' : 'ghost'}" data-act="fishDeliver" data-i="${i}" ${cnt(o.id) >= o.n ? '' : 'disabled'}>납품</button>`}</div>`).join('')}</div>
+    <p class="tiny muted" style="margin:4px 0 0">주문은 매일 자정에 바뀐다.</p></details>`;
+}
+
+// 칭호
+TITLES.push(
+  {id:'bigfish', n:'대어 낚시꾼', d:'몸집이 아주 큰 물고기를 낚았다.', c:S => st_(S,'bigfish') >= 1},
+  {id:'fishall', n:'물고기 박사', d:'물고기 12종을 모두 낚았다.', c:S => FISH.every(f => (S.codex.fish||{})[f.id] > 0)},
+  {id:'forder10', n:'단골 생선 장수', d:'생선 주문을 10번 납품했다.', c:S => st_(S,'forder') >= 10},
+  {id:'elix10', n:'약방의 단골', d:'비약을 10번 마셨다.', c:S => st_(S,'elix') >= 10},
+);
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -5119,7 +5248,7 @@ function renderFish(){
   let mid = '', bottom = '';
   if (FG.st === 'idle' || FG.st === 'done'){
     mid = `<div class="ripple"></div>`;
-    bottom = `<p style="min-height:3em;margin:0">${FG.msg || `물고기마다 나오는 시간이 다르다. 지금은 ${tod}.`}</p><button class="btn seal full bigtap" data-act="cast">찌 던지기</button><button class="btn ghost full" style="margin-top:8px" data-act="autoFish">자동 낚시 (효율 낮음)</button>`;
+    bottom = `<p style="min-height:3em;margin:0">${FG.msg || `물고기마다 나오는 시간이 다르다. 지금은 ${tod}.`}</p><button class="btn seal full bigtap" data-act="cast">찌 던지기</button><button class="btn ghost full" style="margin-top:8px" data-act="autoFish">자동 낚시 (효율 낮음)</button>${fishOrderBox()}`;
   } else if (FG.st === 'wait' || FG.st === 'bite' || FG.st === 'auto'){
     mid = `<div class="ripple"></div>${bobber}`;
     bottom = `<p style="min-height:3em;margin:0;font-weight:700;${FG.st==='bite'?'color:var(--seal)':''}">${FG.st==='bite' ? '찌가 흔들린다! 지금 당겨!' : FG.st==='auto' ? '낚싯대를 세워 두고 기다리는 중…' : '찌를 지켜보는 중… 흔들릴 때 당기세요.'}</p>${FG.st==='auto' ? '' : `<button class="btn ${FG.st==='bite'?'seal':''} full bigtap" data-act="hook">당기기</button>`}`;
@@ -5173,15 +5302,15 @@ function startReel(){
 function reelEnd(win){
   const f = FG.fish; FG.st = 'done';
   if (win){
-    addItem(f.id); S.codex.fish[f.id] = (S.codex.fish[f.id]||0) + 1; addProf('fisher', 1 + f.d); const xp = addXP(3 + f.d*2);
-    FG.msg = `${f.n}${pp(f.n,'을','를')} 낚았다! 경험치 +${xp}${f.rare ? ' — 보기 드문 물고기다!' : ''}`; sfx(f.rare ? 'rare' : 'win');
+    addItem(f.id); S.codex.fish[f.id] = (S.codex.fish[f.id]||0) + 1; addProf('fisher', 1 + f.d); const sz = fishSize(f), xp = addXP(3 + f.d*2 + (sz.big ? 5 : 0));
+    FG.msg = `${f.n}${pp(f.n,'을','를')} 낚았다! <b>${fishCmTxt(sz.cm)}</b>${sz.rec ? ' · <b style="color:var(--seal)">신기록!</b>' : ''}${sz.big ? ' · 대물이다!' : ''} 경험치 +${xp}${f.rare ? ' — 보기 드문 물고기다!' : ''}`; sfx(f.rare ? 'rare' : 'win');
   } else { FG.msg = `${f.n}${pp(f.n,'이','가')} 줄을 끊고 달아났다.`; sfx('fail'); }
   save(); renderFish();
 }
 function autoFish(){
   FG.st = 'auto'; sfx('splash'); renderFish();
   FG.t = setTimeout(() => { if (!FG) return; const f = pickFish(FG.spot); FG.st = 'done';
-    if (f.d <= 3 && Math.random() < 0.55){ addItem(f.id); S.codex.fish[f.id] = (S.codex.fish[f.id]||0) + 1; addProf('fisher', 1); const xp = addXP(2); FG.msg = `자동 낚시로 ${f.n}${pp(f.n,'을','를')} 건졌다. 경험치 +${xp}`; sfx('soft'); }
+    if (f.d <= 3 && Math.random() < 0.55){ addItem(f.id); S.codex.fish[f.id] = (S.codex.fish[f.id]||0) + 1; addProf('fisher', 1); const sz = fishSize(f), xp = addXP(2); FG.msg = `자동 낚시로 ${f.n}(${fishCmTxt(sz.cm)})${pp(f.n,'을','를')} 건졌다.${sz.rec ? ' 신기록!' : ''} 경험치 +${xp}`; sfx('soft'); }
     else { FG.msg = '자동 낚시는 허탕이었다. 손맛은 직접 낚아야 제맛.'; sfx('fail'); }
     save(); renderFish(); }, 5000);
 }
@@ -5276,6 +5405,7 @@ const ACT = {
   farmPlant: d => { if (plantBuy(+d.i, d.k)){ UI.farmSeed = d.k; UI.farmSel = null; renderSheet(true); render(); } },
   plantAll: d => plantAll(d.k), harvestAll: () => harvestAll(), waterAll: () => waterAll(), compostAll: () => compostAll(),
   bagSel: d => { UI.bagSel = UI.bagSel === d.k ? null : (d.k || null); render(); }, bagView: () => { UI.bagView = UI.bagView === 'list' ? 'grid' : 'list'; render(); },
+  fishDeliver: d => fishDeliver(+d.i), forderTog: () => { UI.forderOpen = !UI.forderOpen; },
   festBuy: d => festBuy(d.id, !!d.e), festKuji: () => festKuji(),
   postGet: d => postClaim(d.id), postAll: () => postClaimAll(),
   grantQuick: d => { if (!isOp()) return; const el = $('#grantTo'); opGrant(el ? el.value : 'self', d.k, d.k === 'ticket' ? 1 : 5); },
