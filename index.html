@@ -4544,7 +4544,7 @@ function seoul(t = Date.now()){
 }
 function seoulClock(){
   const s = seoul(), ap = s.h < 12 ? '오전' : '오후', h12 = s.h % 12 || 12;
-  return `서울 ${ap} ${h12}:${String(s.m).padStart(2, '0')}`;
+  return `${ap} ${h12}:${String(s.m).padStart(2, '0')}`;
 }
 const festForced = () => !!(S && isOp() && S.settings.festForce);
 function festOn(){ if (festForced()) return true; const s = seoul(); return s.h >= FEST_FROM && s.h < FEST_TO; }
@@ -4595,7 +4595,7 @@ function festKuji(){
 
 SHEETS.matsuri = () => {
   const on = festOn();
-  if (!on) return sheetHead('마츠리') + `<div class="card" style="text-align:center"><p style="margin:0">🏮 축제는 매일 <b>서울 시각 밤 8시 ~ 10시</b>에 열린다.</p><p class="small muted" style="margin:6px 0 0">다음 축제까지 <b class="num" data-cd="${festNext()}"></b> · 지금 ${seoulClock()}</p></div>`;
+  if (!on) return sheetHead('마츠리') + `<div class="card" style="text-align:center"><p style="margin:0">🏮 축제는 매일 <b>밤 8시 ~ 10시</b>에 열린다.</p><p class="small muted" style="margin:6px 0 0">다음 축제까지 <b class="num" data-cd="${festNext()}"></b> · 지금 ${seoulClock()}</p></div>`;
   festBought('');
   const k = UI.kuji && now() - UI.kuji.at < 120000 ? UI.kuji : null;
   return sheetHead('🏮 마츠리') + `<div class="fest-banner"><b>여름밤 축제가 한창이다!</b><span class="small">초롱불 아래 노점이 줄지어 섰다. 끝나기까지 <b class="num" data-cd="${festEnd()}"></b></span></div>
