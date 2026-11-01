@@ -475,7 +475,7 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .bag-cell.sel{ background:rgba(246,231,200,.08); }
 .bc-name{ max-width:100%; padding:0 2px; color:#e9dcc6; font-size:.7rem; line-height:1.2; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bc-n{ position:absolute; right:-4px; bottom:-3px; min-width:18px; padding:0 5px; border-radius:9px; background:#1c1520; border:1px solid #6a5a72; font-size:.72rem; line-height:16px; font-weight:700; color:#fff; text-align:center; }
-.bc-eq{ position:absolute; left:-3px; top:-3px; width:17px; height:17px; border-radius:50%; background:var(--seal); color:#fff; font-style:normal; font-size:.66rem; font-weight:700; display:grid; place-items:center; border:1.5px solid #fff; }
+.bc-eq{ position:absolute; left:50%; top:-6px; transform:translateX(-50%); padding:0 5px; border-radius:8px; background:var(--seal); color:#fff; font-style:normal; font-size:.6rem; line-height:15px; font-weight:700; white-space:nowrap; border:1.5px solid #fff; }
 .bag-hint{ color:#a8988e; font-size:.75rem; text-align:center; margin:4px 0 0; }
 .bag-pop{ box-sizing:border-box; position:fixed; left:0; right:0; margin:0 auto; bottom:calc(76px + env(safe-area-inset-bottom, 0px)); width:min(560px, calc(100% - 20px)); z-index:15; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 40px 12px 12px; box-shadow:0 8px 28px rgba(0,0,0,.28); animation:popup .18s ease-out; }
 @keyframes popup{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
@@ -483,6 +483,26 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .bag-pop .li > .iic{ width:52px; height:52px; }
 .bag-pop .flav{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .bag-x{ position:absolute; top:6px; right:6px; width:30px; height:30px; border-radius:50%; border:1px solid var(--line); background:var(--paper-2); font-size:18px; line-height:1; color:var(--ink-2); cursor:pointer; }
+
+/* 논밭 */
+.farm-bar{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-bottom:10px; } .farm-bar::-webkit-scrollbar{ display:none; }
+.farm-bar .btn{ flex:none; padding:8px 12px; font-size:.88rem; }
+.plots{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.plot{ display:flex; flex-direction:column; gap:6px; padding:10px; border-radius:14px; border:1.5px solid var(--line); background:var(--card); text-align:left; cursor:pointer; color:inherit; font:inherit; position:relative; }
+.plot.sel{ border-color:var(--ink-2); box-shadow:0 0 0 2px color-mix(in srgb, var(--ink-2) 25%, transparent); }
+.plot.ready{ border-color:var(--moss); background:color-mix(in srgb, var(--moss) 10%, var(--card)); animation:plotglow 2s ease-in-out infinite; }
+@keyframes plotglow{ 50%{ box-shadow:0 0 0 3px color-mix(in srgb, var(--moss) 25%, transparent); } }
+.plot.empty{ border-style:dashed; }
+.plot-soil{ position:relative; height:64px; border-radius:10px; background:linear-gradient(#8a6440, #6e4c2e); display:grid; place-items:center; overflow:hidden; }
+.plot.empty .plot-soil{ background:linear-gradient(#9a7a58, #7e5e40); opacity:.85; }
+.plot-svg{ width:100%; height:100%; }
+.pl-row{ fill:none; stroke:#5a3c22; stroke-width:2.2; stroke-linecap:round; opacity:.7; }
+.pl-stem{ stroke:#4a7a2a; stroke-width:1.6; fill:none; } .pl-leaf{ fill:#7ab84a; stroke:#3a5a22; stroke-width:.7; }
+.pl-tag{ position:absolute; top:4px; font-style:normal; font-size:.62rem; font-weight:700; padding:0 4px; border-radius:6px; background:rgba(255,255,255,.85); color:#3a5a7a; line-height:15px; }
+.pl-tag.w{ left:4px; } .pl-tag.c{ right:4px; color:#6a4a22; }
+.plot-t{ display:flex; flex-direction:column; line-height:1.25; } .plot-t b{ font-size:.95rem; } .plot-t span{ font-size:.78rem; color:var(--ink-3); } .plot-t .rd{ color:var(--moss); font-weight:700; }
+.plot-bar{ height:5px; border-radius:3px; background:var(--paper-2); overflow:hidden; } .plot-bar i{ display:block; height:100%; background:var(--moss); }
+.farm-sel, .farm-pick{ margin-top:10px; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -3208,7 +3228,7 @@ TABS.bag = () => {
         const sel = keys.includes(UI.bagSel) ? UI.bagSel : null;
         const grp = k => { const t = IT[k.replace('*','')].t; return t === 'food' ? 0 : (t === 'pot' || t === 'cure') ? 1 : ['weapon','armor','acc'].includes(t) ? 2 : t === 'mat' ? 3 : t === 'fish' ? 4 : t === 'seed' ? 5 : 6; };
         const GN = ['요리','약','장비','재료','생선','씨앗','특수'];
-        const cell = k => `<button class="bag-cell ${k === sel ? 'sel' : ''}" data-act="bagSel" data-k="${k}" aria-pressed="${k === sel}" aria-label="${esc(itemName(k))} ${cnt(k)}개"><span class="bc-ic">${itemIcon(k, 'lg')}<b class="bc-n num">${cnt(k)}</b>${equippedN(k) ? '<i class="bc-eq">E</i>' : ''}</span><span class="bc-name">${esc(itemName(k))}</span></button>`;
+        const cell = k => `<button class="bag-cell ${k === sel ? 'sel' : ''}" data-act="bagSel" data-k="${k}" aria-pressed="${k === sel}" aria-label="${esc(itemName(k))} ${cnt(k)}개"><span class="bc-ic">${itemIcon(k, 'lg')}<b class="bc-n num">${cnt(k)}</b>${equippedN(k) ? '<i class="bc-eq">장착중</i>' : ''}</span><span class="bc-name">${esc(itemName(k))}</span></button>`;
         const groups = [];
         keys.slice().sort((a, b) => grp(a) - grp(b)).forEach(k => { const g = grp(k); if (!groups.length || groups[groups.length-1].g !== g) groups.push({g, ks:[]}); groups[groups.length-1].ks.push(k); });
         return `<div class="bag-panel ${sel ? 'has-sel' : ''}">${groups.map(G => `${f === 'all' ? `<div class="bag-gh">${GN[G.g]} <span>${G.ks.length}</span></div>` : ''}<div class="bag-grid">${G.ks.map(cell).join('')}</div>`).join('')}
@@ -4795,6 +4815,104 @@ const FEST_IC = {ringoame:'🍎', yakisoba:'🍜', takoyaki:'🐙', watagashi:'�
 FAC.matsuri = '축제 마당';
 MEET_V.matsuri = ['초롱불 아래에서 {n}님과 마주쳤다. 링고아메를 하나씩 들고 인사를 나눴다.', '{n}님과 같은 노점 앞에 줄을 섰다. 웃으며 인사를 나눴다.', '축제 북소리 사이로 {n}님이 손을 흔들었다. 반갑게 인사했다.'];
 BASE_SHEETS.push('matsuri');
+// ===================== 논밭 (편하게) =====================
+// 밭 네 칸을 한눈에 보고, 눌러서 심고·돌보고·거둔다. 모두 수확 · 모두 물 주기 · 빈 밭 모두 심기 한 번에.
+// 씨앗이 없어도 밭에서 바로 사서 심을 수 있다.
+const farmReady = f => f && now() >= f.at + f.dur;
+const seedInfo = k => { const sd = SEEDS[k], h = sd.h*(S.sub === 'farmer' ? 0.8 : 1); return `${h % 1 ? h.toFixed(1) : h}시간 · ${sd.y[0] + (S.sub === 'farmer' ? 1 : 0)}~${sd.y[1] + (S.sub === 'farmer' ? 1 : 0)}개`; };
+function farmLock(){ if (baseLocked()){ lockToast(); return true; } return false; }
+function harvestAll(){
+  if (farmLock()) return;
+  const got = {}; let xp = 0, n = 0;
+  S.farm.forEach((f, i) => {
+    if (!farmReady(f)) return;
+    const sd = SEEDS[f.seed], c = sd.y[0] + Math.floor(Math.random()*(sd.y[1]-sd.y[0]+1)) + (f.water?1:0) + (f.comp?2:0) + (S.sub==='farmer'?1:0);
+    addItem(sd.crop, c); got[sd.crop] = (got[sd.crop] || 0) + c;
+    if (Math.random() < 0.4){ addItem(f.seed); got[f.seed] = (got[f.seed] || 0) + 1; }
+    addProf('farmer', 2); xp += addXP(3); S.stats.harvest = (S.stats.harvest||0) + 1; S.farm[i] = null; n++;
+  });
+  if (!n) return toast('아직 다 자란 밭이 없어요.');
+  sfx('win'); save();
+  toast(`${n}칸 수확: ${Object.entries(got).map(([k, v]) => `${IT[k].n} ${v}`).join(', ')} · 경험치 +${xp}`, 'good'); renderSheet(true); render();
+}
+function waterAll(){
+  if (farmLock()) return;
+  let n = 0; S.farm.forEach(f => { if (f && !farmReady(f) && !f.water){ f.water = true; n++; } });
+  if (!n) return toast('물을 줄 밭이 없어요.');
+  addXP(n); sfx('water'); save(); toast(`밭 ${n}칸에 물을 줬다. 수확량 +1`, 'good'); renderSheet(true);
+}
+function compostAll(){
+  if (farmLock()) return;
+  let n = 0; S.farm.forEach(f => { if (f && !farmReady(f) && !f.comp && cnt('compost') > 0){ takeItem('compost'); f.comp = true; n++; } });
+  if (!n) return toast(cnt('compost') ? '퇴비를 뿌릴 밭이 없어요.' : '퇴비가 없어요. 축사의 일소가 만들어 줘요.');
+  sfx('soft'); save(); toast(`밭 ${n}칸에 퇴비를 뿌렸다. 수확량 +2`, 'good'); renderSheet(true);
+}
+// 씨앗이 없으면 사서 심는다
+function plantBuy(i, seed){
+  if (farmLock()) return false;
+  if (S.farm[i]) return false;
+  if (!cnt(seed)){
+    const p = IT[seed].p;
+    if (S.gold < p && !(S.settings.infGold && isOp())){ toast('엽전이 부족해 씨앗을 살 수 없어요.', 'warn'); return false; }
+    if (!(S.settings.infGold && isOp())) S.gold -= p;
+    addItem(seed);
+  }
+  plant(i, seed); return true;
+}
+function plantAll(seed){
+  if (farmLock()) return;
+  let n = 0, bought = 0;
+  for (let i = 0; i < S.farm.length; i++){ if (S.farm[i]) continue; const had = cnt(seed) > 0; if (!plantBuy(i, seed)) break; n++; if (!had) bought++; }
+  if (n){ UI.farmSeed = seed; toast(`빈 밭 ${n}칸에 ${SEEDS[seed].n}${pp(SEEDS[seed].n,'을','를')} 심었다.${bought ? ` (씨앗 ${bought}개 사서 심음 · -${bought*IT[seed].p}${CUR})` : ''}`, 'good'); }
+  UI.farmSel = null; UI.farmPick = false; renderSheet(true); render();
+}
+
+// 밭 한 칸 그림
+function plotArt(f){
+  if (!f) return `<svg viewBox="0 0 60 40" class="plot-svg" aria-hidden="true"><path d="M4 30q26-8 52 0" class="pl-row"/><path d="M4 22q26-8 52 0" class="pl-row"/><path d="M4 14q26-8 52 0" class="pl-row"/></svg>`;
+  const pct = clamp((now() - f.at)/f.dur, 0, 1), st = pct >= 1 ? 3 : pct > 0.6 ? 2 : pct > 0.25 ? 1 : 0;
+  const sprout = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 0v-8" class="pl-stem"/><path d="M0 -6c-5 0-7-3-7-5c4 0 7 2 7 5z" class="pl-leaf"/><path d="M0 -8c5 0 7-3 7-5c-4 0-7 2-7 5z" class="pl-leaf"/></g>`;
+  const xs = [12, 24, 36, 48];
+  return `<svg viewBox="0 0 60 40" class="plot-svg" aria-hidden="true"><path d="M4 30q26-8 52 0" class="pl-row"/><path d="M4 22q26-8 52 0" class="pl-row"/>${st < 3 ? xs.map((x, i) => sprout(x, i % 2 ? 26 : 32, 0.5 + st*0.28)).join('') : ''}</svg>`;
+}
+SHEETS.farm = () => {
+  const lock = baseLocked();
+  const ready = S.farm.filter(farmReady).length, empty = S.farm.filter(f => !f).length;
+  const thirsty = S.farm.filter(f => f && !farmReady(f) && !f.water).length, nocomp = S.farm.filter(f => f && !farmReady(f) && !f.comp).length;
+  const sel = UI.farmSel != null && UI.farmSel < S.farm.length ? UI.farmSel : null;
+  const seedKeys = Object.keys(SEEDS).sort((a, b) => (cnt(b) > 0) - (cnt(a) > 0) || SEEDS[a].h - SEEDS[b].h);
+  const picking = UI.farmPick || (sel != null && !S.farm[sel]);
+  const plot = (f, i) => {
+    const done = farmReady(f), sd = f && SEEDS[f.seed];
+    return `<button class="plot ${!f ? 'empty' : done ? 'ready' : 'grow'} ${sel === i ? 'sel' : ''}" data-act="farmSel" data-i="${i}" aria-label="${i+1}번 밭 ${!f ? '비어 있음' : done ? IT[sd.crop].n + ' 수확 가능' : IT[sd.crop].n + ' 자라는 중'}">
+      <span class="plot-soil">${done ? itemIcon(sd.crop, 'lg') : plotArt(f)}${f && f.water && !done ? '<i class="pl-tag w">💧</i>' : ''}${f && f.comp && !done ? '<i class="pl-tag c">퇴비</i>' : ''}</span>
+      <span class="plot-t">${!f ? '<b>빈 밭</b><span>눌러서 심기</span>' : done ? `<b>${IT[sd.crop].n}</b><span class="rd">수확할 수 있어요!</span>` : `<b>${IT[sd.crop].n}</b><span><span class="num" data-cd="${f.at + f.dur}"></span> 남음</span>`}</span>
+      ${f && !done ? `<span class="plot-bar"><i style="width:${clamp((now()-f.at)/f.dur*100, 0, 100)}%"></i></span>` : ''}
+    </button>`;
+  };
+  const selPanel = () => {
+    if (sel == null || !S.farm[sel]) return '';
+    const f = S.farm[sel], sd = SEEDS[f.seed], done = farmReady(f);
+    return `<div class="card farm-sel"><div class="row">${itemIcon(sd.crop)}<div class="grow"><b>${sel+1}번 밭 · ${IT[sd.crop].n}</b><br><span class="small muted">${done ? '다 자랐다!' : `<span class="num" data-cd="${f.at+f.dur}"></span> 뒤 수확`} · 예상 ${sd.y[0] + (f.water?1:0) + (f.comp?2:0) + (S.sub==='farmer'?1:0)}~${sd.y[1] + (f.water?1:0) + (f.comp?2:0) + (S.sub==='farmer'?1:0)}개</span></div></div>
+      <div class="row wrapf" style="gap:6px;margin-top:8px">${done ? `<button class="btn seal grow" data-act="harvest" data-i="${sel}" ${lock ? 'disabled' : ''}>수확하기</button>` : `<button class="btn sm ${f.water ? 'ghost' : ''}" data-act="water" data-i="${sel}" ${f.water || lock ? 'disabled' : ''}>${f.water ? '💧 촉촉함' : '💧 물 주기 (+1)'}</button><button class="btn sm ${f.comp ? 'ghost' : ''}" data-act="compost" data-i="${sel}" ${f.comp || !cnt('compost') || lock ? 'disabled' : ''}>${f.comp ? '퇴비 뿌림' : `퇴비 (+2) · ${cnt('compost')}개`}</button>`}</div></div>`;
+  };
+  const picker = () => {
+    const target = sel != null && !S.farm[sel] ? sel : null;
+    return `<div class="card farm-pick"><div class="row"><b class="grow">${target != null ? `${target+1}번 밭에 심을 씨앗` : `빈 밭 ${empty}칸에 모두 심기`}</b><button class="btn sm ghost" data-act="farmPickClose">닫기</button></div>
+      <p class="tiny muted" style="margin:2px 0 8px">씨앗이 없으면 그 자리에서 사서 심는다.</p>
+      <div class="list">${seedKeys.map(k => { const have = cnt(k), sd = SEEDS[k], cost = target != null ? (have ? 0 : IT[k].p) : Math.max(0, empty - have)*IT[k].p; return `<div class="li">${itemIcon(sd.crop)}<div class="t"><b>${IT[sd.crop].n} <span class="cntx">${have ? `씨앗 ${have}개` : '씨앗 없음'}</span></b><span>${seedInfo(k)}</span></div><button class="btn sm ${UI.farmSeed === k ? 'seal' : ''}" data-act="${target != null ? 'farmPlant' : 'plantAll'}" data-i="${target ?? ''}" data-k="${k}" ${lock ? 'disabled' : ''}>${cost ? `${cost}${CUR}에 사서 심기` : '심기'}</button></div>`; }).join('')}</div></div>`;
+  };
+  return sheetHead('논밭', `<span class="chip">농사 숙련도 ${prof('farmer')}</span>`) + `
+  <div class="farm-bar">
+    <button class="btn ${ready ? 'seal' : 'ghost'}" data-act="harvestAll" ${ready && !lock ? '' : 'disabled'}>🌾 모두 수확${ready ? ` ${ready}` : ''}</button>
+    <button class="btn ghost" data-act="waterAll" ${thirsty && !lock ? '' : 'disabled'}>💧 물 주기${thirsty ? ` ${thirsty}` : ''}</button>
+    <button class="btn ghost" data-act="farmPickAll" ${empty && !lock ? '' : 'disabled'}>🌱 빈 밭 심기${empty ? ` ${empty}` : ''}</button>
+    ${cnt('compost') && nocomp ? `<button class="btn ghost" data-act="compostAll" ${lock ? 'disabled' : ''}>퇴비 ${Math.min(nocomp, cnt('compost'))}</button>` : ''}
+  </div>
+  <div class="plots">${S.farm.map(plot).join('')}</div>
+  ${picking ? picker() : selPanel()}
+  <p class="tiny muted" style="margin:10px 2px 0">실제 시간이 지나면 자란다. 물을 주면 +1, 퇴비를 뿌리면 +2. 돌보지 않아도 시들지 않는다.${S.sub==='farmer' ? ' 농부라서 20% 빨리 자라고 1개 더 거둔다.' : ''}</p>`;
+};
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -5153,6 +5271,10 @@ const ACT = {
   leaveParty: async () => { if (await ask('조사대 나가기', '조사대를 나오면 혼자 다니게 됩니다.', '나가기')) leaveParty(); },
   partyGather: () => partyGather(UI.hours || 1), partyReady: () => partyReady(), partyGo: () => partyGo(), partyCancel: () => partyCancel(),
   grant: () => { if (!isOp()) return; const to = $('#grantTo').value, k = $('#grantItem').value, n = clamp(parseInt($('#grantN').value) || 0, 0, 999), g = clamp(parseInt($('#grantG').value) || 0, 0, 10000000); if (!n && !g) return toast('개수나 엽전을 적어 주세요.'); opGrant(to, n ? k : '', n, g, ($('#grantMsg').value || '').trim().slice(0, 200)); },
+  farmSel: d => { const i = +d.i; UI.farmPick = false; UI.farmSel = UI.farmSel === i ? null : i; renderSheet(true); },
+  farmPickAll: () => { UI.farmPick = true; UI.farmSel = null; renderSheet(true); }, farmPickClose: () => { UI.farmPick = false; UI.farmSel = null; renderSheet(true); },
+  farmPlant: d => { if (plantBuy(+d.i, d.k)){ UI.farmSeed = d.k; UI.farmSel = null; renderSheet(true); render(); } },
+  plantAll: d => plantAll(d.k), harvestAll: () => harvestAll(), waterAll: () => waterAll(), compostAll: () => compostAll(),
   bagSel: d => { UI.bagSel = UI.bagSel === d.k ? null : (d.k || null); render(); }, bagView: () => { UI.bagView = UI.bagView === 'list' ? 'grid' : 'list'; render(); },
   festBuy: d => festBuy(d.id, !!d.e), festKuji: () => festKuji(),
   postGet: d => postClaim(d.id), postAll: () => postClaimAll(),
