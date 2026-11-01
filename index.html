@@ -1921,15 +1921,18 @@ async function answerReq(id, yes){
   sfx('rare'); pubDirty(); render();
 }
 async function giftTo(o, k, n, msg){
-  const why = meetBlock(o); if (why) return toast(why, 'warn');
+  // 선물은 우편으로 간다: 상대가 탐사 중이거나 다른 고장에 있어도, 접속하지 않아도 보낼 수 있다.
+  // 직접 만나 건넬 수 있는 상황(같은 고장 등)이면 호감도도 오른다.
+  if (!PL[o]) return toast('상대 정보를 불러오는 중입니다.', 'warn');
+  const met = !meetBlock(o);
   n = Math.min(n, cnt(k) - equippedN(k)); if (n <= 0) return;
   const base = k.replace('*',''), it = IT[base];
   takeItem(k, n); save();
   const r = await postSend(o, 'gift', {items:[[k, n]], msg:(msg||'').trim().slice(0, 100)}); stat('gift');
   postSent(r, o, `${itemName(k)} ×${n}`);
   const mult = (it.r === 'mochi' ? 2 : 1);
-  const g = await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult, true);
-  sfx('coin'); toast(`${itemName(k)} ${n}개를 상대의 우편함으로 보냈습니다.${g?` 호감도 +${g}`:''}`); closeSheet(); render();
+  const g = met ? await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult, true) : 0;
+  sfx('coin'); toast(`${itemName(k)} ${n}개를 ${PL[o]?.name || '상대'}님의 우편함으로 보냈습니다.${g?` 호감도 +${g}`:met ? '' : ' (멀리서 보낸 선물이라 호감도는 오르지 않아요)'}`); closeSheet(); render();
 }
 function downedList(){
   const out = [];
@@ -3241,7 +3244,7 @@ SHEETS.profile = o => {
   <p class="tiny muted" style="margin:6px 0 0">${({acq:'호감도 30이 되면 친구 신청을 할 수 있다.',friend:'호감도 60이 되면 절친이 된다.',best:'호감도 80이 되면 고백할 수 있다. 재료도 나눌 수 있다.',lover:'청혼 반지가 있으면 언제든 청혼할 수 있다.',married:'부부 버프: 경험치 +10%'})[s]}</p></div>
   ${es?.st === 'down' ? `<div class="row" style="margin-top:10px"><button class="btn seal grow" data-act="rescue" data-u="${esc(o)}" data-k="heal" ${cnt('cure')?'':'disabled'}>치료제로 일으키기 (${cnt('cure')})</button><button class="btn grow" data-act="rescue" data-u="${esc(o)}" data-k="carry">부축하기</button></div>` : ''}
   <div class="row wrapf" style="margin-top:12px">
-    ${myParty()?.members.includes(o) ? '' : `<button class="btn sm seal" data-act="invite" data-u="${esc(o)}">함께 가기</button>`}${B('greet','인사')}<button class="btn sm" data-act="sheet" data-s="gift" data-a="${esc(o)}">선물</button>
+    ${myParty()?.members.includes(o) ? '' : `<button class="btn sm seal" data-act="invite" data-u="${esc(o)}">함께 가기</button>`}${B('greet','인사')}<button class="btn sm" data-act="sheet" data-s="gift" data-a="${esc(o)}">선물 (우편)</button>
     ${rk >= 1 ? B('comfort','위로', '', false, tired?'지친 몸 -2시간':'') : ''}
     ${rk === 0 ? B('friendReq','친구 신청','ghost', (r.aff||0) < 30, '호감도 30 필요') : ''}
     ${rk >= 1 && rk <= 2 ? B('confess','고백','seal', (r.aff||0) < 80, '호감도 80 필요') : ''}
@@ -3366,6 +3369,7 @@ SHEETS.gift = o => {
     .filter(k => { const t = typeOf(k); if (f === 'all') return true; if (f === 'pot') return t === 'pot' || t === 'cure'; if (f === 'gear') return ['weapon','armor','acc'].includes(t); return t === f; })
     .sort((a, b) => typeOf(a).localeCompare(typeOf(b)) || itemName(a).localeCompare(itemName(b), 'ko'));
   return sheetHead('선물하기') + `<p class="small muted" style="margin-top:0">${esc(PL[o]?.name||'')}님께 보낼 물건을 고르세요. 요리·장비·약·재료 무엇이든 보낼 수 있다. 요리와 장비는 호감도가 더 오르고, 지친 친구에게 요리를 대접하면 피로가 덜해진다.</p>
+  <p class="tiny" style="margin:-4px 0 8px">📮 선물은 상대의 우편함으로 간다. 상대가 탐사 중이거나 접속하지 않았어도 보낼 수 있다. ${meetBlock(o) ? '<b>지금은 직접 만날 수 없어 호감도는 오르지 않는다.</b>' : '지금 직접 건넬 수 있어 호감도도 오른다.'}</p>
   <label class="f">함께 보낼 한마디 (선택)<textarea id="giftMsg" rows="2" maxlength="80" placeholder="예: 탐사 잘 다녀오세요!"></textarea></label>
   <div class="seg" style="margin:8px 0" role="group" aria-label="분류">${GF.map(([k, n]) => `<button data-act="giftF" data-f="${k}" aria-pressed="${f === k}">${n}</button>`).join('')}</div>
   ${keys.length ? `<div class="list">${keys.map(k => { const it = IT[k.replace('*','')], free = cnt(k) - equippedN(k), st = statTxt(it); return `<div class="li"><div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b>${it.f ? `<span class="flav">${esc(it.f)}</span>` : ''}${st || it.d ? `<span>${esc([st, it.d].filter(Boolean).join(' · '))}</span>` : ''}</div><div class="acts"><button class="btn sm" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="1">보내기</button>${free >= 5 && !['weapon','armor','acc'].includes(it.t) ? `<button class="btn sm ghost" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="5">5개</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">이 분류에는 보낼 수 있는 물건이 없습니다.</p>'}`;
@@ -3394,7 +3398,7 @@ SHEETS.profile = o => {
   <div class="row wrapf" style="margin-top:10px">
     ${myParty()?.members.includes(o) ? '' : `<button class="btn sm seal" data-act="invite" data-u="${esc(o)}">함께 가기</button>`}
     ${B('greet', greetedToday(o) ? '인사 완료' : '인사', '', !!greetedToday(o), '하루 한 번')}
-    <button class="btn sm" data-act="sheet" data-s="gift" data-a="${esc(o)}" ${why ? 'disabled' : ''}>선물</button>
+    <button class="btn sm" data-act="sheet" data-s="gift" data-a="${esc(o)}">선물 (우편)</button>
     ${B('encourage', m2.enc[o] ? '격려 완료' : '격려', '', !!m2.enc[o], '하루 한 번 · 상대 경험치 +10% 2시간')}
     ${B('heal', '치료', '', !hasPot, '회복 환약 1개 사용')}
     ${B('tea', m2.tea[o] ? '차 대접 완료' : '차 대접', '', !!m2.tea[o] || !hasTea, '녹차 1잔 · 하루 한 번')}
@@ -4509,7 +4513,13 @@ async function pbIngest(id, x){
   const items = (x.items || []).filter(([k]) => IT[String(k).replace('*','')]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]);
   const p = {rid:id, kind:x.kind === 'grant' ? 'grant' : 'gift', from:x.from, name:x.kind === 'grant' ? '운영자' : (x.name || PL[x.from]?.name || '누군가'), items, gold:Math.max(0, Math.min(10000000, x.gold || 0)), msg:String(x.msg || '').slice(0, 200), ts:x.ts || now()};
   postAdd(p);
-  notify('social', p.kind === 'grant' ? '운영자 지급' : '선물', p.kind === 'grant' ? `우편함에 운영자 지급 물품이 도착했습니다: ${postSum(p)}` : `${p.name}님의 선물이 우편함에 도착했습니다: ${postSum(p)}${p.msg ? ` 「${p.msg}」` : ''}`);
+  // 지친 친구에게 온 요리 선물은 예전처럼 피로를 덜어 준다
+  let extra = '';
+  if (p.kind === 'gift' && items.some(([k]) => IT[String(k).replace('*','')]?.t === 'food') && tiredActive() && stageRank(effStage(getRel(x.from))) >= 1){
+    if (S.mit.d !== dayKey()) S.mit = {d:dayKey(), from:{}};
+    if (!S.mit.from[x.from]){ S.tired.weak = true; S.mit.from[x.from] = 1; extra = ' 정성 어린 요리에 지친 몸이 한결 가벼워졌습니다.'; }
+  }
+  notify('social', p.kind === 'grant' ? '운영자 지급' : '선물', p.kind === 'grant' ? `우편함에 운영자 지급 물품이 도착했습니다: ${postSum(p)}` : `${p.name}님의 선물이 우편함에 도착했습니다: ${postSum(p)}${p.msg ? ` 「${p.msg}」` : ''}${extra}`);
   if (x.ev) ST.db.doc('events/' + x.ev).delete().catch(() => {});
   save(); softRender();
 }
