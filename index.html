@@ -505,6 +505,19 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .farm-sel, .farm-pick{ margin-top:10px; }
 .forder{ margin-top:10px; } .forder .li.done{ opacity:.55; }
 .shop-h{ font-size:1rem; margin:14px 0 4px; color:var(--ink-2); } .shop-h:first-child{ margin-top:0; }
+
+/* 자유 요리 */
+.pot{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:12px; border-radius:50% / 30%; background:radial-gradient(ellipse at 50% 40%, #4a3a32, #2a2020); }
+.pot-slot{ aspect-ratio:1; border-radius:50%; border:2px dashed rgba(233,220,198,.35); display:grid; place-items:center; color:#a8988e; font-size:.72rem; background:none; padding:0; }
+.pot-slot.full{ border:0; flex-direction:column; display:flex; align-items:center; justify-content:center; gap:2px; color:#e9dcc6; cursor:pointer; }
+.pot-slot.full .iic{ width:44px; height:44px; } .pot-slot.full span{ font-size:.66rem; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pot-prev{ margin-top:10px; }
+.ing-h{ margin:10px 2px 4px; }
+.ing-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(58px, 1fr)); gap:6px; }
+.ing{ position:relative; display:flex; flex-direction:column; align-items:center; gap:2px; background:none; border:0; padding:2px 0; cursor:pointer; color:inherit; }
+.ing .iic.lg{ width:48px; height:48px; } .ing span{ font-size:.7rem; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ing .bc-n{ right:2px; bottom:16px; }
+.ing:disabled{ opacity:.35; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -1207,7 +1220,7 @@ function newSave(){
 const ACC_SLOTS = ['neck','wrist','ring1','ring2'];
 const SLOT_N = {weapon:'무기', armor:'갑옷', neck:'목걸이', wrist:'팔찌', ring1:'반지 ①', ring2:'반지 ②'};
 function baseStats(job){ const b = {}; STATS.forEach(k => b[k] = 5); if (job) JOBS[job].main.forEach(k => b[k] += 3); return b; }
-const foodRec = id => RECIPES.find(x => x.id === id) || FEST_FOOD.find(x => x.id === id);
+let foodRec = id => RECIPES.find(x => x.id === id) || FEST_FOOD.find(x => x.id === id);
 function foodActive(){ return S.food && S.food.until > now() ? S.food : null; }
 function tiredActive(){ return S.tired && S.tired.until > now() ? S.tired : null; }
 function foodBuff(){ const f = foodActive(); if (!f) return null; const r = foodRec(f.id); if (!r) return null; const m = f.q ? 1.5 : 1; const b = {...r.b}; if (b.st){ b.st = {...b.st}; for (const k in b.st) b.st[k] = Math.round(b.st[k]*m); } if (b.cost) b.cost *= m; if (b.maxhp) b.maxhp = Math.round(b.maxhp*m); return b; }
@@ -2165,7 +2178,8 @@ async function giftTo(o, k, n, msg){
   n = Math.min(n, cnt(k) - equippedN(k)); if (n <= 0) return;
   const base = k.replace('*',''), it = IT[base];
   takeItem(k, n); save();
-  const r = await postSend(o, 'gift', {items:[[k, n]], msg:(msg||'').trim().slice(0, 100)}); stat('gift');
+  const defs = base.startsWith('c_') && S.customs && S.customs[base] ? {[base]:S.customs[base]} : null; // 자유 요리는 만드는 법(이름·버프·그림)을 함께 보낸다
+  const r = await postSend(o, 'gift', {items:[[k, n]], msg:(msg||'').trim().slice(0, 100), ...(defs ? {defs} : {})}); stat('gift');
   postSent(r, o, `${itemName(k)} ×${n}`);
   const mult = (it.r === 'mochi' ? 2 : 1);
   const g = met ? await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult, true) : 0;
@@ -4754,7 +4768,7 @@ async function postSend(to, kind, body){
   const eid = await sendEv(to, kind, {...legacy, ...body, pb});
   if (!eid) return null;
   let pbOk = true;
-  try { await ST.db.doc(`postbox/${to}/items/${pb}`).set({from:ST.uid, name:S.char.name, kind, items:body.items, gold:body.gold || 0, msg:body.msg || '', ts:now(), ev:eid}); }
+  try { await ST.db.doc(`postbox/${to}/items/${pb}`).set({from:ST.uid, name:S.char.name, kind, items:body.items, gold:body.gold || 0, msg:body.msg || '', ts:now(), ev:eid, ...(body.defs ? {defs:body.defs} : {})}); }
   catch(e){ pbOk = false; console.warn('postbox', e); }
   return {eid, pb, pbOk};
 }
@@ -4767,6 +4781,7 @@ async function pbIngest(id, x){
   // 옛 버전으로 이미 받아 간 우편이면(알림 사건이 사라졌으면) 두 번 받지 않게 지운다
   if (x.ev){ let alive = false; try { alive = (await ST.db.doc('events/' + x.ev).get()).exists; } catch(e){} if (!alive && !postList().some(p => p.rid === id)){ drop(); return; } }
   if (blocked(x.from) || (x.kind === 'grant' && PL[x.from] && !isOpUser(PL[x.from]))){ drop(); return; }
+  if (x.defs) customAdopt(x.defs, x.name || PL[x.from]?.name);
   const items = IP(x.items).filter(([k]) => IT[String(k).replace('*','')]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]);
   const p = {rid:id, kind:x.kind === 'grant' ? 'grant' : 'gift', from:x.from, name:x.kind === 'grant' ? '운영자' : (x.name || PL[x.from]?.name || '누군가'), items, gold:Math.max(0, Math.min(10000000, x.gold || 0)), msg:String(x.msg || '').slice(0, 200), ts:x.ts || now()};
   postAdd(p);
@@ -4784,7 +4799,7 @@ async function pbIngest(id, x){
 function pbFallback(evId, from, nm, ev){
   setTimeout(() => {
     const d = ev.data || {}; if (!S || postList().some(p => p.rid === d.pb)) { ST.db.doc('events/' + evId).delete().catch(() => {}); return; }
-    pbIngest(d.pb, {from, name:nm, kind:ev.type, items:d.items ? IP(d.items) : [[d.item, d.n]], gold:d.gold, msg:d.msg, ts:ev.ts});
+    pbIngest(d.pb, {from, name:nm, kind:ev.type, defs:d.defs, items:d.items ? IP(d.items) : [[d.item, d.n]], gold:d.gold, msg:d.msg, ts:ev.ts});
   }, 20000);
 }
 function pbListen(){
@@ -5042,6 +5057,180 @@ TITLES.push(
   {id:'forder10', n:'단골 생선 장수', d:'생선 주문을 10번 납품했다.', c:S => st_(S,'forder') >= 10},
   {id:'elix10', n:'약방의 단골', d:'비약을 10번 마셨다.', c:S => st_(S,'elix') >= 10},
 );
+// ===================== 자유 요리: 레시피 없이 재료를 골라 직접 만드는 요리 =====================
+// 재료마다 성질(곡물·채소·생선·고기·단맛·양념·약초)이 있고, 조합으로 이름·그림·버프가 정해진다.
+// 버프 세기는 같은 요리 숙련도의 레시피와 비슷하게, 재료 수도 레시피처럼 2~4개.
+// 아직 모르는 레시피와 같은 재료를 맞히면 그 레시피를 배운다.
+const ING = {
+  rice:'grain', glut:'grain', barley:'grain', wheat:'grain', buckwheat:'grain', imo:'grain',
+  radish:'veg', cabbage:'veg', sansai:'veg', mushroom:'veg', bean:'veg', mulberry:'veg',
+  meat:'meat', boar:'meat', egg:'meat',
+  sugar:'sweet', honey:'sweet', redbean:'sweet', berry:'sweet',
+  salt:'season', miso:'season',
+  herb:'herb', rareherb:'herb', tea:'herb',
+  clam:'fish',
+};
+const ingTag = k => ING[k] || (IT[k]?.t === 'fish' ? 'fish' : null);
+const TAG_N = {grain:'곡물', veg:'채소', meat:'고기', sweet:'단맛', season:'양념', herb:'약초', fish:'생선'};
+const TAG_ST = {grain:['VIT'], veg:['SPI','INT'], meat:['STR'], sweet:['LUK'], herb:['SPI'], fish:['AGI','SEN'], season:[]};
+const ING_COL = {grain:'#f0e2c0', veg:'#7ab05a', meat:'#c86a4a', sweet:'#a8483a', season:'#c8a060', herb:'#5aa86a', fish:'#9ab0c0'};
+
+// 재료 목록 → 요리 정의 (같은 재료면 언제나 같은 요리)
+function freeDish(ings){
+  const ks = ings.slice().sort(), tags = {}; ks.forEach(k => { const t = ingTag(k); if (t) tags[t] = (tags[t] || 0) + 1; });
+  const has = t => tags[t] || 0, main = ks.filter(k => !['season','grain'].includes(ingTag(k)));
+  // 이름: 주재료 + 만드는 법
+  const style = has('grain') && (has('fish') || has('meat')) ? '덮밥'
+    : has('grain') && ks.includes('wheat') ? (has('sweet') ? '과자' : '수제비')
+    : has('grain') && has('sweet') ? '경단'
+    : has('grain') ? '솥밥'
+    : ks.includes('miso') ? (has('meat') || has('fish') ? '된장찌개' : '된장국')
+    : has('fish') && ks.includes('salt') ? '소금구이'
+    : has('fish') && has('sweet') ? '조림'
+    : has('fish') ? '회'
+    : has('meat') && has('veg') ? '전골'
+    : has('meat') ? '볶음'
+    : has('sweet') && has('herb') ? '차'
+    : has('sweet') ? '조림'
+    : has('herb') ? '탕'
+    : '무침';
+  const odd = has('fish') && has('sweet') && !has('season') || (has('herb') >= 2 && has('meat'));
+  const PRI = {fish:0, meat:1, veg:2, sweet:3, herb:4, grain:5, season:6};
+  const uniq = [...new Set(main.length ? main : ks)].sort((a, b) => PRI[ingTag(a)] - PRI[ingTag(b)]);
+  const SHORT = {meat:'고기', boar:'멧돼지', rareherb:'영약초', tea:'녹차', mulberry:'뽕잎', sansai:'나물', wheat:'밀', berry:'산딸기'};
+  const nm = (odd ? '정체불명의 ' : '') + uniq.slice(0, 2).map(k => SHORT[k] || IT[k].n).join(' ') + (style === '차' && ks.includes('tea') ? '' : ' ' + style);
+  // 버프: 재료 성질을 스탯으로. 세기는 숙련도에 맞춰 레시피와 비슷하게 (재료 2개 ≈ 3, 3개 ≈ 4~5, 4개 ≈ 5~7)
+  const cap = 3 + Math.floor(Math.min(prof('cook'), 50)/10), avgP = ks.reduce((a, k) => a + (IT[k].p || 8), 0)/ks.length;
+  let pts = Math.min(cap + (ks.length >= 4 ? 1 : 0), 1 + ks.length + Math.floor(avgP/25));
+  if (odd) pts = Math.max(2, pts - 1 + (hashStr(ks.join()) % 3));
+  const st = {}, order = Object.entries(tags).filter(([t]) => TAG_ST[t].length).sort((a, b) => b[1] - a[1]);
+  let i = 0; while (pts > 0 && order.length){ const [t] = order[i % order.length], s = TAG_ST[t][Math.floor(i / order.length) % TAG_ST[t].length]; st[s] = (st[s] || 0) + 1; pts--; i++; }
+  const b = {dur:2 + (ks.length >= 3 ? 1 : 0) + (has('season') ? 1 : 0), st};
+  if (has('herb')) b.regen = 1;
+  if (has('meat') >= 1 && ks.length >= 3) b.maxhp = 10*has('meat');
+  if (has('grain') && has('veg')) b.cost = -0.05*Math.min(2, has('veg'));
+  if (ks.includes('tea') && has('sweet')) b.tiredCut = 1;
+  const bd = [Object.entries(st).map(([s, v]) => `${STN[s]} +${v}`).join(', '), b.maxhp ? `최대 체력 +${b.maxhp}` : '', b.cost ? `체력 소모 ${Math.round(-b.cost*100)}% 감소` : '', b.regen ? '회복 2배' : '', b.tiredCut ? '지친 몸 1시간 단축' : ''].filter(Boolean).join(', ') || '배가 든든하다';
+  // 그림: 그릇은 만드는 법, 색은 재료
+  const cols = uniq.map(k => ING_COL[ingTag(k)] || '#c8a060');
+  const glyph = {덮밥:'don', 솥밥:'don', 수제비:'bowl', 과자:'mochi', 경단:'skewer', 된장국:'bowl', 된장찌개:'nabe', 소금구이:'plate', 조림:'bowl', 회:'plate', 전골:'nabe', 볶음:'plate', 차:'cup', 탕:'bowl', 무침:'bowl'}[style];
+  const key = 'c_' + (hashStr(ks.join('+')) >>> 0).toString(36);
+  return {key, n:nm, ings:ks, b, bd, ic:[glyph, cols[0], cols[1] || cols[0]], odd, p:Math.round(ks.reduce((a, k) => a + (IT[k].p || 8), 0)*1.3)};
+}
+function customRegister(d){
+  if (!d || !d.key) return;
+  IT[d.key] = {n:d.n, t:'food', p:d.p, d:d.bd, f:`직접 지어낸 요리. 재료: ${d.ings.map(k => IT[k]?.n || k).join(', ')}`, r:d.key, custom:1};
+  ICON[d.key] = d.ic; Object.keys(ICON_CACHE).forEach(k => { if (k.startsWith(d.key + '|')) delete ICON_CACHE[k]; });
+}
+function customRegisterAll(c){ for (const k in (c || {})) customRegister(c[k]); }
+// foodRec 이 자유 요리도 찾게
+const _foodRec0 = foodRec;
+foodRec = id => _foodRec0(id) || (S && S.customs && S.customs[id] ? {id, n:S.customs[id].n, b:S.customs[id].b, bd:S.customs[id].bd} : null);
+
+// 숨은 레시피: 고른 재료가 아직 모르는 레시피의 재료와 똑같으면 그 레시피를 배운다
+function matchRecipe(ings){
+  const cnts = {}; ings.forEach(k => cnts[k] = (cnts[k] || 0) + 1);
+  return RECIPES.find(r => {
+    if (r.need.reduce((a, [, n]) => a + n, 0) !== ings.length) return false;
+    const left = {...cnts};
+    for (const [k, n] of r.need){
+      const pool = k === '#fish' ? Object.keys(left).filter(x => IT[x]?.t === 'fish') : Array.isArray(k) ? k : [k];
+      let need = n; for (const x of pool){ while (need && left[x]){ left[x]--; need--; } }
+      if (need) return false;
+    }
+    return true;
+  });
+}
+function freeCook(){
+  if (baseLocked()) return lockToast();
+  const ings = (UI.pot || []).slice();
+  if (ings.length < 2) return toast('재료를 2개 이상 골라 주세요.');
+  const need = {}; ings.forEach(k => need[k] = (need[k] || 0) + 1);
+  for (const k in need) if (cnt(k) < need[k]) return toast(`${IT[k].n}${pp(IT[k].n,'이','가')} 모자라요.`);
+  for (const k in need) takeItem(k, need[k]);
+  const q = Math.random() < Math.min(0.45, prof('cook')*0.01 + (S.sub==='cook'?0.1:0));
+  const r = matchRecipe(ings);
+  if (r){
+    const learned = !S.recipes.includes(r.id) && !knownRecipes().includes(r);
+    if (learned) S.recipes.push(r.id);
+    addItem('f_' + r.id + (q ? '*' : '')); addProf('cook', 1); const xp = addXP(learned ? 15 : 3); stat('cook'); stat('freecook');
+    UI.pot = []; sfx(learned ? 'rare' : 'soft'); save();
+    toast(learned ? `✨ 새 레시피 발견! 「${r.n}」의 만드는 법을 깨우쳤다. 경험치 +${xp}` : `${r.n}${q ? ' (정성 가득)' : ''} 완성! (아는 레시피와 같은 조합) 경험치 +${xp}`, 'good');
+    if (learned) stat('recipeFind');
+    renderSheet(true); render(); return;
+  }
+  const d = freeDish(ings);
+  S.customs = S.customs || {};
+  const first = !S.customs[d.key];
+  S.customs[d.key] = d; customRegister(d);
+  addItem(d.key + (q ? '*' : '')); addProf('cook', 1); const xp = addXP(first ? 8 : 3); stat('cook'); stat('freecook');
+  if (first) stat('freeNew');
+  UI.pot = []; UI.lastDish = d.key; sfx(first ? 'rare' : 'soft'); save();
+  toast(`${first ? '새 요리 탄생! ' : ''}「${d.n}」${q ? ' (정성 가득)' : ''} 완성! ${d.bd} · 경험치 +${xp}`, 'good');
+  renderSheet(true); render();
+}
+function renameDish(key){
+  const d = S.customs && S.customs[key]; const el = document.getElementById('dishName'); if (!d || !el) return;
+  const n = el.value.trim().slice(0, 14); if (!n) return;
+  d.n = n; customRegister(d); save(); toast('요리 이름을 바꿨다.'); renderSheet(true);
+}
+
+// ---- 부엌: 레시피 / 자유 요리 탭 ----
+const _kitchen0 = SHEETS.kitchen;
+SHEETS.kitchen = (...a) => {
+  const t = UI.kTab || 'recipe';
+  const seg = `<div class="seg" style="margin:0 0 10px"><button data-act="kTab" data-t="recipe" aria-pressed="${t === 'recipe'}">레시피</button><button data-act="kTab" data-t="free" aria-pressed="${t === 'free'}">자유 요리</button><button data-act="kTab" data-t="book" aria-pressed="${t === 'book'}">요리 수첩 ${Object.keys(S.customs || {}).length}</button></div>`;
+  const base = _kitchen0(...a);
+  const head = base.indexOf('</button></div>') + '</button></div>'.length; // 제목 줄(sheetHead) 바로 뒤에 탭을 끼운다
+  if (t === 'recipe') return base.slice(0, head) + seg + base.slice(head);
+  return base.slice(0, head) + seg + (t === 'free' ? freeView() : bookView());
+};
+function freeView(){
+  const pot = UI.pot = (UI.pot || []).filter(k => cnt(k) > 0);
+  const used = {}; pot.forEach(k => used[k] = (used[k] || 0) + 1);
+  const avail = Object.keys(S.inv).filter(k => !k.endsWith('*') && ingTag(k) && cnt(k) > 0).sort((a, b) => Object.keys(TAG_N).indexOf(ingTag(a)) - Object.keys(TAG_N).indexOf(ingTag(b)) || IT[a].n.localeCompare(IT[b].n, 'ko'));
+  const prev = pot.length >= 2 ? (matchRecipe(pot) ? null : freeDish(pot)) : null, rec = pot.length >= 2 ? matchRecipe(pot) : null;
+  const known = prev && S.customs && S.customs[prev.key];
+  if (prev && !IT[prev.key]) customRegister(prev); // 미리보기 그림용
+  return `<p class="small muted" style="margin-top:0">재료를 2~4개 골라 냄비에 넣으면, 조합에 따라 새 요리가 태어난다. 버프는 같은 숙련도의 레시피와 비슷하다. 아직 모르는 레시피와 같은 재료를 맞히면 그 레시피를 배운다!</p>
+  <div class="pot">${[0,1,2,3].map(i => pot[i] ? `<button class="pot-slot full" data-act="potDel" data-i="${i}" aria-label="${esc(IT[pot[i]].n)} 빼기">${itemIcon(pot[i])}<span>${esc(IT[pot[i]].n)}</span></button>` : `<span class="pot-slot">${i < 2 ? '재료' : '선택'}</span>`).join('')}</div>
+  <div class="card pot-prev">${pot.length < 2 ? '<p class="small muted" style="margin:0">아래에서 재료를 눌러 냄비에 넣어 보자.</p>'
+    : rec ? `<div class="row">${itemIcon('f_' + rec.id)}<div class="grow"><b>${knownRecipes().includes(rec) ? rec.n : '??? (무언가 떠오를 것 같다…)'}</b><br><span class="small muted">${knownRecipes().includes(rec) ? rec.bd : '알 것 같은 맛이다. 만들어 보면 알 수 있다.'}</span></div></div>`
+    : `<div class="row">${itemIcon(prev.key) .replace('</span>', '</span>')}<div class="grow"><b>${known ? esc(S.customs[prev.key].n) : esc(prev.n)}</b> ${known ? '<span class="chip">만들어 본 요리</span>' : '<span class="chip gold">처음 만드는 조합</span>'}<br><span class="small" style="color:var(--moss)">${prev.bd} · ${prev.b.dur}시간</span></div></div>`}
+    <button class="btn seal full" style="margin-top:10px" data-act="freeCook" ${pot.length >= 2 ? '' : 'disabled'}>요리하기</button></div>
+  <h3 style="margin-top:12px">재료 <span class="tiny muted">눌러서 넣기 · 성질에 따라 버프가 달라진다</span></h3>
+  ${avail.length ? Object.keys(TAG_N).map(t => { const ks = avail.filter(k => ingTag(k) === t); if (!ks.length) return ''; return `<div class="ing-h"><b>${TAG_N[t]}</b> <span class="tiny muted">${t === 'season' ? '버프 시간 +1시간' : t === 'herb' ? '회복 2배' : TAG_ST[t].map(s => STN[s]).join('·')}</span></div><div class="ing-row">${ks.map(k => { const left = cnt(k) - (used[k] || 0); return `<button class="ing" data-act="potAdd" data-k="${k}" ${left > 0 && pot.length < 4 ? '' : 'disabled'}>${itemIcon(k, 'lg')}<b class="bc-n num">${left}</b><span>${esc(IT[k].n)}</span></button>`; }).join('')}</div>`; }).join('') : '<p class="small muted">요리에 쓸 재료가 없다. 잡화점에서 기본 재료를 살 수 있다.</p>'}`;
+}
+function bookView(){
+  const L = Object.values(S.customs || {});
+  if (!L.length) return '<p class="small muted">아직 직접 지어낸 요리가 없다. 자유 요리에서 재료를 섞어 보자.</p>';
+  const ed = UI.dishEdit;
+  return `<p class="small muted" style="margin-top:0">직접 지어낸 요리 ${L.length}가지. 재료가 있으면 바로 다시 만들 수 있다.</p><div class="list">${L.map(d => { const ok = (() => { const c = {}; d.ings.forEach(k => c[k] = (c[k] || 0) + 1); return Object.entries(c).every(([k, n]) => cnt(k) >= n); })();
+    return `<div class="li">${itemIcon(d.key)}<div class="t">${ed === d.key ? `<div class="row"><input id="dishName" maxlength="14" value="${esc(d.n)}" aria-label="요리 이름"><button class="btn sm" data-act="dishName" data-k="${d.key}">저장</button></div>` : `<b>${esc(d.n)}${d.gift ? ` <span class="chip">${esc(d.from || '누군가')}님의 요리</span>` : ''} <button class="linkbtn tiny" data-act="dishEdit" data-k="${d.key}">이름 바꾸기</button></b>`}<span style="color:var(--moss)">${d.bd} · ${d.b.dur}시간</span><span class="tiny muted">${d.ings.map(k => IT[k]?.n || k).join(' + ')}</span></div><button class="btn sm ${ok ? 'seal' : 'ghost'}" data-act="dishAgain" data-k="${d.key}" ${ok ? '' : 'disabled'}>다시 만들기</button></div>`; }).join('')}</div>`;
+}
+TITLES.push(
+  {id:'free1', n:'창작 요리사', d:'자유 요리로 새 요리를 처음 만들었다.', c:S => st_(S,'freeNew') >= 1},
+  {id:'free10', n:'맛의 탐구자', d:'자유 요리로 새 요리를 10가지 만들었다.', c:S => st_(S,'freeNew') >= 10},
+  {id:'recipefind', n:'우연한 발견', d:'자유 요리로 숨은 레시피를 깨우쳤다.', c:S => st_(S,'recipeFind') >= 1},
+);
+
+// 선물로 받은 자유 요리: 보낸 사람이 함께 보낸 만드는 법을 내 게임에 등록한다 (값은 안전한 범위로 자른다)
+function customAdopt(defs, from){
+  if (!defs || typeof defs !== 'object') return;
+  S.customs = S.customs || {};
+  for (const [key, d] of Object.entries(defs)){
+    if (!/^c_[a-z0-9]{1,12}$/.test(key) || !d || S.customs[key]) continue;
+    const st = {}; for (const s of STATS) if (d.b && d.b.st && d.b.st[s]) st[s] = clamp(Math.round(+d.b.st[s] || 0), 0, 8);
+    const b = {dur:clamp(Math.round(+(d.b && d.b.dur) || 2), 1, 6), st};
+    if (d.b && d.b.regen) b.regen = 1; if (d.b && d.b.maxhp) b.maxhp = clamp(Math.round(+d.b.maxhp), 0, 40);
+    if (d.b && d.b.cost) b.cost = clamp(+d.b.cost, -0.12, 0); if (d.b && d.b.tiredCut) b.tiredCut = 1;
+    const ings = (Array.isArray(d.ings) ? d.ings : []).filter(k => IT[k]).slice(0, 4);
+    const ic = Array.isArray(d.ic) && GL[d.ic[0]] ? [d.ic[0], String(d.ic[1] || '#c8a060').slice(0, 9), String(d.ic[2] || '#c8a060').slice(0, 9)] : ['bowl', '#c89a5a', '#f4ecdc'];
+    const bd = String(d.bd || '').slice(0, 80);
+    S.customs[key] = {key, n:String(d.n || '이름 모를 요리').slice(0, 16), ings, b, bd, ic, p:clamp(Math.round(+d.p || 30), 1, 400), gift:1, from:String(from || '').slice(0, 20)};
+    customRegister(S.customs[key]);
+  }
+}
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -5406,6 +5595,10 @@ const ACT = {
   plantAll: d => plantAll(d.k), harvestAll: () => harvestAll(), waterAll: () => waterAll(), compostAll: () => compostAll(),
   bagSel: d => { UI.bagSel = UI.bagSel === d.k ? null : (d.k || null); render(); }, bagView: () => { UI.bagView = UI.bagView === 'list' ? 'grid' : 'list'; render(); },
   fishDeliver: d => fishDeliver(+d.i), forderTog: () => { UI.forderOpen = !UI.forderOpen; },
+  kTab: d => { UI.kTab = d.t; renderSheet(true); },
+  potAdd: d => { UI.pot = UI.pot || []; if (UI.pot.length < 4) UI.pot.push(d.k); renderSheet(true); }, potDel: d => { UI.pot.splice(+d.i, 1); renderSheet(true); },
+  freeCook: () => freeCook(), dishEdit: d => { UI.dishEdit = d.k; renderSheet(true); }, dishName: d => { renameDish(d.k); UI.dishEdit = null; renderSheet(true); },
+  dishAgain: d => { const c = S.customs[d.k]; if (!c) return; UI.pot = c.ings.slice(); freeCook(); },
   festBuy: d => festBuy(d.id, !!d.e), festKuji: () => festKuji(),
   postGet: d => postClaim(d.id), postAll: () => postClaimAll(),
   grantQuick: d => { if (!isOp()) return; const el = $('#grantTo'); opGrant(el ? el.value : 'self', d.k, d.k === 'ticket' ? 1 : 5); },
@@ -5545,6 +5738,7 @@ function migrate(sv){
   if (!Array.isArray(sv.titlesGot)) sv.titlesGot = ['newbie'];
   if (sv.stats.exp == null && Array.isArray(sv.hist)) sv.stats.exp = sv.hist.length;
   if (sv.stats.yokai == null && sv.codex && sv.codex.mon){ let y = 0, a = 0; for (const [k, n] of Object.entries(sv.codex.mon)) if (MON[k]) (MON[k].t === 'y' ? y += n : a += n); sv.stats.yokai = y; sv.stats.animal = a; }
+  if (typeof customRegisterAll === 'function') customRegisterAll(sv.customs);
   return sv;
 }
 function afterLogin(){
