@@ -375,7 +375,7 @@ details.sub .log{ margin-top:6px; background:var(--card); }
 .li.person .pc .chip{ white-space:nowrap; }
 
 .top .name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.top .tgold{ font-weight:700; color:var(--gold); font-size:.9rem; line-height:1.3; }
+.top .tgold{ font-weight:700; color:var(--gold); font-size:.9rem; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .hp-ic{ width:1.8rem; flex:none; text-align:center; font-size:1.1rem; line-height:1.6; }
 .topbtns{ gap:3px; } @media (max-width:380px){ .ib{ width:38px; height:38px; } .topbtns .gold{ font-size:.92rem; } }
 
@@ -434,7 +434,7 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .post-ic.grant{ background:var(--seal); color:var(--seal-ink); font-family:var(--f-disp, serif); font-weight:700; border-color:var(--seal); }
 .post-msg{ font-size:.85rem; color:var(--ink-2); }
 
-.sclk{ display:block; font-weight:500; color:var(--ink-3); margin-left:0; font-family:var(--f-body); vertical-align:baseline; }
+.sclk{ display:inline-block; font-weight:500; color:var(--ink-3); margin-right:8px; padding-right:8px; border-right:1px solid var(--line); line-height:1.1; font-family:var(--f-body); vertical-align:baseline; }
 .chip.fest{ background:color-mix(in srgb, #e0583c 14%, var(--card)); border-color:#d0603e; color:#b8432a; }
 .b-lantern{ fill:#e8603e; stroke:#7a2a18; stroke-width:.8; } .b-lantern.alt{ fill:#f2b84a; }
 .b-fest-roof{ fill:#c94a32; stroke:var(--ink-2); stroke-width:1; } .b-fest-noren{ fill:#f6e3c4; stroke:var(--ink-2); stroke-width:.6; }
@@ -448,6 +448,41 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .li.fest-item .t .good-t{ color:var(--moss); font-size:.86rem; }
 .kuji{ text-align:center; border-color:var(--gold); } .kuji.big{ border-color:var(--seal); background:color-mix(in srgb, var(--seal) 8%, var(--card)); }
 .kuji-n{ font-family:var(--f-disp, serif); font-size:1.8rem; color:var(--seal); }
+
+/* 아이템 그림 */
+.iic{ display:inline-block; flex:none; width:42px; height:42px; line-height:0; vertical-align:middle; }
+.iic svg{ width:100%; height:100%; display:block; filter:drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+.iic.sm{ width:22px; height:22px; margin:-3px 4px -3px -6px; } .iic.lg{ width:56px; height:56px; }
+.ib-bg{ fill:#3b2f42; } .ib-ring{ fill:none; stroke:#7a6880; stroke-width:1; opacity:.8; }
+.iic.q .ib-ring{ stroke:#f0c040; stroke-width:1.6; opacity:1; }
+.li > .iic{ margin-right:2px; }
+.chip.ichip{ padding-left:8px; }
+.linkbtn{ background:none; border:0; padding:0; color:var(--indigo); font:inherit; text-decoration:underline; cursor:pointer; }
+.seg.scrollx{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+.seg.scrollx::-webkit-scrollbar{ display:none; } .seg.scrollx > button{ flex:none; }
+/* 가방: 칸 보기 */
+.bag-panel{ padding:10px 10px 12px; border-radius:14px; background:linear-gradient(160deg, #3a2b3e, #2a2030); box-shadow:inset 0 0 0 1px rgba(255,255,255,.06); }
+.bag-panel.has-sel{ margin-bottom:150px; }
+.bag-gh{ color:#e9dcc6; font-size:.82rem; font-weight:700; margin:6px 4px 6px; display:flex; align-items:center; gap:6px; }
+.bag-gh::after{ content:''; flex:1; height:1px; background:rgba(233,220,198,.18); }
+.bag-gh span{ color:#a8988e; font-weight:500; }
+.bag-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); gap:10px 4px; margin-bottom:6px; }
+.bag-cell{ display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:0; padding:4px 0; border-radius:10px; cursor:pointer; min-width:0; }
+.bag-cell:active{ transform:scale(.96); }
+.bc-ic{ position:relative; width:52px; height:52px; display:block; }
+.bc-ic .iic.lg{ width:52px; height:52px; }
+.bag-cell.sel .bc-ic::after{ content:''; position:absolute; inset:-3px; border-radius:50%; border:2.5px solid #f6e7c8; box-shadow:0 0 10px rgba(246,231,200,.6); }
+.bag-cell.sel{ background:rgba(246,231,200,.08); }
+.bc-name{ max-width:100%; padding:0 2px; color:#e9dcc6; font-size:.7rem; line-height:1.2; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bc-n{ position:absolute; right:-4px; bottom:-3px; min-width:18px; padding:0 5px; border-radius:9px; background:#1c1520; border:1px solid #6a5a72; font-size:.72rem; line-height:16px; font-weight:700; color:#fff; text-align:center; }
+.bc-eq{ position:absolute; left:-3px; top:-3px; width:17px; height:17px; border-radius:50%; background:var(--seal); color:#fff; font-style:normal; font-size:.66rem; font-weight:700; display:grid; place-items:center; border:1.5px solid #fff; }
+.bag-hint{ color:#a8988e; font-size:.75rem; text-align:center; margin:4px 0 0; }
+.bag-pop{ box-sizing:border-box; position:fixed; left:0; right:0; margin:0 auto; bottom:calc(76px + env(safe-area-inset-bottom, 0px)); width:min(560px, calc(100% - 20px)); z-index:15; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 40px 12px 12px; box-shadow:0 8px 28px rgba(0,0,0,.28); animation:popup .18s ease-out; }
+@keyframes popup{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+.bag-pop .li{ border:0; padding:0; align-items:center; }
+.bag-pop .li > .iic{ width:52px; height:52px; }
+.bag-pop .flav{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.bag-x{ position:absolute; top:6px; right:6px; width:30px; height:30px; border-radius:50%; border:1px solid var(--line); background:var(--paper-2); font-size:18px; line-height:1; color:var(--ink-2); cursor:pointer; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -915,6 +950,138 @@ const SUM_SP = ['wisp','kappa','tanu','fox9','yuki'];
     IT['gx'+i] = {n:g.x.n, t:'acc', slot:g.x.slot, p:120 + lv*12, st:g.x.st, f:g.f, drop:i};
   });
 })();
+// ===================== 아이템 그림 =====================
+// 모든 아이템에 둥근 배지 그림을 붙인다. 그림은 SVG 로 직접 그린다(외부 이미지 없음).
+// 배지: 어두운 원 + 가는 테두리, 그 위에 굵은 외곽선의 알록달록한 물건.
+const IK = '#2a1d17'; // 외곽선
+const iL = (d, f, extra = '') => `<path d="${d}" fill="${f}" stroke="${IK}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+const iLN = (d, c = IK, w = 1.4) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const iC = (x, y, r, f, sw = 1.5) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${IK}" stroke-width="${sw}"/>`;
+const iSH = (x, y, rx, ry, rot = -30) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity=".55" transform="rotate(${rot} ${x} ${y})"/>`;
+
+// 그림 틀: (주색, 보조색) → SVG 조각. 좌표계 48×48, 중심 24,24
+const GL = {
+  sack:(a, b) => iL('M14 21c0-4 4-6 10-6s10 2 10 6l2 13c0 5-5 7-12 7s-12-2-12-7z', a) + iL('M17 16c2-3 12-3 14 0', b) + iLN('M18 17.5q6 3 12 0', IK, 1.6) + `<g fill="${b}" stroke="${IK}" stroke-width="1">${[[20,13],[24,11.5],[28,13],[22,10],[26,9.5]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="1.8" ry="2.4"/>`).join('')}</g>` + iSH(19, 26, 2, 5, 15),
+  jar:(a, b) => iL('M15 20q0-4 9-4t9 4l1 13q0 7-10 7t-10-7z', a) + iL('M14 15h20v4H14z', b) + iL('M17 12h14l-1 3H18z', b) + iSH(19, 27, 2, 5, 10),
+  honey:(a, b) => iL('M14 21q0-4 10-4t10 4l1 11q0 8-11 8t-11-8z', a) + iL('M13 15q11-5 22 0v4q-11 4-22 0z', b) + iL('M16 19q1 5 3 5t2-4', b) + iSH(19, 28, 2, 5, 10),
+  bottle:(a, b) => iL('M20 9h8v8l7 9q3 6-2 10q-4 4-9 4t-9-4q-5-4-2-10l7-9z', a) + iL('M19 7h10v4H19z', '#c79a62') + iL('M14 30q10 4 20 0q1 6-4 8q-3 2-6 2t-6-2q-5-2-4-8z', b) + iSH(19, 28, 2.4, 5, 20),
+  leaf:(a, b) => iL('M11 37C11 22 22 11 37 11c0 15-11 26-26 26z', a) + iLN('M12 36L33 15', b, 1.8) + iLN('M18 30l-1-6M23 25l-1-6M27 21l6 1M22 26l6 1', b, 1.3),
+  sprig:(a, b) => iLN('M24 40V14', '#5a7a3a', 2.4) + iL('M24 30c-8 0-11-5-11-9c6 0 11 3 11 9z', a) + iL('M24 24c8 0 11-5 11-9c-6 0-11 3-11 9z', a) + iL('M24 17c-5 0-7-3-7-6c4 0 7 2 7 6z', b),
+  flower:(a, b) => [0,72,144,216,288].map(r => `<g transform="rotate(${r} 24 24)">${iL('M24 22c-5-5-5-11 0-13c5 2 5 8 0 13z', a)}</g>`).join('') + iC(24, 24, 4, b),
+  root:(a, b) => iL('M24 18c6 0 8 4 7 9c-1 6-4 12-7 14c-3-2-6-8-7-14c-1-5 1-9 7-9z', a) + iL('M24 18c-3-6-8-8-11-8c0 4 5 8 11 8z', b) + iL('M24 18c1-7 4-10 7-11c1 4-2 9-7 11z', b) + iL('M24 18c4-5 9-6 12-5c-1 4-6 6-12 5z', b) + iLN('M21 26h3M23 31h3', '#c9b8a8', 1.2),
+  cabbage:(a, b) => iC(24, 26, 13, a) + iL('M14 22q10-12 20 0q-4 8-10 8t-10-8z', b) + iLN('M24 15v20M18 20q6 6 12 0', IK, 1.1) + iSH(18, 22, 2, 4),
+  potato:(a, b) => iL('M10 28c0-8 8-14 16-14s12 4 12 10s-7 12-16 12s-12-3-12-8z', a) + `<g fill="${b}">${[[18,24],[26,22],[30,28],[21,31]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.1"/>`).join('')}</g>` + iSH(17, 22, 2, 4, 40),
+  pod:(a, b) => iL('M10 33c4-10 14-18 26-22c-2 12-12 22-24 24z', a) + [[17,29],[22,24],[27,19]].map(([x,y]) => iC(x, y, 2.6, b, 1.1)).join(''),
+  beans:(a, b) => [[17,28],[29,28],[23,20],[23,33]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="5.5" ry="4.5" fill="${a}" stroke="${IK}" stroke-width="1.5"/><ellipse cx="${x-1.5}" cy="${y-1.5}" rx="1.4" ry="1" fill="${b}"/>`).join(''),
+  mushroom:(a, b) => iL('M20 27h8l1 11q-5 2-10 0z', '#f1e2c4') + iL('M9 27c0-9 7-15 15-15s15 6 15 15z', a) + `<g fill="${b}" stroke="${IK}" stroke-width=".9">${[[17,20,2.4],[26,17,2],[31,23,2.2]].map(([x,y,r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`,
+  berries:(a, b) => iL('M24 14c3-5 8-6 11-5c-1 4-6 6-11 5z', b) + [[18,26],[28,24],[23,33],[30,33],[16,34]].map(([x,y]) => iC(x, y, 5, a) + iSH(x - 1.5, y - 1.8, 1, 1.6, 0)).join(''),
+  shell:(a, b) => iL('M8 32c0-11 7-19 16-19s16 8 16 19q-16 6-32 0z', a) + iLN('M24 14v20M16 17l3 17M32 17l-3 17M11 23l5 11M37 23l-5 11', b, 1.2) + iL('M20 32h8v5h-8z', b),
+  meat:(a, b) => iL('M10 26c0-8 8-13 16-13s13 5 13 11s-6 12-15 12s-14-3-14-10z', a) + iL('M14 24c3-5 9-7 15-6c-4 1-8 4-9 9c-2 2-5 1-6-3z', b) + iC(31, 25, 3, '#f6e6d6', 1.2),
+  bonemeat:(a, b) => iL('M8 28c0-8 7-13 15-13s12 5 12 11s-6 11-14 11s-13-3-13-9z', a) + iL('M30 21l7-7', '#f1e6d4') + iC(37.5, 12.5, 2.6, '#f6eee2', 1.3) + iC(40, 15.5, 2.6, '#f6eee2', 1.3) + iLN('M30 21l7-7', IK, 1.5) + iL('M12 25c3-5 8-6 13-5c-4 1-7 4-8 8c-2 1-4 0-5-3z', b),
+  bone:(a) => iL('M15 30l13-13', a) + `<g transform="rotate(-45 24 24)">${iL('M14 21.5h20v5H14z', a)}${iC(12, 21, 3.4, a)}${iC(12, 27, 3.4, a)}${iC(36, 21, 3.4, a)}${iC(36, 27, 3.4, a)}${`<rect x="13" y="22" width="22" height="4" fill="${a}"/>`}</g>`,
+  pelt:(a, b) => iL('M14 12l4 4h12l4-4l2 7l-3 4l2 13l-5 4H18l-5-4l2-13l-3-4z', a) + `<g fill="${b}" opacity=".8">${[[20,24],[28,22],[24,31]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="2.4" ry="1.6"/>`).join('')}</g>`,
+  feather:(a, b) => iL('M34 10C20 12 13 22 13 34l3 3c12 0 21-8 19-27z', a) + iLN('M15 36L32 13', b, 1.6) + iLN('M20 30l6-1M23 25l6-1M26 20l5-1', b, 1.1),
+  egg:(a, b) => iL('M24 9c7 0 12 11 12 18s-5 13-12 13s-12-6-12-13s5-18 12-18z', a) + `<g fill="${b}">${[[20,22],[27,18],[28,29],[19,31]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.4"/>`).join('')}</g>` + iSH(19, 19, 2, 4),
+  spool:(a, b) => iL('M14 12h20v4H14zM14 32h20v4H14z', '#c79a62') + iL('M17 16h14v16H17z', a) + iLN('M17 19h14M17 23h14M17 27h14', b, 1.1) + iLN('M31 25q6 3 4 9', a, 1.6),
+  rock:(a, b) => iL('M10 30l4-12l10-6l11 4l4 12l-6 8H16z', a) + iL('M24 12l-3 10l14-6z', b, 'opacity=".55"') + `<g fill="${b}" stroke="${IK}" stroke-width=".8">${[[18,28],[28,25],[23,33]].map(([x,y]) => `<path d="M${x} ${y-2.5}l2 2.5l-2 2.5l-2-2.5z"/>`).join('')}</g>`,
+  ingot:(a, b) => iL('M9 30l6-12h18l6 12z', a) + iL('M15 18h18l-3 5H18z', b) + iLN('M9 30h30', IK, 1.5) + iSH(20, 22, 1.5, 4, 60),
+  crystal:(a, b) => iL('M24 7l10 11l-10 23l-10-23z', a) + iL('M24 7l-4 11h8z', b) + iLN('M14 18h20M20 18l4 23M28 18l-4 23', IK, 1.1) + iSH(19, 16, 1.4, 3, 30),
+  orb:(a, b) => `<circle cx="24" cy="24" r="15" fill="${b}" opacity=".35"/>` + iC(24, 24, 11, a) + `<path d="M17 25q4-8 12-6q-3 2-4 6q-4 3-8 0z" fill="${b}" opacity=".9"/>` + iSH(20, 19, 2.4, 3.6),
+  paper:(a, b) => iL('M16 8h16v32H16z', a) + iLN('M24 13v20', b, 2.4) + iLN('M20 17h8M20 27h8', b, 1.6) + iC(24, 22, 2.6, b, 1),
+  log:(a, b) => iL('M11 18h24v14H11z', a) + `<ellipse cx="35" cy="25" rx="5" ry="7" fill="${b}" stroke="${IK}" stroke-width="1.5"/>` + iLN('M35 21q2 4 0 8M35 23.5q1 1.5 0 3', IK, 1) + iLN('M15 22h12M17 28h10', '#6b4428', 1.1),
+  scroll:(a, b) => iL('M12 14h24v20H12z', a) + iL('M9 12h6v24H9zM33 12h6v24h-6z', b) + iLN('M17 20h14M17 25h11M17 30h13', '#7a5a3a', 1.3),
+  cert:(a, b) => iL('M11 11h26v26H11z', a) + iLN('M16 18h16M16 23h12', '#7a5a3a', 1.3) + iC(30, 31, 4.2, b) + `<path d="M28 34l-1 6l3-2l3 2l-1-6" fill="${b}" stroke="${IK}" stroke-width="1.1"/>`,
+  ring:(a, b) => `<ellipse cx="24" cy="29" rx="11" ry="9" fill="none" stroke="${IK}" stroke-width="5.5"/><ellipse cx="24" cy="29" rx="11" ry="9" fill="none" stroke="${a}" stroke-width="3.2"/>` + iL('M19 18l5-8l5 8l-5 4z', b) + iSH(22, 15, 1, 2.4, 20),
+  necklace:(a, b) => iLN('M11 10q13 22 26 0', IK, 3.4) + iLN('M11 10q13 22 26 0', a, 1.8) + iL('M24 23c5 0 8 4 7 9c-1 4-5 6-8 5c3-2 4-5 1-7c-4-2-6 2-6 0c0-4 3-7 6-7z', b) + iC(25.5, 27, 1.6, '#fff', .8),
+  bracelet:(a, b) => [...Array(10)].map((_, i) => { const t = i/10*Math.PI*2; return iC(24 + Math.cos(t)*12, 25 + Math.sin(t)*10, 3.6, i % 3 ? a : b, 1.2); }).join(''),
+  seedbag:(a, b) => iL('M13 22c0-4 5-6 11-6s11 2 11 6l1 12c0 5-6 6-12 6s-12-1-12-6z', '#e8d6b0') + iL('M16 17c2-3 14-3 16 0', '#c9ac7c') + iLN('M18 18q6 3 12 0', IK, 1.6) + iC(24, 29, 5, a) + iL('M24 24c0-3 2-5 4-5c0 3-2 5-4 5z', b),
+  fish:(a, b) => iL('M7 25c6-8 15-11 24-8l5-5v19l-5-4c-9 3-18 0-24-2z', a) + iL('M10 27c8 3 15 3 21 0c-6 5-14 6-21 0z', b) + iC(14, 22.5, 1.6, IK, 0) + iLN('M19 20q2 4 0 8', IK, 1),
+  eel:(a, b) => iL('M6 28c4-6 9-6 13-2s9 4 13-2s8-6 11-2c-3 0-5 3-8 6s-9 6-14 2s-9-4-15-2z', a) + iC(9, 27, 1.2, IK, 0) + iLN('M14 31q8 2 16-4', b, 1.2),
+  bowl:(a, b) => iL('M8 24h32c0 9-7 15-16 15S8 33 8 24z', '#7a3a2a') + `<ellipse cx="24" cy="24" rx="16" ry="4.5" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + `<g fill="${b}" stroke="${IK}" stroke-width=".9">${[[18,23],[26,22.5],[30,24.5]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="2.6" ry="1.4"/>`).join('')}</g>` + iLN('M14 31q10 3 20 0', '#c25a3a', 1.2),
+  don:(a, b) => iL('M9 23h30c0 9-7 15-15 15S9 32 9 23z', '#2e3a5c') + iL('M10 23c2-7 8-10 14-10s12 3 14 10z', a) + iL('M15 20q4-5 9-3q5-3 9 3', b) + iLN('M13 30q11 3 22 0', '#c9a24a', 1.3),
+  onigiri:(a, b) => iL('M24 9l13 23q1 6-5 6H16q-6 0-5-6z', a) + iL('M15 28h18v10H15z', b) + `<g fill="${IK}" opacity=".2">${[[22,18],[26,22],[20,24]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join('')}</g>`,
+  cup:(a, b) => iL('M13 15h22l-3 22q-1 3-8 3t-8-3z', a) + `<ellipse cx="24" cy="15" rx="11" ry="3.4" fill="${b}" stroke="${IK}" stroke-width="1.5"/>` + iLN('M20 9q-2 2 0 4M26 8q-2 2 0 4', '#d9cfc4', 1.2),
+  skewer:(a, b, c = '#8bc06a') => iLN('M10 40L38 8', '#c79a62', 2.6) + iC(30, 17, 5, a) + iC(24, 24, 5, b) + iC(18, 31, 5, c),
+  mochi:(a, b) => iL('M8 30c0-8 7-14 16-14s16 6 16 14q-16 6-32 0z', a) + `<g fill="${b}">${[[16,25],[24,21],[31,25],[21,28]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1"/>`).join('')}</g>` + iSH(17, 22, 2, 4, 50),
+  plate:(a, b) => `<ellipse cx="24" cy="31" rx="17" ry="6" fill="#eef0f3" stroke="${IK}" stroke-width="1.5"/>` + iL('M9 27c5-6 13-8 20-6l5-4v14l-5-3c-7 2-15 1-20-1z', a) + iLN('M15 25l3 3M20 24l3 3M25 23l3 3', b, 1.2) + iC(12.5, 26, 1, IK, 0),
+  tempura:(a, b) => iL('M10 33c3-12 13-21 24-24l5 4c-3 11-13 20-26 23z', a) + iL('M34 9l7-3l-2 7z', b) + `<g fill="${b}" opacity=".7">${[[18,28],[24,22],[29,17],[21,31]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.6"/>`).join('')}</g>`,
+  nabe:(a, b) => iL('M8 22h32v6c0 8-7 12-16 12S8 36 8 28z', '#3b3a40') + `<ellipse cx="24" cy="22" rx="16" ry="4.5" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + `<g stroke="${IK}" stroke-width=".9">${[[17,21,b],[25,20,'#7ab05a'],[30,22.5,'#e8d8c0']].map(([x,y,f]) => `<ellipse cx="${x}" cy="${y}" rx="3" ry="1.6" fill="${f}"/>`).join('')}</g>` + iL('M4 24h4M40 24h4', '#3b3a40'),
+  zaru:(a, b) => iL('M7 26h34l-3 8H10z', '#b88a50') + iLN('M12 30h24', '#7a5a2a', 1) + iL('M11 26c2-6 8-9 13-9s11 3 13 9z', a) + iLN('M14 24q5-5 10-2q5-4 10 1M15 21q5-3 9-1', b, 1.1),
+  roll:(a, b) => [0,1,2].map(i => `<g transform="translate(${i*9 - 9} 0)"><rect x="19" y="17" width="8" height="16" rx="2" fill="${a}" stroke="${IK}" stroke-width="1.5"/>${iLN('M21 21q2 2 4 0M21 26q2 2 4 0', b, 1)}</g>`).join(''),
+  yakiimo:(a, b) => iL('M8 30c0-8 8-14 16-14s16 6 16 14c-4 4-10 6-16 6s-12-2-16-6z', a) + iL('M14 28c2-5 6-8 10-8s8 3 10 8c-3 2-6 3-10 3s-7-1-10-3z', b),
+  apple:(a, b) => iLN('M24 22V44', '#e8d6b0', 2.6) + iL('M24 14c-9-4-15 2-14 9c1 8 7 13 14 11c7 2 13-3 14-11c1-7-5-13-14-9z', a) + iL('M24 14c0-3 2-5 4-6', 'none') + iL('M25 12c2-3 6-4 8-3c-2 3-5 4-8 3z', b) + iSH(17, 20, 2.4, 4.4, 30) + `<path d="M12 22c2 9 8 12 12 12" fill="none" stroke="#fff" stroke-width="1" opacity=".5"/>`,
+  balls:(a, b) => iL('M7 30h34l-4 8H11z', '#c79a62') + [[15,26],[24,24],[33,26]].map(([x,y]) => iC(x, y, 6, a) + iLN(`M${x-3} ${y-2}q3 2 6 0`, b, 1.6)).join('') + `<g fill="#7ab05a">${[[14,22],[23,20],[34,22]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join('')}</g>`,
+  cotton:(a, b) => iLN('M24 26V44', '#e8d6b0', 2.4) + [[17,18,7],[28,15,8],[30,24,6],[19,26,6],[24,21,7]].map(([x,y,r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${a}"/>`).join('') + `<path d="M12 18a7 7 0 0 1 10-9a8 8 0 0 1 14 9a6 6 0 0 1-3 11a6 6 0 0 1-8 2a6 6 0 0 1-11-4a7 7 0 0 1-2-9z" fill="none" stroke="${IK}" stroke-width="1.5"/>` + iSH(20, 14, 2, 3),
+  ice:(a, b) => iL('M12 26h24l-4 14H16z', '#9fd0e8') + iL('M11 26c0-9 6-15 13-15s13 6 13 15z', '#f4fbff') + iL('M15 24c1-6 5-10 9-10c3 0 5 2 6 4c-4 0-8 4-9 8c-2 1-5 1-6-2z', a) + `<path d="M13 26h22" stroke="${IK}" stroke-width="1.5"/>`,
+  taiyaki:(a, b) => iL('M8 25c5-8 14-11 23-8l6-5v20l-6-4c-9 3-18 0-23-3z', a) + iLN('M20 19q2 6 0 12M25 18q2 7 0 14', b, 1.1) + iC(13, 22.5, 1.4, IK, 0) + iLN('M10 27q5 2 9 1', b, 1),
+  corn:(a, b) => iL('M17 36c-3-8-2-20 7-28c9 8 10 20 7 28z', a) + `<g fill="${b}">${[...Array(12)].map((_, i) => `<circle cx="${21 + (i%3)*3}" cy="${14 + Math.floor(i/3)*5}" r="1.3"/>`).join('')}</g>` + iL('M17 36c-5-2-7-8-6-14c4 4 6 9 6 14z', '#7ab05a') + iL('M31 36c5-2 7-8 6-14c-4 4-6 9-6 14z', '#7ab05a'),
+  ramune:(a, b) => iL('M19 8h10v6l3 4v4l-3 3v13q0 3-5 3t-5-3V25l-3-3v-4l3-4z', a) + iC(24, 20, 2.6, b, 1.1) + iSH(21, 30, 1.2, 4, 0),
+  sword:(a, b) => iLN('M12 36L35 13', IK, 5.4) + iLN('M12 36L35 13', a, 3) + iLN('M35 13l3-3', a, 2) + iL('M13 30l5 5l-2 2l-5-5z', b) + iLN('M8 40l4-4', '#3a2a22', 3.6) + iSH(26, 21, .8, 6, 45),
+  staff:(a, b) => iLN('M14 40L33 12', '#8a5a34', 3.6) + iLN('M14 40L33 12', IK, .6) + `<circle cx="34" cy="11" r="6" fill="none" stroke="${IK}" stroke-width="3.6"/><circle cx="34" cy="11" r="6" fill="none" stroke="${a}" stroke-width="2"/>` + iC(29, 14, 1.8, b, 1) + iC(39, 9, 1.8, b, 1),
+  daggers:(a, b) => [-1, 1].map(s => `<g transform="rotate(${s*22} 24 30)">${iL('M22.5 8h3l1.5 18h-6z', a)}${iL('M18 26h12v3H18z', b)}${iL('M22.5 29h3v9h-3z', '#3a2a22')}</g>`).join(''),
+  knuckle:(a, b) => iL('M11 20q0-5 5-5h16q5 0 5 5v6q0 9-13 13q-13-4-13-13z', a) + [14,20,26,32].map(x => iC(x + 1, 17, 3, b, 1.2)).join('') + iLN('M14 26q10 4 20 0', IK, 1.2),
+  wand:(a, b) => iLN('M16 40L28 16', '#8a5a34', 3.2) + iL('M28 16l-3-7l9 2l3 8l-6 2z', '#f6f0e4') + iL('M31 12l6-2l-1 6z', a) + iL('M27 18l7 3l-4 6z', b),
+  book:(a, b) => iL('M10 12h13q1 0 1 2v25q-1-2-3-2H10z', a) + iL('M38 12H25q-1 0-1 2v25q1-2 3-2h11z', a) + iLN('M14 18h6M14 22h6M28 18h6M28 22h6', b, 1.2) + iC(31, 30, 3, b, 1),
+  shuriken:(a, b) => [0,90,180,270].map(r => `<g transform="rotate(${r} 24 24)">${iL('M24 24l-4-4l4-13l4 13z', a)}</g>`).join('') + iC(24, 24, 3.2, b),
+  armor:(a, b) => iL('M16 13q8 4 16 0l2 11l-2 15H16l-2-15z', a) + iLN('M15 27h18M15 32h18M16 36.5h16', b, 1.6) + iLN('M20 28v4M24 28v4M28 28v4M20 33v3M24 33v3M28 33v3', IK, .8) + iL('M19 12q5 4 10 0l1 4q-6 4-12 0z', b) + iL('M8 15l8-3l1 11l-8 3z', b) + iL('M40 15l-8-3l-1 11l8 3z', b) + iLN('M9 19l7-2M9.5 23l7-2M39 19l-7-2M38.5 23l-7-2', IK, .9) + iSH(20, 20, 1.4, 3.5, 0),
+};
+
+// 아이템별 그림: [틀, 주색, 보조색]
+const ICON = {
+  rice:['sack','#f4ead2','#fff8e6'], glut:['sack','#f6f1e8','#ffffff'], barley:['sack','#e4c98a','#f2dda4'], wheat:['sack','#f0e2c0','#fffaf0'], buckwheat:['sack','#b9a382','#7a6a52'],
+  radish:['root','#f7f4ee','#6fae4a'], cabbage:['cabbage','#8cc46a','#c8e8a0'], imo:['potato','#9a5aa0','#e0b0d8'], bean:['pod','#9cc86a','#e2f0b0'], redbean:['beans','#9a2f2f','#e08a7a'],
+  tea:['leaf','#5fa04a','#bfe0a0'], mulberry:['leaf','#6aae54','#d0ecb0'], herb:['sprig','#5aa86a','#9ad4a0'], rareherb:['flower','#b884e0','#ffe48a'], sansai:['sprig','#7aa84a','#b8d880'],
+  salt:['jar','#f4f4f6','#c0c8d4'], miso:['jar','#a4703c','#e2c08a'], sugar:['jar','#6e4a32','#c99a6a'], honey:['honey','#e8a83a','#ffd86a'], sap:['jar','#7a2a1e','#c0503a'], compost:['sack','#7a5a3a','#5a3a22'],
+  mushroom:['mushroom','#a8613a','#f0d8b8'], berry:['berries','#c8324a','#5a9a3a'], clam:['shell','#e8cfa8','#b09070'], meat:['meat','#d0605a','#f4d4c4'], boar:['bonemeat','#b8483e','#f0c8b4'],
+  hide:['pelt','#b0804e','#7a5232'], bone:['bone','#f4ecdc'], feather:['feather','#f2f0e8','#9aa4b0'], egg:['egg','#f6ead6','#d8b48a'], silk:['spool','#fbf6ea','#d8cfc0'],
+  ore:['rock','#8a8e98','#c46a3a'], silver:['rock','#a8b0bc','#eef2f8'], ingot:['ingot','#cfd6e0','#f4f8fc'], rareore:['crystal','#7ad0e8','#d8f6ff'], gem:['crystal','#e05a8a','#ffc4d8'],
+  wood:['log','#b07a4a','#e8c494'], talisman:['paper','#f4e8c8','#c8322a'], soul:['orb','#7a6ae0','#c8b8ff'],
+  pot1:['bottle','#f0e6e6','#e04a4a'], pot2:['bottle','#f6efe0','#f0b030'], cure:['bottle','#e6eef6','#4a8ae0'],
+  scroll:['scroll','#f4e8c8','#a8442e'], ticket:['cert','#f6eed8','#c8322a'], reset:['paper','#e8dcf4','#7a4ab8'], ring:['ring','#f0c040','#ff7aa0'],
+  // 낚시
+  f_crucian:['fish','#8a8a5a','#d8d4a8'], f_ayu:['fish','#a8b4a0','#f0e6a0'], f_trout:['fish','#7a8a9a','#e8a8a0'], f_catfish:['fish','#6a5a48','#a8988a'], eel:['eel','#4a4a3a','#a8a07a'],
+  f_mackerel:['fish','#3a6a8a','#c8dcea'], f_seabream:['fish','#e86a6a','#ffd4cc'], f_rockfish:['fish','#5a4a52','#a89aa0'], f_tuna:['fish','#2a4a7a','#d8e4f0'], f_carp:['fish','#d08a3a','#f6e0b0'],
+  f_smelt:['fish','#c8dcea','#ffffff'], f_goldcarp:['fish','#f0b830','#fff0a0'],
+  // 요리
+  f_onigiri:['onigiri','#fbfaf6','#2a3a2a'], f_misosoup:['bowl','#c89a5a','#5a9a4a'], f_greentea:['cup','#8a9a6a','#9ac46a'], f_tkg:['don','#fff4e0','#f0b020'], f_grilled:['plate','#9aa8b4','#5a4a3a'],
+  f_yakiimo:['yakiimo','#8a3a6a','#f6c84a'], f_tamagoyaki:['roll','#f6d04a','#e0a830'], f_dango:['skewer','#f6b8c8','#fbfaf4'], f_bibim:['don','#f0e6d0','#7aa84a'], f_nimono:['bowl','#c8a060','#f4ecdc'],
+  f_soba:['zaru','#8a7a5a','#c4b48a'], f_clamsoup:['bowl','#eef0e8','#e8cfa8'], f_nabe:['nabe','#c88a4a','#d0605a'], f_udon:['bowl','#e8c890','#f6f0e0'], f_chawan:['cup','#f6e4a0','#f8e8b0'],
+  f_kayu:['bowl','#f4eee0','#7aae5a'], f_mochi:['mochi','#fbf8f2','#e8d8c0'], f_barleyset:['don','#e4d0a0','#c88a4a'], f_oyakodon:['don','#f6d070','#d8904a'], f_honeydango:['skewer','#f0c060','#e8a83a'],
+  f_tempura:['tempura','#f0c060','#e8603a'], f_zenzai:['bowl','#7a3030','#fbf8f2'], f_unadon:['don','#a8603a','#5a3a22'],
+  // 축제
+  m_ringoame:['apple','#e0303a','#6ab04a'], m_yakisoba:['zaru','#a86a3a','#d89a5a'], m_takoyaki:['balls','#d8a060','#7a4a2a'], m_watagashi:['cotton','#ffc4dc','#ffffff'],
+  m_kakigori:['ice','#ff5a7a','#ffffff'], m_taiyaki:['taiyaki','#d8a050','#a8703a'], m_corn:['corn','#f6cc40','#fff0a0'], m_ramune:['ramune','#8ad0f0','#ffffff'],
+};
+// 고장별 장비 색 (0~12)
+const REG_TINT = [['#9ad4e8','#3a7aa8'],['#9ad08a','#3a8a4a'],['#8ab07a','#4a6a3a'],['#b08a5a','#5a3a22'],['#d06a4a','#7a2a1a'],['#a8c0d0','#5a7a90'],['#e8804a','#b8402a'],['#ff8a3a','#5a2a1a'],['#c8b8a0','#7a6a52'],['#eef4fa','#9ab0c8'],['#bfe8ff','#5aa8d8'],['#f0e070','#6a5ab0'],['#d8e8ff','#e8c060']];
+const TIER_TINT = {1:['#b8a088','#6a4a32'], 2:['#c8d0d8','#5a6a7a'], 3:['#4a3a5a','#9a7ad0'], 4:['#9ae8f0','#f0d070']};
+const WEP_GL = {samurai:'sword', monk:'staff', thief:'daggers', brawler:'knuckle', healer:'wand', onmyoji:'book', hunter:'shuriken'};
+function iconSpec(k){
+  const b = String(k).replace('*',''), it = IT[b]; if (!it) return ['orb','#888','#ccc'];
+  if (ICON[b]) return ICON[b];
+  const job = (typeof S !== 'undefined' && S && S.job) || 'samurai';
+  const rg = /^g[wax](\d+)$/.exec(b), tint = rg ? REG_TINT[+rg[1]] : TIER_TINT[+(b.match(/\d+$/) || [1])[0]] || TIER_TINT[1];
+  if (it.t === 'weapon') return [WEP_GL[job] || 'sword', tint[0], tint[1]];
+  if (it.t === 'armor') return ['armor', tint[0], tint[1]];
+  if (it.t === 'acc'){ const sl = it.slot || (/목걸이/.test(it.n) ? 'neck' : /팔찌/.test(it.n) ? 'wrist' : 'ring'); return [sl === 'neck' ? 'necklace' : sl === 'wrist' ? 'bracelet' : 'ring', tint[0], tint[1]]; }
+  if (it.t === 'seed'){ const crop = ICON[b.slice(2)] || ICON[{s_soba:'buckwheat'}[b]] || ['', '#c8a060', '#7ab05a']; return ['seedbag', crop[1], '#7ab05a']; }
+  if (it.t === 'fish') return ['fish', '#7a8a9a', '#d8e0e8'];
+  if (it.t === 'food') return ['bowl', '#c89a5a', '#f4ecdc'];
+  return ['rock', '#9a9a9a', '#dcdcdc'];
+}
+const ICON_CACHE = {};
+// 아이템 그림 배지. size: 'sm'(칩 안) · 'md'(목록) · 'lg'(상세)
+function itemIcon(k, size = 'md'){
+  const b = String(k).replace('*',''), job = (typeof S !== 'undefined' && S && S.job) || '';
+  const ck = b + '|' + job;
+  if (!ICON_CACHE[ck]){
+    const [g, a, c] = iconSpec(b), fn = GL[g] || GL.orb;
+    ICON_CACHE[ck] = `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" class="ib-bg"/><circle cx="24" cy="24" r="21.2" class="ib-ring"/>${fn(a, c)}</svg>`;
+  }
+  return `<span class="iic ${size}${String(k).endsWith('*') ? ' q' : ''}">${ICON_CACHE[ck]}</span>`;
+}
+// 아이템 칩: 그림 + 이름 + 개수
+const ichip = (k, n, cls = '') => `<span class="chip ichip ${cls}">${itemIcon(k, 'sm')}${esc(itemName(k))}${n != null ? ` ×${n}` : ''}</span>`;
 // ===================== 유틸 =====================
 const $ = (s, r=document) => r.querySelector(s);
 const H = 3600000, MIN = 60000;
@@ -2751,7 +2918,7 @@ function viewTop(){
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
   const pU = postUnread(), nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
-  return `<header class="top wrap"><div class="who">${PHOTO(S.char.photo)}<div class="grow"><div class="name">${esc(S.char.name)} <span class="muted small num">Lv.${S.lv}</span></div><div class="tiny muted">${JOBS[S.job].n} · ${SUBS[S.sub].n} · 「${esc(curTitle())}」</div><div class="tgold num">${S.settings.infGold && isOp() ? '∞' : S.gold.toLocaleString()}<span class="tiny"> ${CUR}</span><span class="sclk tiny" id="sClk">${seoulClock()}</span></div></div>
+  return `<header class="top wrap"><div class="who">${PHOTO(S.char.photo)}<div class="grow"><div class="name">${esc(S.char.name)} <span class="muted small num">Lv.${S.lv}</span></div><div class="tiny muted">${JOBS[S.job].n} · ${SUBS[S.sub].n} · 「${esc(curTitle())}」</div><div class="tgold num"><span class="sclk tiny" id="sClk">${seoulClock()}</span>${S.settings.infGold && isOp() ? '∞' : S.gold.toLocaleString()}<span class="tiny"> ${CUR}</span></div></div>
     <div class="topbtns">
     <button class="ib" data-act="sheet" data-s="help" aria-label="도움말">${ICO.help}</button>
     <button class="ib" data-act="sheet" data-s="notices" aria-label="공지${cU ? ` ${cU}개 새 글` : ''}">${ICO.notice}<b class="badge" id="bNotice" ${cU ? '' : 'hidden'}>${cU}</b></button>
@@ -2991,7 +3158,7 @@ function histCard(h, idx){
   const kills = Object.entries(h.kills || {});
   return `<details class="card hist" data-ok="h${h.at}" ${dOpen('h'+h.at)}><summary><b>${REG[h.region].n}</b> <span class="small muted">${new Date(h.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${(h.dur||0) >= H ? Math.round(h.dur/H) + '시간' : Math.round((h.dur||0)/MIN) + '분'} · ${HIST_KIND[h.kind]}${h.party && h.party.length ? ` · 조사대 ${h.party.map(esc).join(', ')}` : ''}</span><br><span class="small num">물건 ${h.n}개 · ${h.gold}${CUR}${h.fee ? ` (치료비 −${h.fee})` : ''} · 경험치 ${h.xp}</span></summary>
     <div class="stack" style="gap:8px;margin-top:8px">
-      <div><b class="small">얻은 물건</b><div class="row wrapf" style="gap:6px;margin-top:4px">${items.length || h.egg ? items.map(([k,v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('') + (h.egg ? `<span class="chip gold">🥚 ${h.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : '') : '<span class="muted small">없음</span>'}</div></div>
+      <div><b class="small">얻은 물건</b><div class="row wrapf" style="gap:6px;margin-top:4px">${items.length || h.egg ? items.map(([k,v]) => `${ichip(k, v)}`).join('') + (h.egg ? `<span class="chip gold">🥚 ${h.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : '') : '<span class="muted small">없음</span>'}</div></div>
       ${kills.length ? `<p class="small" style="margin:0">쓰러뜨린 몬스터: ${kills.map(([k,v]) => `${MON[k]?.n || k} ${v}`).join(', ')}</p>` : ''}
       ${lines.length ? `<details class="sub" data-ok="b${h.at}" ${dOpen('b'+h.at)}><summary class="small">전투 기록 (${battle.filter(l => l.k === 'enc').length}번)</summary><div class="log" style="max-height:320px">${logGroups(battle, h.start, h.tick).join('') || '<p class="muted small">전투가 없었다.</p>'}</div></details>
       <details class="sub" data-ok="l${h.at}" ${dOpen('l'+h.at)}><summary class="small">전체 탐사 일지 (${new Set(lines.map(l => l.i)).size}칸)</summary><div class="log" style="max-height:420px">${logGroups(lines, h.start, h.tick).join('')}</div></details>` : '<p class="tiny muted" style="margin:0">이 탐사는 업데이트 전 기록이라 일지가 남아 있지 않다.</p>'}
@@ -3031,11 +3198,22 @@ TABS.bag = () => {
     }
     if (['scroll','reset','ticket'].includes(b)) acts += `<button class="btn sm" data-act="use" data-k="${k}" ${dis}>사용</button>`;
     const st = statTxt(it), slotTxt = it.t === 'acc' ? ({neck:'목걸이', wrist:'팔찌', ring:'반지'})[it.slot] : it.t === 'weapon' ? '무기' : it.t === 'armor' ? '갑옷' : '';
-    return `<div class="li"><div class="t"><b>${esc(itemName(k))} <span class="cntx">×${cnt(k)}</span>${eqn ? ' <span class="chip" style="border-color:var(--seal);color:var(--seal)">장착</span>' : ''}</b>${it.f ? `<span class="flav">${esc(it.f)}</span>` : ''}<span>${[slotTxt, st, it.d].filter(Boolean).map(esc).join(' · ')}</span></div><div class="acts">${acts}</div></div>`; };
-  return `<div class="sec-title"><h2>가방</h2><span class="small muted">엽전 ${S.gold.toLocaleString()}${CUR}</span></div>
-  <div class="seg" style="margin-bottom:10px" role="group" aria-label="분류">${BAGF.map(([k,n]) => `<button data-act="bagf" data-f="${k}" aria-pressed="${f===k}">${n}</button>`).join('')}</div>
+    return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${cnt(k)}</span>${eqn ? ' <span class="chip" style="border-color:var(--seal);color:var(--seal)">장착</span>' : ''}</b>${it.f ? `<span class="flav">${esc(it.f)}</span>` : ''}<span>${[slotTxt, st, it.d].filter(Boolean).map(esc).join(' · ')}</span></div><div class="acts">${acts}</div></div>`; };
+  return `<div class="sec-title"><h2>가방</h2><span class="small muted">엽전 ${S.gold.toLocaleString()}${CUR} · <button class="linkbtn" data-act="bagView">${UI.bagView === 'list' ? '칸으로 보기' : '목록으로 보기'}</button></span></div>
+  <div class="seg scrollx" style="margin-bottom:10px" role="group" aria-label="분류">${BAGF.map(([k,n]) => `<button data-act="bagf" data-f="${k}" aria-pressed="${f===k}">${n}</button>`).join('')}</div>
   ${lock ? '<p class="small" style="color:var(--seal);margin:0 2px 8px">장기 탐사 중에는 짐을 풀 수 없다. 보기만 할 수 있다.</p>' : ''}
-  <div class="card">${keys.length ? `<div class="list">${keys.map(row).join('')}</div>` : '<p class="muted" style="margin:0">이 분류에는 아직 아무것도 없습니다.</p>'}</div>
+  ${!keys.length ? '<div class="card"><p class="muted" style="margin:0">이 분류에는 아직 아무것도 없습니다.</p></div>'
+    : UI.bagView === 'list' ? `<div class="card">${`<div class="list">${keys.map(row).join('')}</div>`}</div>`
+    : (() => {
+        const sel = keys.includes(UI.bagSel) ? UI.bagSel : null;
+        const grp = k => { const t = IT[k.replace('*','')].t; return t === 'food' ? 0 : (t === 'pot' || t === 'cure') ? 1 : ['weapon','armor','acc'].includes(t) ? 2 : t === 'mat' ? 3 : t === 'fish' ? 4 : t === 'seed' ? 5 : 6; };
+        const GN = ['요리','약','장비','재료','생선','씨앗','특수'];
+        const cell = k => `<button class="bag-cell ${k === sel ? 'sel' : ''}" data-act="bagSel" data-k="${k}" aria-pressed="${k === sel}" aria-label="${esc(itemName(k))} ${cnt(k)}개"><span class="bc-ic">${itemIcon(k, 'lg')}<b class="bc-n num">${cnt(k)}</b>${equippedN(k) ? '<i class="bc-eq">E</i>' : ''}</span><span class="bc-name">${esc(itemName(k))}</span></button>`;
+        const groups = [];
+        keys.slice().sort((a, b) => grp(a) - grp(b)).forEach(k => { const g = grp(k); if (!groups.length || groups[groups.length-1].g !== g) groups.push({g, ks:[]}); groups[groups.length-1].ks.push(k); });
+        return `<div class="bag-panel ${sel ? 'has-sel' : ''}">${groups.map(G => `${f === 'all' ? `<div class="bag-gh">${GN[G.g]} <span>${G.ks.length}</span></div>` : ''}<div class="bag-grid">${G.ks.map(cell).join('')}</div>`).join('')}
+          ${sel ? '' : '<p class="bag-hint">그림을 누르면 자세히 볼 수 있어요</p>'}</div>
+        ${sel ? `<div class="bag-pop" role="dialog" aria-label="${esc(itemName(sel))}"><button class="bag-x" data-act="bagSel" data-k="" aria-label="닫기">×</button>${row(sel)}</div>` : ''}`; })()}
   <p class="tiny muted">물건을 팔려면 거점의 잡화점으로 가세요.</p>
   ${S.eggs.length && (f==='all'||f==='sp') ? `<div class="sec-title"><h2>알</h2></div><div class="card"><div class="list">${S.eggs.map(e => `<div class="li">${eggArt(e.kind)}<div class="t"><b>${e.kind==='pet'?'야생동물의 알':'요괴의 알'}</b><span>둥지에 두면 ${EGG_H[e.kind]}시간 뒤 부화</span></div><button class="btn sm" data-act="sheet" data-s="nest" ${lock?'disabled':''}>둥지로</button></div>`).join('')}</div></div>` : ''}`;
 };
@@ -3123,9 +3301,9 @@ SHEETS.kitchen = () => {
   return sheetHead('부엌', `<span class="chip">요리 숙련도 ${p}</span>`) + `
   <p class="small muted" style="margin-top:0">요리할수록 숙련도가 올라 새 레시피를 배운다. 숙련도가 높을수록 '정성 가득'(버프 1.5배)이 잘 나온다. 식사 버프는 하나만 유지된다.</p>
   ${fb ? `<p class="small">지금 버프: <b>${foodRec(fb.id).n}${fb.q?' (정성 가득)':''}</b> · 남은 <span class="num" data-cd="${fb.until}"></span></p>` : ''}
-  <div class="list">${known.map(r => `<div class="li"><div class="t"><b>${r.n}</b><span>${r.bd} · ${r.b.dur}시간</span><span class="tiny">${haveTxt(r.need)}</span></div><button class="btn sm" data-act="cook" data-r="${r.id}" ${needOk(r.need)?'':'disabled'}>요리</button></div>`).join('')}</div>
-  ${next.length ? `<details class="sub" style="margin-top:10px"><summary class="small">아직 모르는 레시피 ${next.length}가지 · 배우는 곳</summary><div class="list">${next.map(r => `<div class="li"><div class="t"><b>${r.n} <span class="tiny muted">${r.bd}</span></b><span>${recipeSource(r)}</span></div></div>`).join('')}</div></details>` : ''}
-  ${foods.length ? `<hr class="rule"><h3>먹을 수 있는 요리</h3><div class="list">${foods.map(k => `<div class="li"><span class="cnt">${cnt(k)}</span><div class="t"><b>${esc(itemName(k))}</b><span>${IT[k.replace('*','')].d}</span></div><button class="btn sm seal" data-act="eat" data-k="${k}">먹기</button></div>`).join('')}</div>` : ''}`;
+  <div class="list">${known.map(r => `<div class="li">${itemIcon('f_' + r.id)}<div class="t"><b>${r.n}</b><span>${r.bd} · ${r.b.dur}시간</span><span class="tiny">${haveTxt(r.need)}</span></div><button class="btn sm" data-act="cook" data-r="${r.id}" ${needOk(r.need)?'':'disabled'}>요리</button></div>`).join('')}</div>
+  ${next.length ? `<details class="sub" style="margin-top:10px"><summary class="small">아직 모르는 레시피 ${next.length}가지 · 배우는 곳</summary><div class="list">${next.map(r => `<div class="li" style="opacity:.6">${itemIcon('f_' + r.id)}<div class="t"><b>${r.n} <span class="tiny muted">${r.bd}</span></b><span>${recipeSource(r)}</span></div></div>`).join('')}</div></details>` : ''}
+  ${foods.length ? `<hr class="rule"><h3>먹을 수 있는 요리</h3><div class="list">${foods.map(k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${cnt(k)}</span></b><span>${IT[k.replace('*','')].d}</span></div><button class="btn sm seal" data-act="eat" data-k="${k}">먹기</button></div>`).join('')}</div>` : ''}`;
 };
 SHEETS.farm = () => {
   const seeds = Object.keys(SEEDS).filter(k => cnt(k) > 0);
@@ -3165,7 +3343,7 @@ SHEETS.craft = st => {
   return sheetHead('공방') + `
   <div class="seg" style="margin-bottom:10px">${Object.entries(CRAFT).map(([k,c]) => `<button data-act="craftTab" data-s="${k}" aria-pressed="${st===k}">${c.n}</button>`).join('')}</div>
   <p class="small muted" style="margin-top:0">${safe ? `${SUBS[C.sub].n}${pp(SUBS[C.sub].n,'이라','라')} 실패하지 않는다.` : `실패 확률 ${Math.round(Math.max(.02, .12 - effStats().INT*.005)*100)}% (지능이 높을수록 낮다). ${SUBS[C.sub].n}${pp(SUBS[C.sub].n,'이면','면')} 실패하지 않는다.`} 숙련도 ${prof(C.sub)}</p>
-  <div class="list">${C.list.map((r, i) => { const it = IT[r.out]; const stat = it.atk ? `공격 +${it.atk}` : it.def ? `방어 +${it.def}` : it.st ? Object.entries(it.st).map(([s,v])=>`${STN[s]} +${v}`).join(' ') : (it.d||''); return `<div class="li"><div class="t"><b>${esc(itemName(r.out))}${r.alt?' <span class="tiny muted">(영약초 조합)</span>':''}</b><span>${esc(stat)}</span><span class="tiny">${haveTxt(r.need)}</span></div><button class="btn sm ${r.out==='ring'?'seal':''}" data-act="craft" data-s="${st}" data-i="${i}" ${needOk(r.need)?'':'disabled'}>만들기</button></div>`; }).join('')}</div>`;
+  <div class="list">${C.list.map((r, i) => { const it = IT[r.out]; const stat = it.atk ? `공격 +${it.atk}` : it.def ? `방어 +${it.def}` : it.st ? Object.entries(it.st).map(([s,v])=>`${STN[s]} +${v}`).join(' ') : (it.d||''); return `<div class="li">${itemIcon(r.out)}<div class="t"><b>${esc(itemName(r.out))}${r.alt?' <span class="tiny muted">(영약초 조합)</span>':''}</b><span>${esc(stat)}</span><span class="tiny">${haveTxt(r.need)}</span></div><button class="btn sm ${r.out==='ring'?'seal':''}" data-act="craft" data-s="${st}" data-i="${i}" ${needOk(r.need)?'':'disabled'}>만들기</button></div>`; }).join('')}</div>`;
 };
 SHEETS.tasks = () => {
   const T = S.task;
@@ -3220,7 +3398,7 @@ SHEETS.result = s => {
   return sheetHead(ttl) + `<p style="margin-top:0">${REG[s.region].n} · ${Math.round(s.dur/H)}시간</p>
   ${s.note ? `<p class="small" style="color:${s.kind==='done'?'var(--ink)':'var(--seal)'}">${esc(s.note)}${['carry','heal','auto'].includes(s.kind)?' 12시간 동안 지친 몸 상태가 된다. 친구의 위로나 연인의 애정 표현으로 덜 수 있다.':''}</p>` : ''}
   <div class="card"><div class="row num" style="justify-content:space-between"><span>경험치 <b>+${s.xp}</b></span><span>엽전 <b>+${s.gold}</b>${s.fee?` / 치료비 −${s.fee}`:''}</span></div>
-  <hr class="rule">${items.length || s.egg ? `<div class="row wrapf" style="gap:6px">${items.map(([k,v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('')}${s.egg ? `<span class="chip gold">🥚 ${s.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : ''}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}
+  <hr class="rule">${items.length || s.egg ? `<div class="row wrapf" style="gap:6px">${items.map(([k,v]) => `${ichip(k, v)}`).join('')}${s.egg ? `<span class="chip gold">🥚 ${s.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : ''}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}
   ${Object.keys(s.kills).length ? `<p class="small muted" style="margin-bottom:0">쓰러뜨린 몬스터: ${Object.entries(s.kills).map(([k,v]) => `${MON[k].n} ${v}`).join(', ')}</p>` : ''}</div>
   ${s.egg ? `<div class="card comp" style="margin-top:10px">${eggArt(s.egg.kind)}<div><b>${s.egg.kind==='pet'?'야생동물의 알':'요괴의 알'}을 얻었다!</b><br><span class="small muted">거점의 둥지에 두면 부화한다.</span><br><button class="btn sm" style="margin-top:6px" data-act="sheet" data-s="nest">둥지로 가기</button></div></div>` : ''}
   ${s.lines && s.lines.length ? (() => { const bl = s.lines.filter(l => ['enc','fight','win','flee','down'].includes(l.k)); return `<h3 style="margin-top:14px">이번 탐사 기록</h3>
@@ -3315,8 +3493,8 @@ SHEETS.shop = () => {
   const t = UI.shopTab || 'buy';
   const sellable = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && sellPrice(k) > 0 && !['ticket','ring'].includes(k))
     .sort((a,b) => IT[a.replace('*','')].t.localeCompare(IT[b.replace('*','')].t) || itemName(a).localeCompare(itemName(b), 'ko'));
-  const buyList = `<div class="list">${SHOP.map(k => `<div class="li"><div class="t"><b>${esc(IT[k].n)} <span class="cntx">보유 ${cnt(k)}</span></b>${IT[k].f ? `<span class="flav">${esc(IT[k].f)}</span>` : ''}<span>${esc(IT[k].d || '')}</span></div><div class="acts"><button class="btn sm" data-act="buy" data-k="${k}" data-n="1" ${S.gold<IT[k].p?'disabled':''}>${IT[k].p}${CUR}</button>${IT[k].p <= 30 ? `<button class="btn sm ghost" data-act="buy" data-k="${k}" data-n="5" ${S.gold<IT[k].p*5?'disabled':''}>5개</button>` : ''}</div></div>`).join('')}</div>`;
-  const sellList = sellable.length ? `<div class="list">${sellable.map(k => { const free = cnt(k) - equippedN(k); return `<div class="li"><div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b><span>한 개 ${sellPrice(k)}${CUR}${equippedN(k) ? ' · 장착 중인 것은 제외' : ''}</span></div><div class="acts"><button class="btn sm" data-act="sell" data-k="${k}">팔기</button>${free > 1 ? `<button class="btn sm ghost" data-act="sellAll" data-k="${k}">모두 ${sellPrice(k)*free}${CUR}</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">팔 수 있는 물건이 없다.</p>';
+  const buyList = `<div class="list">${SHOP.map(k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">보유 ${cnt(k)}</span></b>${IT[k].f ? `<span class="flav">${esc(IT[k].f)}</span>` : ''}<span>${esc(IT[k].d || '')}</span></div><div class="acts"><button class="btn sm" data-act="buy" data-k="${k}" data-n="1" ${S.gold<IT[k].p?'disabled':''}>${IT[k].p}${CUR}</button>${IT[k].p <= 30 ? `<button class="btn sm ghost" data-act="buy" data-k="${k}" data-n="5" ${S.gold<IT[k].p*5?'disabled':''}>5개</button>` : ''}</div></div>`).join('')}</div>`;
+  const sellList = sellable.length ? `<div class="list">${sellable.map(k => { const free = cnt(k) - equippedN(k); return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b><span>한 개 ${sellPrice(k)}${CUR}${equippedN(k) ? ' · 장착 중인 것은 제외' : ''}</span></div><div class="acts"><button class="btn sm" data-act="sell" data-k="${k}">팔기</button>${free > 1 ? `<button class="btn sm ghost" data-act="sellAll" data-k="${k}">모두 ${sellPrice(k)*free}${CUR}</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">팔 수 있는 물건이 없다.</p>';
   return sheetHead('잡화점', `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`) + `
   <p class="small muted" style="margin-top:0">"어서 오시게. 없는 것 빼고 다 있다네." — 주인 할멈</p>
   <div class="seg" style="margin-bottom:10px"><button data-act="shopTab" data-t="buy" aria-pressed="${t==='buy'}">사기</button><button data-act="shopTab" data-t="sell" aria-pressed="${t==='sell'}">팔기</button></div>
@@ -3373,7 +3551,7 @@ SHEETS.gift = o => {
   <p class="tiny" style="margin:-4px 0 8px">📮 선물은 상대의 우편함으로 간다. 상대가 탐사 중이거나 접속하지 않았어도 보낼 수 있다. ${meetBlock(o) ? '<b>지금은 직접 만날 수 없어 호감도는 오르지 않는다.</b>' : '지금 직접 건넬 수 있어 호감도도 오른다.'}</p>
   <label class="f">함께 보낼 한마디 (선택)<textarea id="giftMsg" rows="2" maxlength="80" placeholder="예: 탐사 잘 다녀오세요!"></textarea></label>
   <div class="seg" style="margin:8px 0" role="group" aria-label="분류">${GF.map(([k, n]) => `<button data-act="giftF" data-f="${k}" aria-pressed="${f === k}">${n}</button>`).join('')}</div>
-  ${keys.length ? `<div class="list">${keys.map(k => { const it = IT[k.replace('*','')], free = cnt(k) - equippedN(k), st = statTxt(it); return `<div class="li"><div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b>${it.f ? `<span class="flav">${esc(it.f)}</span>` : ''}${st || it.d ? `<span>${esc([st, it.d].filter(Boolean).join(' · '))}</span>` : ''}</div><div class="acts"><button class="btn sm" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="1">보내기</button>${free >= 5 && !['weapon','armor','acc'].includes(it.t) ? `<button class="btn sm ghost" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="5">5개</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">이 분류에는 보낼 수 있는 물건이 없습니다.</p>'}`;
+  ${keys.length ? `<div class="list">${keys.map(k => { const it = IT[k.replace('*','')], free = cnt(k) - equippedN(k), st = statTxt(it); return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b>${it.f ? `<span class="flav">${esc(it.f)}</span>` : ''}${st || it.d ? `<span>${esc([st, it.d].filter(Boolean).join(' · '))}</span>` : ''}</div><div class="acts"><button class="btn sm" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="1">보내기</button>${free >= 5 && !['weapon','armor','acc'].includes(it.t) ? `<button class="btn sm ghost" data-act="gift" data-u="${esc(o)}" data-k="${k}" data-n="5">5개</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">이 분류에는 보낼 수 있는 물건이 없습니다.</p>'}`;
 };
 SHEETS.profile = o => {
   const p = PL[o]; if (!p) return sheetHead('개척자') + '<p>정보를 불러오는 중입니다.</p>';
@@ -4233,7 +4411,7 @@ function hardView(){
   }
   const ev = H.ev, SC = ev && HARD_SC[ev.sc];
   const pct = clamp((now() - H.start)/(H.end - H.start)*100, 0, 100);
-  const lootChips = Object.entries(H.loot).map(([k, v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('') + (H.egg ? `<span class="chip gold">🥚 ${H.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'}</span>` : '') + (H.gold ? `<span class="chip gold">${H.gold}${CUR}</span>` : '');
+  const lootChips = Object.entries(H.loot).map(([k, v]) => `${ichip(k, v)}`).join('') + (H.egg ? `<span class="chip gold">🥚 ${H.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'}</span>` : '') + (H.gold ? `<span class="chip gold">${H.gold}${CUR}</span>` : '');
   const potN = (H.pots.pot1 || 0) + (H.pots.pot2 || 0);
   const segTxt = H.route === 'short' ? '지름길 · 위험 ↑ 희귀 ↑' : H.route === 'long' ? '우회로 · 위험 ↓ 재료 ↑' : H.route === 'charge' ? '정면돌파 · 보상 ↑' : '입구';
   return `<div class="card stack">
@@ -4258,7 +4436,7 @@ SHEETS.hardres = s => {
   return sheetHead(ttl) + `<p style="margin-top:0">${REG[s.region].n} · ${s.mins === 60 ? '1시간' : s.mins + '분'} · 만난 사건 ${s.count}곳 · 직접 고른 사건 ${s.picks}번${s.auto ? ` · 자동 진행 ${s.auto}번` : ''}</p>
     ${s.kind === 'hard_down' ? '<p class="small" style="color:var(--seal)">무리한 끝에 쓰러졌다. 모은 것의 40%만 챙겼고, 6시간 동안 지친 몸이 된다.</p>' : s.kind === 'hard_quit' ? '<p class="small">모은 것의 절반을 챙겨 돌아왔다.</p>' : ''}
     <div class="card"><div class="row num" style="justify-content:space-between"><span>경험치 <b>+${s.xp}</b></span><span>엽전 <b>+${s.gold}</b></span></div><hr class="rule">
-    ${items.length || s.egg ? `<div class="row wrapf" style="gap:6px">${items.map(([k, v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('')}${s.egg ? `<span class="chip gold">🥚 ${s.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : ''}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}</div>
+    ${items.length || s.egg ? `<div class="row wrapf" style="gap:6px">${items.map(([k, v]) => `${ichip(k, v)}`).join('')}${s.egg ? `<span class="chip gold">🥚 ${s.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : ''}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}</div>
     <details class="sub" style="margin-top:10px" open><summary class="small">탐사 기록 (${s.lines.length}줄)</summary><div class="log" style="max-height:340px">${s.lines.map(l => `<p class="${l.k}"><time class="num">${fmtClock(s.start + l.i*1000)}</time><span>${esc(l.x)}</span></p>`).join('')}</div></details>
     <button class="btn full" style="margin-top:12px" data-act="closeSheet">확인</button>`;
 };
@@ -4455,7 +4633,7 @@ function postClaimAll(){
 }
 SHEETS.post = () => {
   const L = postList(), un = L.filter(x => !x.got), done = L.filter(x => x.got);
-  const card = p => `<div class="li post ${p.got ? 'got' : ''}"><span class="post-ic ${p.kind}">${p.kind === 'grant' ? '印' : p.kind === 'gift' ? '🎁' : '✉'}</span><div class="t"><b>${p.kind === 'grant' ? '운영자 지급' : esc(p.name || '누군가') + '님의 선물'}</b><span>${esc(postSum(p))}</span>${p.msg ? `<span class="post-msg">「${esc(p.msg)}」</span>` : ''}<span class="tiny muted">${agoTxt(p.ts)}${p.got ? ' · 받음' : ''}</span></div>${p.got ? '' : `<button class="btn sm seal" data-act="postGet" data-id="${p.id}">받기</button>`}</div>`;
+  const card = p => `<div class="li post ${p.got ? 'got' : ''}"><span class="post-ic ${p.kind}">${p.kind === 'grant' ? '印' : p.kind === 'gift' ? '🎁' : '✉'}</span><div class="t"><b>${p.kind === 'grant' ? '운영자 지급' : esc(p.name || '누군가') + '님의 선물'}</b><span class="row wrapf" style="gap:4px;margin:2px 0">${IP(p.items).map(([k, n]) => ichip(k, n)).join('')}${p.gold ? `<span class="chip gold">${p.gold.toLocaleString()}${CUR}</span>` : ''}</span>${p.msg ? `<span class="post-msg">「${esc(p.msg)}」</span>` : ''}<span class="tiny muted">${agoTxt(p.ts)}${p.got ? ' · 받음' : ''}</span></div>${p.got ? '' : `<button class="btn sm seal" data-act="postGet" data-id="${p.id}">받기</button>`}</div>`;
   return sheetHead('우편함') + `<p class="small muted" style="margin-top:0">다른 개척자의 선물과 운영자 지급 물품이 이곳에 도착한다. '받기'를 눌러야 가방에 들어간다.</p>
   ${un.length ? `<div class="row" style="margin-bottom:8px"><b class="grow small">받지 않은 우편 ${un.length}통</b><button class="btn sm seal" data-act="postAll">모두 받기</button></div><div class="list">${un.map(card).join('')}</div>` : '<div class="card" style="text-align:center"><p class="muted" style="margin:0">새 우편이 없다.</p></div>'}
   ${done.length ? `<details class="sub" style="margin-top:12px"><summary class="small">받은 우편 ${done.length}통 (7일 동안 보관)</summary><div class="list" style="margin-top:6px">${done.map(card).join('')}</div></details>` : ''}
@@ -4606,7 +4784,7 @@ SHEETS.matsuri = () => {
   const k = UI.kuji && now() - UI.kuji.at < 120000 ? UI.kuji : null;
   return sheetHead('🏮 마츠리') + `<div class="fest-banner"><b>여름밤 축제가 한창이다!</b><span class="small">초롱불 아래 노점이 줄지어 섰다. 끝나기까지 <b class="num" data-cd="${festEnd()}"></b></span></div>
   <h3 style="margin-top:12px">노점 먹거리 <span class="tiny muted">축제마다 음식별 ${FEST_BUY}개까지</span></h3>
-  <div class="list">${FEST_FOOD.map(r => { const b = festBought(r.id), left = FEST_BUY - b; return `<div class="li fest-item"><span class="fest-ic">${FEST_IC[r.id] || '🍡'}</span><div class="t"><b>${r.n} <span class="tiny muted num">${r.p}${CUR}</span></b><span class="good-t">${r.bd} · ${r.b.dur}시간</span><span class="tiny muted">${r.f}</span></div><div class="stack" style="gap:4px"><button class="btn sm seal" data-act="festBuy" data-id="${r.id}" data-e="1" ${left <= 0 ? 'disabled' : ''}>사서 먹기</button><button class="btn sm ghost" data-act="festBuy" data-id="${r.id}" ${left <= 0 ? 'disabled' : ''}>사 두기 ${left}/${FEST_BUY}</button></div></div>`; }).join('')}</div>
+  <div class="list">${FEST_FOOD.map(r => { const b = festBought(r.id), left = FEST_BUY - b; return `<div class="li fest-item">${itemIcon('m_' + r.id)}<div class="t"><b>${r.n} <span class="tiny muted num">${r.p}${CUR}</span></b><span class="good-t">${r.bd} · ${r.b.dur}시간</span><span class="tiny muted">${r.f}</span></div><div class="stack" style="gap:4px"><button class="btn sm seal" data-act="festBuy" data-id="${r.id}" data-e="1" ${left <= 0 ? 'disabled' : ''}>사서 먹기</button><button class="btn sm ghost" data-act="festBuy" data-id="${r.id}" ${left <= 0 ? 'disabled' : ''}>사 두기 ${left}/${FEST_BUY}</button></div></div>`; }).join('')}</div>
   <p class="tiny muted" style="margin:6px 0 0">사 둔 음식은 가방에서 축제가 끝난 뒤에도 먹을 수 있다. 식사 버프는 한 번에 하나만 적용된다.</p>
   <h3 style="margin-top:14px">운세 뽑기 <span class="tiny muted">축제마다 한 번, 공짜</span></h3>
   ${k ? `<div class="card kuji ${k.n === '대길' ? 'big' : ''}"><b class="kuji-n">${k.n}</b><p class="small" style="margin:6px 0">${k.t}</p>${k.give.length ? `<span class="tiny">받은 것: ${k.give.join(', ')}</span>` : ''}</div>`
@@ -4975,6 +5153,7 @@ const ACT = {
   leaveParty: async () => { if (await ask('조사대 나가기', '조사대를 나오면 혼자 다니게 됩니다.', '나가기')) leaveParty(); },
   partyGather: () => partyGather(UI.hours || 1), partyReady: () => partyReady(), partyGo: () => partyGo(), partyCancel: () => partyCancel(),
   grant: () => { if (!isOp()) return; const to = $('#grantTo').value, k = $('#grantItem').value, n = clamp(parseInt($('#grantN').value) || 0, 0, 999), g = clamp(parseInt($('#grantG').value) || 0, 0, 10000000); if (!n && !g) return toast('개수나 엽전을 적어 주세요.'); opGrant(to, n ? k : '', n, g, ($('#grantMsg').value || '').trim().slice(0, 200)); },
+  bagSel: d => { UI.bagSel = UI.bagSel === d.k ? null : (d.k || null); render(); }, bagView: () => { UI.bagView = UI.bagView === 'list' ? 'grid' : 'list'; render(); },
   festBuy: d => festBuy(d.id, !!d.e), festKuji: () => festKuji(),
   postGet: d => postClaim(d.id), postAll: () => postClaimAll(),
   grantQuick: d => { if (!isOp()) return; const el = $('#grantTo'); opGrant(el ? el.value : 'self', d.k, d.k === 'ticket' ? 1 : 5); },
