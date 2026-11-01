@@ -1302,6 +1302,7 @@ async function flushSave(){
     else lsSet(LKEY, body);
   } catch(e){
     console.warn('save', e);
+    if (e && e.code === 'invalid-argument' && !window.__saveWarned){ window.__saveWarned = 1; toast('저장에 실패했습니다. 운영자에게 알려 주세요.', 'warn'); }
     if (e && (e.code === 'invalid_argument' || e.code === 'not_granted' || e.code === 'revoked')){ toCloudFail(); lsSet(LKEY, S); }
     else if (e && e.code === 'quota_exceeded') toast('저장 공간이 가득 찼습니다.', 'warn');
   }
@@ -1851,7 +1852,7 @@ function handleEvent(id, ev){
     case 'partyInv': if (!S.social.noReq) { S.reqs.push({id, from, type:'party', pid:ev.data.pid, ts:ev.ts}); notify('social','조사대 초대',`${nm}님이 조사대에 함께하자며 손을 내밀었습니다.`); } break;
     case 'partyAcc': notify('social','조사대',`${nm}님이 조사대원이 되었습니다.`); break;
     case 'partyRej': notify('social','조사대',`${nm}님이 지금은 함께하기 어렵다고 합니다.`); break;
-    case 'grant': { if (!isOpUser(PL[from]) && PL[from]) break; const items = (ev.data.items || [[ev.data.item, ev.data.n]]).filter(([k]) => IT[k]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]); const gold = Math.max(0, Math.min(10000000, ev.data.gold || 0)); if (!items.length && !gold) break; const p = {kind:'grant', name:'운영자', items, gold, msg:ev.data.msg ? String(ev.data.msg).slice(0, 200) : ''}; postAdd(p); notify('social','운영자 지급',`우편함에 운영자 지급 물품이 도착했습니다: ${postSum(p)}`); break; }
+    case 'grant': { if (!isOpUser(PL[from]) && PL[from]) break; const items = (ev.data.items ? IP(ev.data.items) : [[ev.data.item, ev.data.n]]).filter(([k]) => IT[k]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]); const gold = Math.max(0, Math.min(10000000, ev.data.gold || 0)); if (!items.length && !gold) break; const p = {kind:'grant', name:'운영자', items, gold, msg:ev.data.msg ? String(ev.data.msg).slice(0, 200) : ''}; postAdd(p); notify('social','운영자 지급',`우편함에 운영자 지급 물품이 도착했습니다: ${postSum(p)}`); break; }
   }
   save(); del(); softRender();
 }
@@ -4425,21 +4426,25 @@ SHEETS.comp = id => {
 // 받은 물건은 바로 가방에 들어가지 않고 우편함에 쌓인다. '받기'를 눌러야 가방으로 옮겨진다.
 ICO.post = ico('<path d="M3 7.5h18v11H3z"/><path d="M3 8l9 6 9-6"/><path d="M16 4.5h4v3"/>');
 const POST_MAX = 100, POST_KEEP = 7*24*H; // 받은 편지는 7일 뒤 정리
-const postList = () => (S.post = S.post || []);
+// Firestore 는 배열 안의 배열을 저장하지 못한다. 저장·전송할 때는 [{k, n}] 꼴로, 코드 안에서는 [k, n] 꼴로 쓴다
+const IP = list => (list || []).map(e => Array.isArray(e) ? e : [e && e.k, e && e.n]).filter(([k]) => k);
+const IO = list => IP(list).map(([k, n]) => ({k, n}));
+let postFixed = false;
+const postList = () => { S.post = S.post || []; if (!postFixed){ postFixed = true; S.post.forEach(p => { p.items = IO(p.items); }); } return S.post; };
 const postUnread = () => postList().filter(p => !p.got).length;
 function postAdd(p){
   const L = postList();
-  L.unshift({id:uid36(), ts:now(), got:0, ...p});
+  L.unshift({id:uid36(), ts:now(), got:0, ...p, items:IO(p.items)});
   // 오래 받은 편지부터 치우고, 그래도 넘치면 오래된 것부터
   S.post = L.filter(x => !x.got || now() - x.got < POST_KEEP).slice(0, POST_MAX);
 }
 function postGive(p){
-  for (const [k, n] of p.items || []) if (IT[String(k).replace('*','')]) addItem(k, n);
+  for (const [k, n] of IP(p.items)) if (IT[String(k).replace('*','')]) addItem(k, n);
   if (p.gold) S.gold += p.gold;
   p.got = now(); stat('postGot');
   if (p.rid && ST.mode === 'cloud') ST.db.doc(`postbox/${ST.uid}/items/${p.rid}`).delete().catch(() => {});
 }
-const postSum = p => [...(p.items || []).map(([k, n]) => `${itemName(k)} ×${n}`), ...(p.gold ? [`${p.gold.toLocaleString()}${CUR}`] : [])].join(', ');
+const postSum = p => [...IP(p.items).map(([k, n]) => `${itemName(k)} ×${n}`), ...(p.gold ? [`${p.gold.toLocaleString()}${CUR}`] : [])].join(', ');
 function postClaim(id){
   const p = postList().find(x => x.id === id); if (!p || p.got) return;
   postGive(p); save(); sfx('coin'); toast(`가방에 넣었습니다: ${postSum(p)}`, 'good'); renderSheet(true); render();
@@ -4493,7 +4498,8 @@ async function eventsRescan(){
 // 받는 쪽은 게임을 열면 서버 우편함을 읽어 내 우편함에 넣는다. '받기'를 누르면 서버 우편도 지운다.
 async function postSend(to, kind, body){
   if (ST.mode !== 'cloud') return null;
-  const pb = uid36(), legacy = kind === 'grant' ? {item:body.items[0] ? body.items[0][0] : 'pot1', n:body.items[0] ? body.items[0][1] : 0} : {item:body.items[0][0], n:body.items[0][1]};
+  const pb = uid36(), its = IP(body.items), legacy = {item:its[0] ? its[0][0] : 'pot1', n:its[0] ? its[0][1] : 0};
+  body = {...body, items:IO(its)};
   const eid = await sendEv(to, kind, {...legacy, ...body, pb});
   if (!eid) return null;
   let pbOk = true;
@@ -4510,7 +4516,7 @@ async function pbIngest(id, x){
   // 옛 버전으로 이미 받아 간 우편이면(알림 사건이 사라졌으면) 두 번 받지 않게 지운다
   if (x.ev){ let alive = false; try { alive = (await ST.db.doc('events/' + x.ev).get()).exists; } catch(e){} if (!alive && !postList().some(p => p.rid === id)){ drop(); return; } }
   if (blocked(x.from) || (x.kind === 'grant' && PL[x.from] && !isOpUser(PL[x.from]))){ drop(); return; }
-  const items = (x.items || []).filter(([k]) => IT[String(k).replace('*','')]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]);
+  const items = IP(x.items).filter(([k]) => IT[String(k).replace('*','')]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]);
   const p = {rid:id, kind:x.kind === 'grant' ? 'grant' : 'gift', from:x.from, name:x.kind === 'grant' ? '운영자' : (x.name || PL[x.from]?.name || '누군가'), items, gold:Math.max(0, Math.min(10000000, x.gold || 0)), msg:String(x.msg || '').slice(0, 200), ts:x.ts || now()};
   postAdd(p);
   // 지친 친구에게 온 요리 선물은 예전처럼 피로를 덜어 준다
@@ -4527,7 +4533,7 @@ async function pbIngest(id, x){
 function pbFallback(evId, from, nm, ev){
   setTimeout(() => {
     const d = ev.data || {}; if (!S || postList().some(p => p.rid === d.pb)) { ST.db.doc('events/' + evId).delete().catch(() => {}); return; }
-    pbIngest(d.pb, {from, name:nm, kind:ev.type, items:d.items || [[d.item, d.n]], gold:d.gold, msg:d.msg, ts:ev.ts});
+    pbIngest(d.pb, {from, name:nm, kind:ev.type, items:d.items ? IP(d.items) : [[d.item, d.n]], gold:d.gold, msg:d.msg, ts:ev.ts});
   }, 20000);
 }
 function pbListen(){
@@ -5006,7 +5012,7 @@ document.addEventListener('input', e => { const t = e.target; if (t.type === 'ra
 
 async function opGrant(to, k, n, gold = 0, msg = ''){
   if (!isOp() || (!IT[k] && !gold)) return;
-  const items = IT[k] && n > 0 ? [[k, n]] : [], data = {items, gold, msg};
+  const items = IT[k] && n > 0 ? [[k, n]] : [], data = {items:IO(items), gold, msg};
   const what = [...(items.length ? [`${itemName(k)} ${n}개`] : []), ...(gold ? [`${gold.toLocaleString()}${CUR}`] : [])].join(' · ');
   const self = () => { postAdd({kind:'grant', name:'운영자', items, gold, msg}); save(); renderSheet(true); render(); };
   if (to === 'all'){
