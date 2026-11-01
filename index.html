@@ -427,6 +427,12 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .btn.touch .ti{ font-size:20px; line-height:1; } .btn.touch b{ font-size:.82rem; white-space:nowrap; }
 .btn.touch.cool{ opacity:.6; }
 .talk-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; align-items:center; }
+.topbtns .ib{ width:38px; height:38px; } .topbtns .ib svg{ width:22px; height:22px; }
+@media (max-width:380px){ .topbtns .ib{ width:34px; height:34px; } .topbtns .ib svg{ width:20px; height:20px; } }
+.li.post.got{ opacity:.6; }
+.post-ic{ width:40px; height:40px; flex:none; border-radius:10px; display:grid; place-items:center; background:var(--paper-2); border:1px solid var(--line); font-size:18px; }
+.post-ic.grant{ background:var(--seal); color:var(--seal-ink); font-family:var(--f-disp, serif); font-weight:700; border-color:var(--seal); }
+.post-msg{ font-size:.85rem; color:var(--ink-2); }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -725,7 +731,7 @@ const BOSS = [
 const REG = [
   {n:'백사 해안',k:'白沙',g:'흰 모래 해안',lv:1,d:'파도 소리와 소금기 어린 바람. 갈매기가 길잡이처럼 맴도는, 여정이 시작되는 곳.',mons:['crab','gull','boar','mizu'],mats:[['clam',3],['sansai',2],['wood',2],['berry',2],['herb',1],['salt',1]]},
   {n:'청죽 숲',k:'靑竹',g:'푸른 대나무 숲',lv:4,d:'끝없이 솟은 대나무 사이로 바람이 운다. 길을 잃기 쉬우니 표식을 남기자.',mons:['tanuki','weasel','viper','kama'],mats:[['wood',3],['sansai',3],['mushroom',2],['herb',2],['sap',1],['mulberry',1]]},
-  {n:'녹초 습지',k:'綠草',g:'이끼 습지',lv:8,d:'발목까지 빠지는 초록빛 늪. 물안개 너머에서 개구리가 합창한다.',mons:['toad','kasa','heron','mizu'],mats:[['herb',3],['mushroom',3],['clam',2],['sap',1],['berry',1]]},
+  {n:'녹소 지대',k:'綠沼',g:'이끼 습지',lv:8,d:'발목까지 빠지는 초록빛 늪. 물안개 너머에서 개구리가 합창한다.',mons:['toad','kasa','heron','mizu'],mats:[['herb',3],['mushroom',3],['clam',2],['sap',1],['berry',1]]},
   {n:'고목 숲',k:'古木',g:'오래된 숲',lv:12,d:'햇빛이 닿지 않는 오래된 숲. 금줄을 두른 거목이 서 있다.',mons:['wolf','bear','kumayokai','spiderling'],mats:[['wood',3],['mushroom',2],['herb',2],['sap',2],['hide',1],['mulberry',1]]},
   {n:'적암 협곡',k:'赤岩',g:'붉은 바위 협곡',lv:16,d:'붉은 바위 절벽이 이어진 협곡. 바위틈마다 광맥이 반짝인다.',mons:['hawk','goat','nurikabe','ittan'],mats:[['ore',4],['silver',2],['bone',1],['gem',.4]]},
   {n:'백무 호수',k:'白霧',g:'안개 호수',lv:20,d:'아침마다 하얀 안개가 수면을 덮는다. 호수 가운데 작은 사당이 떠 있다.',mons:['otter','kiri','egret','mizu'],mats:[['clam',3],['herb',2],['sap',2],['silver',1]]},
@@ -1777,11 +1783,11 @@ function handleEvent(id, ev){
     case 'greet': notify('social', '인사', `${nm}님이 인사를 건넸습니다.`); break;
     case 'meet': onMeetEvent(from, nm, ev.data || {}); break;
     case 'gift': {
-      const k = ev.data.item, n = ev.data.n || 1; if (IT[k.replace('*','')]) addItem(k, n);
+      const k = ev.data.item, n = ev.data.n || 1; if (IT[k.replace('*','')]) postAdd({kind:'gift', from, name:nm, items:[[k, n]], msg:ev.data.msg ? String(ev.data.msg).slice(0, 100) : ''});
       let extra = '';
       if (IT[k.replace('*','')]?.t === 'food' && tiredActive() && canMit() && stageRank(effStage(getRel(from))) >= 1){ S.tired.weak = true; S.mit.from[from] = 1; extra = ' 정성 어린 요리에 지친 몸이 한결 가벼워졌습니다.'; }
       const msg = ev.data.msg ? ` 「${String(ev.data.msg).slice(0, 100)}」` : '';
-      notify('social', '선물', `${nm}님이 ${itemName(k)} ${n}개를 보냈습니다.${msg}${extra}`); break; }
+      notify('social', '선물', `${nm}님이 ${itemName(k)} ${n}개를 보냈습니다. 우편함에서 받아 주세요.${msg}${extra}`); break; }
     case 'encourage': S.buffs.enc = now() + 2*H/SPD(); notify('social','격려',`${nm}님의 격려를 받았습니다. 2시간 동안 경험치 +10%`); break;
     case 'heal': { const h = ev.data.h || 40; if (!S.exp){ setHP(curHP() + h); pubDirty(); } notify('social','치료',`${nm}님이 상처를 돌봐 주었습니다. 체력 +${h}`); break; }
     case 'tea': addAff(from, 2, true); notify('social','차 대접',`${nm}님과 녹차를 나눠 마셨습니다. 마음이 따뜻해진다.`); break;
@@ -1811,7 +1817,7 @@ function handleEvent(id, ev){
     case 'partyInv': if (!S.social.noReq) { S.reqs.push({id, from, type:'party', pid:ev.data.pid, ts:ev.ts}); notify('social','조사대 초대',`${nm}님이 조사대에 함께하자며 손을 내밀었습니다.`); } break;
     case 'partyAcc': notify('social','조사대',`${nm}님이 조사대원이 되었습니다.`); break;
     case 'partyRej': notify('social','조사대',`${nm}님이 지금은 함께하기 어렵다고 합니다.`); break;
-    case 'grant': { const gk = IT[ev.data.item] ? ev.data.item : 'ticket', gn = Math.max(1, Math.min(999, ev.data.n || 1)); addItem(gk, gn); notify('social','운영자 지급',`${itemName(gk)} ${gn}개를 받았습니다.`); break; }
+    case 'grant': { if (!isOpUser(PL[from]) && PL[from]) break; const items = (ev.data.items || [[ev.data.item, ev.data.n]]).filter(([k]) => IT[k]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]); const gold = Math.max(0, Math.min(10000000, ev.data.gold || 0)); if (!items.length && !gold) break; const p = {kind:'grant', name:'운영자', items, gold, msg:ev.data.msg ? String(ev.data.msg).slice(0, 200) : ''}; postAdd(p); notify('social','운영자 지급',`우편함에 운영자 지급 물품이 도착했습니다: ${postSum(p)}`); break; }
   }
   save(); del(); softRender();
 }
@@ -1888,7 +1894,7 @@ async function giftTo(o, k, n, msg){
   sendEv(o, 'gift', {item:k, n, msg:(msg||'').trim().slice(0, 100)}); stat('gift');
   const mult = (it.r === 'mochi' ? 2 : 1);
   const g = await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult, true);
-  sfx('coin'); toast(`${itemName(k)} ${n}개를 보냈습니다.${g?` 호감도 +${g}`:''}`); closeSheet(); render();
+  sfx('coin'); toast(`${itemName(k)} ${n}개를 상대의 우편함으로 보냈습니다.${g?` 호감도 +${g}`:''}`); closeSheet(); render();
 }
 function downedList(){
   const out = [];
@@ -2703,11 +2709,12 @@ function viewTop(){
   if (restActive()) chips.push(`<button class="chip good" data-act="sheet" data-s="rest">♨ 휴식 중 · <span class="num" data-cd="${S.rest.until}"></span></button>`);
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
-  const nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
+  const pU = postUnread(), nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
   return `<header class="top wrap"><div class="who">${PHOTO(S.char.photo)}<div class="grow"><div class="name">${esc(S.char.name)} <span class="muted small num">Lv.${S.lv}</span></div><div class="tiny muted">${JOBS[S.job].n} · ${SUBS[S.sub].n} · 「${esc(curTitle())}」</div><div class="tgold num">${S.settings.infGold && isOp() ? '∞' : S.gold.toLocaleString()}<span class="tiny"> ${CUR}</span></div></div>
     <div class="topbtns">
     <button class="ib" data-act="sheet" data-s="help" aria-label="도움말">${ICO.help}</button>
     <button class="ib" data-act="sheet" data-s="notices" aria-label="공지${cU ? ` ${cU}개 새 글` : ''}">${ICO.notice}<b class="badge" id="bNotice" ${cU ? '' : 'hidden'}>${cU}</b></button>
+    <button class="ib" data-act="sheet" data-s="post" aria-label="우편함${pU ? ` ${pU}통 받지 않음` : ''}">${ICO.post}<b class="badge" id="bPost" ${pU ? '' : 'hidden'}>${pU > 9 ? '9+' : pU}</b></button>
     <button class="ib" data-act="sheet" data-s="notis" aria-label="알림${nU ? ` ${nU}개 안 읽음` : ''}">${ICO.bell}<b class="badge" id="bNoti" ${nU ? '' : 'hidden'}>${nU > 9 ? '9+' : nU}</b></button></div></div>
   <div class="hp num"><span class="tiny">체력</span><div class="bar"><i id="hpBar" style="width:${hp/mx*100}%"></i></div><span id="hpTxt" class="tiny">${Math.floor(hp)}/${mx}</span></div>
   <div class="hp num" style="margin-top:3px"><span class="tiny">경험레벨</span><div class="bar xp"><i style="width:${S.xp/need*100}%"></i></div><span class="tiny">${S.xp}/${need}</span></div>
@@ -3505,9 +3512,11 @@ function grantBox(){
   const groups = [['weapon','무기'],['armor','갑옷'],['acc','장신구'],['food','요리'],['pot','약'],['cure','약'],['mat','재료'],['fish','생선'],['seed','씨앗'],['sp','특수']];
   const seen = new Set();
   const opts = groups.filter(([t]) => !seen.has(t) && seen.add(t)).map(([t, n]) => { const ks = Object.keys(IT).filter(k => IT[k].t === t); if (!ks.length) return ''; return `<optgroup label="${n}">${ks.map(k => `<option value="${k}">${esc(itemName(k))}</option>`).join('')}</optgroup>`; }).join('');
-  return `<div class="card" style="padding:12px"><b class="small">아이템 지급</b><p class="tiny muted" style="margin:2px 0 6px">모든 아이템을 원하는 개수만큼 나 또는 다른 개척자에게 보낸다. 무기 이름은 받는 사람 직업에 맞게 바뀐다.</p>
-    ${people.length ? `<select id="grantTo" aria-label="받을 사람">${people.map(p => `<option value="${esc(p.uid)}" ${p.uid === ST.uid ? 'selected' : ''}>${esc(p.name)}${p.uid === ST.uid ? ' (나)' : ''}</option>`).join('')}</select>` : '<input id="grantTo" type="hidden" value="self">'}
-    <div class="row" style="margin-top:6px"><select id="grantItem" aria-label="아이템" class="grow">${opts}</select><input id="grantN" type="number" min="1" max="999" value="1" aria-label="개수" style="width:5.5em"></div>
+  return `<div class="card" style="padding:12px"><b class="small">아이템 지급 (우편함으로 보냄)</b><p class="tiny muted" style="margin:2px 0 6px">모든 아이템과 엽전을 나, 다른 개척자, 또는 모든 개척자의 우편함으로 보낸다. 받는 사람이 '받기'를 눌러야 가방에 들어간다. 무기 이름은 받는 사람 직업에 맞게 바뀐다.</p>
+    ${people.length ? `<select id="grantTo" aria-label="받을 사람"><option value="all">📮 모든 개척자</option>${people.map(p => `<option value="${esc(p.uid)}" ${p.uid === ST.uid ? 'selected' : ''}>${esc(p.name)}${p.uid === ST.uid ? ' (나)' : ''}</option>`).join('')}</select>` : '<input id="grantTo" type="hidden" value="self">'}
+    <div class="row" style="margin-top:6px"><select id="grantItem" aria-label="아이템" class="grow">${opts}</select><input id="grantN" type="number" min="0" max="999" value="1" aria-label="개수" style="width:5.5em"></div>
+    <div class="row" style="margin-top:6px"><span class="small">엽전</span><input id="grantG" type="number" min="0" value="0" aria-label="엽전" class="grow"></div>
+    <input id="grantMsg" type="text" maxlength="200" placeholder="함께 보낼 말 (예: 점검 보상입니다)" aria-label="함께 보낼 말" style="margin-top:6px">
     <div class="row wrapf" style="margin-top:6px"><button class="btn sm seal" data-act="grant">지급하기</button><button class="btn sm ghost" data-act="grantQuick" data-k="ticket">전직 증서 1장</button><button class="btn sm ghost" data-act="grantQuick" data-k="scroll">비전서 조각 5개</button><button class="btn sm ghost" data-act="grantQuick" data-k="cure">각성약 5개</button></div></div>`;
 }
 
@@ -4365,6 +4374,39 @@ SHEETS.comp = id => {
   ${foods.length ? `<div class="row wrapf">${foods.map(k => `<button class="btn sm ghost" data-act="feed" data-id="${c.id}" data-k="${k}">${esc(itemName(k))} (${cnt(k)})</button>`).join('')}</div>` : '<p class="small muted">줄 수 있는 먹이(요리·생선·산열매)가 없다.</p>'}
   <hr class="rule"><div class="row wrapf"><button class="btn sm ${c.out !== false ? 'ghost' : 'seal'}" data-act="compOut" data-id="${c.id}">${c.out !== false ? '둥지에서 쉬게 하기' : '데리고 다니기'}</button><button class="btn ghost sm" data-act="release" data-id="${c.id}">작별하기</button></div><p class="tiny muted">${c.out !== false ? '지금 함께 다니는 중이다. 탐사 효과와 경험치는 함께 다니는 동료만 받는다. 탐사 기록에 동료의 모습도 남는다.' : `둥지에서 쉬는 중이다. 함께 다닐 수 있는 동료는 ${COMP_OUT}마리까지.`}</p>`;
 };
+// ===================== 우편함: 선물 · 운영자 지급 물품을 받아 두는 곳 =====================
+// 받은 물건은 바로 가방에 들어가지 않고 우편함에 쌓인다. '받기'를 눌러야 가방으로 옮겨진다.
+ICO.post = ico('<path d="M3 7.5h18v11H3z"/><path d="M3 8l9 6 9-6"/><path d="M16 4.5h4v3"/>');
+const POST_MAX = 100, POST_KEEP = 7*24*H; // 받은 편지는 7일 뒤 정리
+const postList = () => (S.post = S.post || []);
+const postUnread = () => postList().filter(p => !p.got).length;
+function postAdd(p){
+  const L = postList();
+  L.unshift({id:uid36(), ts:now(), got:0, ...p});
+  // 오래 받은 편지부터 치우고, 그래도 넘치면 오래된 것부터
+  S.post = L.filter(x => !x.got || now() - x.got < POST_KEEP).slice(0, POST_MAX);
+}
+function postGive(p){
+  for (const [k, n] of p.items || []) if (IT[String(k).replace('*','')]) addItem(k, n);
+  if (p.gold) S.gold += p.gold;
+  p.got = now(); stat('postGot');
+}
+const postSum = p => [...(p.items || []).map(([k, n]) => `${itemName(k)} ×${n}`), ...(p.gold ? [`${p.gold.toLocaleString()}${CUR}`] : [])].join(', ');
+function postClaim(id){
+  const p = postList().find(x => x.id === id); if (!p || p.got) return;
+  postGive(p); save(); sfx('coin'); toast(`가방에 넣었습니다: ${postSum(p)}`, 'good'); renderSheet(true); render();
+}
+function postClaimAll(){
+  const L = postList().filter(x => !x.got); if (!L.length) return;
+  L.forEach(postGive); save(); sfx('coin'); toast(`우편 ${L.length}통의 물건을 모두 가방에 넣었습니다.`, 'good'); renderSheet(true); render();
+}
+SHEETS.post = () => {
+  const L = postList(), un = L.filter(x => !x.got), done = L.filter(x => x.got);
+  const card = p => `<div class="li post ${p.got ? 'got' : ''}"><span class="post-ic ${p.kind}">${p.kind === 'grant' ? '印' : p.kind === 'gift' ? '🎁' : '✉'}</span><div class="t"><b>${p.kind === 'grant' ? '운영자 지급' : esc(p.name || '누군가') + '님의 선물'}</b><span>${esc(postSum(p))}</span>${p.msg ? `<span class="post-msg">「${esc(p.msg)}」</span>` : ''}<span class="tiny muted">${agoTxt(p.ts)}${p.got ? ' · 받음' : ''}</span></div>${p.got ? '' : `<button class="btn sm seal" data-act="postGet" data-id="${p.id}">받기</button>`}</div>`;
+  return sheetHead('우편함') + `<p class="small muted" style="margin-top:0">다른 개척자의 선물과 운영자 지급 물품이 이곳에 도착한다. '받기'를 눌러야 가방에 들어간다.</p>
+  ${un.length ? `<div class="row" style="margin-bottom:8px"><b class="grow small">받지 않은 우편 ${un.length}통</b><button class="btn sm seal" data-act="postAll">모두 받기</button></div><div class="list">${un.map(card).join('')}</div>` : '<div class="card" style="text-align:center"><p class="muted" style="margin:0">새 우편이 없다.</p></div>'}
+  ${done.length ? `<details class="sub" style="margin-top:12px"><summary class="small">받은 우편 ${done.length}통 (7일 동안 보관)</summary><div class="list" style="margin-top:6px">${done.map(card).join('')}</div></details>` : ''}`;
+};
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -4722,7 +4764,8 @@ const ACT = {
   invite: d => inviteParty(d.u),
   leaveParty: async () => { if (await ask('조사대 나가기', '조사대를 나오면 혼자 다니게 됩니다.', '나가기')) leaveParty(); },
   partyGather: () => partyGather(UI.hours || 1), partyReady: () => partyReady(), partyGo: () => partyGo(), partyCancel: () => partyCancel(),
-  grant: () => { if (!isOp()) return; const to = $('#grantTo').value, k = $('#grantItem').value, n = clamp(parseInt($('#grantN').value) || 1, 1, 999); opGrant(to, k, n); },
+  grant: () => { if (!isOp()) return; const to = $('#grantTo').value, k = $('#grantItem').value, n = clamp(parseInt($('#grantN').value) || 0, 0, 999), g = clamp(parseInt($('#grantG').value) || 0, 0, 10000000); if (!n && !g) return toast('개수나 엽전을 적어 주세요.'); opGrant(to, n ? k : '', n, g, ($('#grantMsg').value || '').trim().slice(0, 200)); },
+  postGet: d => postClaim(d.id), postAll: () => postClaimAll(),
   grantQuick: d => { if (!isOp()) return; const el = $('#grantTo'); opGrant(el ? el.value : 'self', d.k, d.k === 'ticket' ? 1 : 5); },
   alloc: d => allocStat(d.k),
   openFish: () => { if (baseLocked()) return lockToast(); openFish(); }, closeFish: () => closeFish(), cast: () => cast(), hook: () => hook(), autoFish: () => autoFish(),
@@ -4756,10 +4799,19 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('input', e => { const t = e.target; if (t.type === 'range' && t.dataset.set && S){ S.settings[t.dataset.set] = +t.value; auVol(); musicSync(); save(); } });
 
-function opGrant(to, k, n){
-  if (!isOp() || !IT[k]) return;
-  if (to === 'self' || to === ST.uid){ addItem(k, n); save(); renderSheet(); render(); return toast(`${itemName(k)} ${n}개를 받았습니다.`, 'good'); }
-  sendEv(to, 'grant', {item:k, n}); toast(`${PL[to]?.name || '개척자'}님께 ${itemName(k, PL[to]?.job)} ${n}개를 보냈습니다.`, 'good');
+async function opGrant(to, k, n, gold = 0, msg = ''){
+  if (!isOp() || (!IT[k] && !gold)) return;
+  const items = IT[k] && n > 0 ? [[k, n]] : [], data = {items, gold, msg};
+  const what = [...(items.length ? [`${itemName(k)} ${n}개`] : []), ...(gold ? [`${gold.toLocaleString()}${CUR}`] : [])].join(' · ');
+  const self = () => { postAdd({kind:'grant', name:'운영자', items, gold, msg}); save(); renderSheet(true); render(); };
+  if (to === 'all'){
+    const ids = Object.keys(PL).filter(u => u !== ST.uid);
+    if (!await ask('모든 개척자에게 지급', `${ids.length + 1}명(나 포함)의 우편함에 ${what}${pp(what,'을','를')} 보냅니다.`, '보내기')) return;
+    self(); for (const u of ids) await sendEv(u, 'grant', data);
+    return toast(`${ids.length + 1}명의 우편함에 ${what}${pp(what,'을','를')} 보냈습니다.`, 'good');
+  }
+  if (to === 'self' || to === ST.uid){ self(); return toast(`내 우편함에 ${what}${pp(what,'이','가')} 도착했습니다.`, 'good'); }
+  sendEv(to, 'grant', data); toast(`${PL[to]?.name || '개척자'}님의 우편함으로 ${what}${pp(what,'을','를')} 보냈습니다.`, 'good');
 }
 function readPhoto(file){
   const r = new FileReader();
