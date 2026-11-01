@@ -384,6 +384,49 @@ button.chip{ cursor:pointer; font:inherit; font-size:.78rem; color:inherit; }
 button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } button.chip.blue{ color:var(--indigo); } button.chip.gold{ color:var(--gold); }
 
 .log .entry.special{ background:color-mix(in srgb, var(--gold) 14%, transparent); border-left:3px solid var(--gold); padding-left:6px; border-radius:3px; }
+
+.hd-warn{ border:1px solid var(--seal); background:color-mix(in srgb, var(--seal) 8%, var(--card)); border-radius:var(--r); padding:10px 12px; font-size:.86rem; line-height:1.55; }
+.hd-node{ border:1.5px solid var(--gold); background:color-mix(in srgb, var(--gold) 9%, var(--card)); border-radius:var(--r); padding:10px 12px; animation:ink .9s ease-out; }
+.hd-opts{ display:grid; gap:8px; margin-top:10px; }
+.btn.hd-opt{ flex-direction:column; align-items:flex-start; height:auto; min-height:52px; padding:8px 12px; text-align:left; gap:1px; background:var(--card); color:var(--ink); border-color:var(--line); }
+.btn.hd-opt.seal{ background:var(--seal); color:var(--seal-ink); border-color:var(--seal); } .btn.hd-opt .tiny{ font-weight:400; opacity:.8; }
+.log p.node{ color:var(--gold); font-weight:700; } .log p.choice{ color:var(--indigo); font-weight:700; } .log p.item{ color:var(--moss); } .log p.heal{ color:var(--moss); } .log p.sys{ color:var(--ink-3); font-style:italic; }
+.ex-seg button{ flex:1; }
+
+.hard-map{ width:100%; display:block; border-radius:8px; }
+.hm-bg{ fill:color-mix(in srgb, var(--moss) 10%, var(--card)); stroke:var(--line); }
+.hm-sea,.hm-lake{ fill:color-mix(in srgb, var(--water-1) 30%, var(--card)); } .hm-snow.hm-bg,.hm-ice{ fill:color-mix(in srgb, #dfe9f2 50%, var(--card)); }
+.hm-volcano,.hm-rock,.hm-thunder{ fill:color-mix(in srgb, var(--warn) 10%, var(--card)); } .hm-maple{ fill:color-mix(in srgb, var(--seal) 35%, var(--card)); }
+.hm-ruin,.hm-sky{ fill:color-mix(in srgb, var(--indigo) 8%, var(--card)); }
+.hm-wave{ fill:none; stroke:var(--water-2); stroke-width:1.2; opacity:.6; } .hm-plant{ fill:none; stroke:var(--moss); stroke-width:1.6; opacity:.7; }
+.hm-tree{ fill:color-mix(in srgb, var(--moss) 45%, var(--card)); opacity:.8; } path.hm-rock{ fill:color-mix(in srgb, var(--ink-3) 40%, var(--card)); } path.hm-snow{ fill:#fff; stroke:var(--line); }
+.hm-trail-bg{ fill:none; stroke:var(--card); stroke-width:9; stroke-linecap:round; stroke-linejoin:round; }
+.hm-trail{ fill:none; stroke:var(--ink-2); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1 6; }
+.hm-ahead{ fill:none; stroke:var(--ink-3); stroke-width:2; stroke-dasharray:3 5; }
+.hm-branch{ fill:none; stroke:var(--gold); stroke-width:2.2; stroke-dasharray:4 4; animation:hmdash 1s linear infinite; }
+@keyframes hmdash{ to{ stroke-dashoffset:-16; } }
+.hm-blabel{ font-size:10.5px; font-weight:700; fill:var(--ink); font-family:var(--f-body); paint-order:stroke; stroke:var(--card); stroke-width:3px; }
+.hm-node{ fill:var(--card); stroke:var(--ink-2); stroke-width:1.5; } .hm-node.auto{ stroke:var(--seal); stroke-dasharray:2 2; }
+.hm-ic{ font-family:var(--f-body); } .hm-start{ fill:var(--card); stroke:var(--ink-2); }
+.hd-node.minor{ border-color:var(--line); background:var(--paper-2); }
+
+.log p.comp{ color:color-mix(in srgb, var(--seal) 55%, var(--gold)); }
+.log p.comp span::before{ content:'🐾 '; font-size:.85em; }
+.comp-stage{ display:flex; gap:12px; align-items:center; }
+.cs-art{ position:relative; }
+.cs-art.bounce{ animation:csb .6s ease-out; }
+@keyframes csb{ 0%{ transform:translateY(0) } 30%{ transform:translateY(-10px) scale(1.04) } 60%{ transform:translateY(0) scale(.98) } 100%{ transform:none } }
+.hearts{ position:absolute; inset:0; pointer-events:none; font-style:normal; }
+.hearts b{ position:absolute; left:50%; top:30%; color:var(--seal); font-size:16px; opacity:0; animation:heart 1.6s ease-out forwards; }
+.hearts b:nth-child(2){ animation-delay:.2s; margin-left:-18px; } .hearts b:nth-child(3){ animation-delay:.4s; margin-left:14px; }
+@keyframes heart{ 0%{ opacity:0; transform:translateY(0) scale(.6) } 20%{ opacity:1 } 100%{ opacity:0; transform:translateY(-46px) scale(1.2) } }
+.comp-say{ margin-top:10px; padding:10px 12px; border-radius:10px; background:var(--paper-2); border:1px solid var(--line); position:relative; }
+.comp-say::before{ content:''; position:absolute; top:-7px; left:34px; width:12px; height:12px; background:var(--paper-2); border-left:1px solid var(--line); border-top:1px solid var(--line); transform:rotate(45deg); }
+.touch-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:10px; }
+.btn.touch{ flex-direction:column; display:flex; align-items:center; gap:2px; padding:8px 2px; min-height:72px; }
+.btn.touch .ti{ font-size:20px; line-height:1; } .btn.touch b{ font-size:.82rem; white-space:nowrap; }
+.btn.touch.cool{ opacity:.6; }
+.talk-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; align-items:center; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -742,7 +785,13 @@ const TITLES = [
   {id:'rancher',n:'축사의 주인',d:'가축을 네 마리 길렀다.',c:S => (S.pen||[]).length >= 4},
   {id:'ranch2',n:'목장 일꾼',d:'가축에게서 산물을 50번 거뒀다.',c:S => st_(S,'ranch') >= 50},
   {id:'beast',n:'짐승들의 친구',d:'동료 두 마리와 함께 지낸다.',c:S => S.comps.length >= 2},
+  {id:'pat100',n:'쓰다듬기 장인',d:'동료를 100번 쓰다듬었다.',c:S => st_(S,'t_pat') >= 100},
+  {id:'talk50',n:'동물과 말하는 사람',d:'동료에게 50번 말을 걸었다.',c:S => st_(S,'t_talk') >= 50},
+  {id:'bondmax',n:'영혼의 짝',d:'동료 하나와 친밀도 100을 이뤘다.',c:S => (S.comps || []).some(c => c.bond >= 100)},
+  {id:'compgift',n:'선물 받는 주인',d:'동료가 물어 온 선물을 처음 받았다.',c:S => st_(S,'compGift') >= 1},
   {id:'beast5',n:'둥지의 대가족',d:'동료를 다섯 마리 길렀다.',c:S => S.comps.length >= 5},
+  {id:'hard10',n:'험로 개척자',d:'고난도 탐사를 10번 완주했다.',c:S => st_(S,'hardDone') >= 10},
+  {id:'hardAuto',n:'무모한 발걸음',d:'고난도 탐사에서 자동 진행을 20번 겪었다.',c:S => st_(S,'hardAuto') >= 20},
   {id:'onsen',n:'온천 마니아',d:'온천에서 20번 쉬었다.',c:S => st_(S,'rest') >= 20},
   {id:'master',n:'한 우물을 판 사람',d:'생활 숙련도 하나를 250(달인)까지 올렸다.',c:S => Object.values(S.prof || {}).some(v => v >= 250)},
   {id:'rich',n:'잡화점의 단골',d:'1만 냥을 모았다.',c:S => S.gold >= 10000},
@@ -969,18 +1018,19 @@ function makeSnap(region){
   let cost = 1 + (fb?.cost || 0);
   if (hasSyn('brawler:miner')) cost *= 0.9;
   const pets = activeComps().filter(c => SPEC[c.sp].k === 'pet'), sums = activeComps().filter(c => SPEC[c.sp].k === 'summon');
-  cost *= 1 - pets.reduce((a,c)=>a + 0.05 + c.lv*0.005, 0);
+  cost *= 1 - pets.reduce((a,c)=>a + (0.05 + c.lv*0.005)*bondMul(c), 0);
   let rew = 1, rare = 1, egg = 1 + st.SEN*0.04;
   if (td){ cost *= td.weak ? 1.25 : 1.5; rew *= td.weak ? 0.85 : 0.7; }
   if (S.job === 'thief') rare *= 1.3;
   if (S.job === 'hunter') egg *= 1.5;
-  rew *= 1 + pets.length*0.05;
+  rew *= 1 + pets.reduce((a,c)=>a + 0.05*bondMul(c), 0);
   const pots = [];
   return {
     job:S.job, lv:S.lv, hp:Math.round(curHP()), max:mx,
     atk:+atkOf(st).toFixed(2), def:+defOf(st).toFixed(2), agi:st.AGI, luk:st.LUK, sen:st.SEN, spi:st.SPI, str:st.STR,
     cost:+cost.toFixed(3), rew:+rew.toFixed(3), rare:+rare.toFixed(3), egg:+egg.toFixed(3),
-    summ:+sums.reduce((a,c)=>a + (3 + c.lv*1.5) * (S.job==='onmyoji'?1.5:1), 0).toFixed(2),
+    summ:+sums.reduce((a,c)=>a + (3 + c.lv*1.5) * (S.job==='onmyoji'?1.5:1) * bondMul(c), 0).toFixed(2),
+    cpn:compSnap(),
     cap: 20 + st.STR*2, pots, potx: (S.job==='healer'?1.3:1) * (hasSyn('healer:apoth')?1.3:1),
   };
 }
@@ -1130,7 +1180,7 @@ function simulate(E, upto){
   }
   const finished = downedAt == null && end >= total;
   if (finished){ const bx = Math.round(durH*15*(1 + E.region*0.6)); xp += bx; L(total, `탐사를 마치고 거점으로 돌아왔다. 완주 보너스 경험치 +${bx}`, 'end'); }
-  return {lines, hp:Math.max(0, Math.round(hp)), items, gold, xp, kills, egg, downedAt, total, finished, potsLeft:pots};
+  return {lines:compInject(lines, s.cpn, E.seed), hp:Math.max(0, Math.round(hp)), items, gold, xp, kills, egg, downedAt, total, finished, potsLeft:pots};
 }
 
 // 우두머리 토벌 (조사대)
@@ -1261,7 +1311,7 @@ function pubObj(){
     exp:S.exp ? {id:S.exp.id, region:S.exp.region, start:S.exp.start, dur:S.exp.dur, tick:S.exp.tick, seed:S.exp.seed, snap:S.exp.snap, wait:S.exp.wait, nt:S.exp.nt || 15000, v:S.exp.v || 0, party:S.exp.party || []} : null,
     loc:S.loc, travel:S.travel ? {from:S.travel.from, to:S.travel.to, start:S.travel.start, arrive:S.travel.arrive} : null, party:S.party || null,
     tiredUntil:tiredActive() ? S.tired.until : 0, comps:activeComps().map(x => ({sp:x.sp, name:x.name, lv:x.lv})), compN:S.comps.length,
-    bosses:Object.keys(S.bosses).length, noReq:!!S.social.noReq, at:(typeof HERE !== 'undefined' && HERE) ? {f:HERE, ts:now()} : null};
+    bosses:Object.keys(S.bosses).length, noReq:!!S.social.noReq, op:isOp() || undefined, at:(typeof HERE !== 'undefined' && HERE) ? {f:HERE, ts:now()} : null};
 }
 async function writePub(force){
   if (ST.mode !== 'cloud') return;
@@ -1314,6 +1364,7 @@ function restTick(){ if (S.rest && now() >= S.rest.until){ endRest(true); notify
 function startLong(ri, hours, pots){
   if (S.rest) endRest(true);
   if (S.exp) return toast('이미 장기 탐사 중입니다.');
+  if (S.hard) return toast('고난도 탐사 중입니다.');
   if (travelState()) return toast('길을 걷는 중입니다. 도착한 뒤에 할 수 있어요.');
   if (S.loc !== ri) return toast(`지금 있는 곳은 ${REG[S.loc].n}입니다. 지도에서 ${josa(REG[ri].n,'으로','로')} 먼저 이동하세요.`);
   if (curHP() < maxHP()*0.2) return toast('체력이 너무 낮습니다. 쉬거나 회복약을 드세요.', 'warn');
@@ -1370,13 +1421,14 @@ function settleExp(kind){
   const sum = {kind, region:E.region, at:now(), got, gold, fee, xp, egg, note, kills:res.kills, dur:E.dur*SPD(), lines:shownL.slice(-160), start:E.start, tick:E.tick};
   // 지난 탐사 기록: 일지 전체를 함께 보관 (최대 8회, 회당 160줄)
   const shown = kind === 'early' ? res.lines : res.downedAt != null ? res.lines : res.lines;
-  S.hist.unshift({kind, region:E.region, at:now(), start:E.start, tick:E.tick, xp, gold, fee, n:Object.values(got).reduce((a,b)=>a+b,0), got, kills:res.kills, dur:E.dur*SPD(), party:(E.party||[]).map(a => a.name), lines:shown.slice(-160)}); S.hist = S.hist.slice(0, 8);
+  S.hist.unshift({kind, region:E.region, at:now(), start:E.start, tick:E.tick, xp, gold, fee, n:Object.values(got).reduce((a,b)=>a+b,0) + (egg ? 1 : 0), got, egg, kills:res.kills, dur:E.dur*SPD(), party:(E.party||[]).map(a => a.name), lines:shown.slice(-160)}); S.hist = S.hist.slice(0, 8);
   save(); pubDirty();
   if (kind === 'done') notify('exp', '장기 탐사 완료', `${REG[E.region].n}에서 무사히 돌아왔습니다.`, 'exp' + E.id);
   openSheet('result', sum); sfx(kind === 'done' ? 'win' : 'soft');
 }
 let shortRun = null;
 function startShort(ri){
+  if (S.hard) return toast('고난도 탐사 중입니다.');
   if (S.rest) endRest(true);
   if (S.short.d !== dayKey()) S.short = {d:dayKey(), n:0};
   if (S.short.n >= 10) return toast('오늘의 단기 탐사 10회를 모두 썼습니다. 자정에 초기화됩니다.');
@@ -1404,8 +1456,9 @@ function finishShort(){
   for (const x in got) addItem(x, got[x]);
   setHP(curHP() - 2*(tiredActive()?1.5:1));
   const xp = addXP(5 + ri*2);
+  const cs = activeComps().length && rng() < 0.5 ? ' · ' + compSay(rng, 'short', compSnap()) : '';
   save(); sfx(jackpot ? 'rare' : 'soft');
-  toast(`${R.n} 훑어보기: ${Object.entries(got).map(([a,b]) => `${IT[a].n} ${b}`).join(', ')}${coin ? ` · 엽전 ${coin}${CUR}` : ''} · 경험치 +${xp}${extra ? ` · 운 보너스 +${extra}개` : ''}${jackpot ? ' · 대박!' : ''}`, jackpot ? 'good' : '');
+  toast(`${R.n} 훑어보기: ${Object.entries(got).map(([a,b]) => `${IT[a].n} ${b}`).join(', ')}${coin ? ` · 엽전 ${coin}${CUR}` : ''} · 경험치 +${xp}${extra ? ` · 운 보너스 +${extra}개` : ''}${jackpot ? ' · 대박!' : ''}${cs}`, jackpot ? 'good' : '');
   render();
 }
 
@@ -1558,7 +1611,7 @@ function hatch(){
   if (!S.nest || now() < S.nest.at + S.nest.dur) return;
   if (S.comps.length >= COMP_MAX) return toast(`동료는 ${COMP_MAX}마리까지입니다.`, 'warn');
   const sp = S.nest.egg.sp, out = activeComps().length < COMP_OUT;
-  S.comps.push({id:uid36(), sp, name:SPEC[sp].n, lv:1, xp:0, bond:0, out}); S.nest = null; stat('hatch');
+  S.comps.push({id:uid36(), sp, name:SPEC[sp].n, lv:1, xp:0, bond:0, out, born:now()}); S.nest = null; stat('hatch');
   sfx('rare'); save(); pubDirty();
   toast(`알이 깨지고 ${SPEC[sp].n}${pp(SPEC[sp].n,'이','가')} 태어났다!${out ? ' 함께 다닌다.' : ' 동행 자리가 꽉 차서 둥지에서 쉰다.'}`, 'good'); renderSheet(); render();
 }
@@ -1570,7 +1623,7 @@ function compOut(id){
   save(); pubDirty(); renderSheet(); render();
 }
 function compXP(c, n){ c.xp += n; while (c.xp >= c.lv*20){ c.xp -= c.lv*20; c.lv++; } }
-function feedComp(id, key){ const c = S.comps.find(x => x.id === id); if (!c || !takeItem(key)) return; c.bond = Math.min(100, c.bond + 5); compXP(c, 12); sfx('eat'); save(); pubDirty(); toast(`${c.name}${pp(c.name,'이','가')} 맛있게 먹었다. 친밀도 +5`, 'good'); renderSheet(); }
+function feedComp(id, key){ const c = S.comps.find(x => x.id === id); if (!c || !takeItem(key)) return; c.bond = Math.min(100, c.bond + 5); compXP(c, 12); c.fed = now(); c.touch = now(); stat('compFeed'); sfx('eat'); save(); pubDirty(); toast(`${c.name}${pp(c.name,'이','가')} 맛있게 먹었다. 친밀도 +5`, 'good'); renderSheet(); }
 function renameComp(id, name){ const c = S.comps.find(x => x.id === id); name = (name||'').trim().slice(0, 10); if (!c || !name) return; c.name = name; save(); pubDirty(); toast('이름을 지어 주었다.'); renderSheet(); render(); }
 async function releaseComp(id){
   const c = S.comps.find(x => x.id === id); if (!c) return;
@@ -1581,8 +1634,8 @@ async function releaseComp(id){
 
 // ===================== 장기 탐사 중 잠금 =====================
 // 장기 탐사(또는 행동불능) 중에는 거점 시설과 교류를 쓸 수 없다
-function baseLocked(){ const es = S && S.exp ? expState() : null; return !!(es && (es.st === 'run' || es.st === 'down')); }
-function lockToast(){ toast(expState()?.st === 'down' ? '행동불능 상태라 아무것도 할 수 없습니다.' : '장기 탐사 중에는 거점을 이용할 수 없습니다. (조기 귀환하면 이용 가능)', 'warn'); }
+function baseLocked(){ if (S && S.hard) return true; const es = S && S.exp ? expState() : null; return !!(es && (es.st === 'run' || es.st === 'down')); }
+function lockToast(){ if (S && S.hard) return toast('고난도 탐사 중에는 거점을 이용할 수 없습니다.', 'warn'); toast(expState()?.st === 'down' ? '행동불능 상태라 아무것도 할 수 없습니다.' : '장기 탐사 중에는 거점을 이용할 수 없습니다. (조기 귀환하면 이용 가능)', 'warn'); }
 
 // ===================== 가축 (축사) =====================
 const animalDur = kind => ANIMALS[kind].h * H * (S.sub === 'herder' ? 0.8 : 1) / SPD();
@@ -1634,7 +1687,7 @@ function checkTitles(){
   S.titlesGot = S.titlesGot || ['newbie'];
   const fresh = [];
   for (const t of TITLES){ let ok = false; try { ok = t.c(S); } catch(e){} if (ok && !S.titlesGot.includes(t.id)){ S.titlesGot.push(t.id); fresh.push(t.n); } }
-  if (fresh.length){ notify('social', '칭호 획득', `새 칭호 ${fresh.map(n => `「${n}」`).join(' ')}을(를) 얻었습니다. 나 화면에서 달 수 있어요.`); save(); }
+  if (fresh.length){ notify('social', '칭호 획득', `새 칭호 ${fresh.map(n => `「${n}」`).join(' ')}${pp(fresh[fresh.length-1],'을','를')} 얻었습니다. 나 화면에서 달 수 있어요.`); save(); }
 }
 // ===================== 교류 (공유 저장소) =====================
 let PL = {}, RELS = {}, RESC = {}, RAIDS = [], NEWS = [], NOTICES = [], MAIL_IN = [], MAIL_OUT = [];
@@ -1682,8 +1735,12 @@ async function sendEv(to, type, data={}){
   if (ST.mode !== 'cloud') return;
   try { await ST.db.collection('events').add({to, from:ST.uid, type, data, ts:now()}); } catch(e){ toast('전하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'warn'); }
 }
-async function postNews(text){
-  if (ST.mode !== 'cloud') return;
+// 운영자 계정은 마을 소식과 다른 개척자의 교류 화면에 나오지 않는다
+const isOpUser = p => !!(p && p.op);
+const hideOp = p => isOpUser(p) && !isOp();
+function newsList(){ const opNames = Object.values(PL).filter(isOpUser).map(p => p.name).filter(Boolean); return NEWS.filter(n => !opNames.some(nm => String(n.text).includes(nm + '님'))); }
+async function postNews(text, others = []){
+  if (ST.mode !== 'cloud' || isOp() || others.some(o => isOpUser(PL[o]))) return;
   try {
     await ST.db.collection('news').add({ts:now(), text});
     if (NEWS.length >= 20){ for (const n of NEWS.slice(15)) { try { await ST.db.doc('news/'+n.id).delete(); } catch(e){} } }
@@ -1820,7 +1877,7 @@ async function answerReq(id, yes){
   if (!yes){ sendEv(o, q.type + 'Rej'); toast('정중히 거절했습니다.'); render(); return; }
   if (q.type === 'friend'){ await writeRel(o, {stage:'friend'}); S.stats.friends = (S.stats.friends||0) + 1; sendEv(o, 'friendAcc'); toast(`${nm}님과 친구가 되었습니다.`, 'good'); }
   if (q.type === 'confess'){ await writeRel(o, {stage:'lover'}); sendEv(o, 'confessAcc'); toast(`${nm}님과 연인이 되었습니다.`, 'good'); }
-  if (q.type === 'propose'){ await writeRel(o, {stage:'married'}); S.stats.married = 1; sendEv(o, 'proposeAcc'); postNews(`${PL[o]?.name||'누군가'}님과 ${S.char.name}님이 부부의 연을 맺었습니다. 모두 축하해 주세요!`); toast(`${nm}님과 부부가 되었습니다. 부부 버프: 경험치 +10%`, 'good'); }
+  if (q.type === 'propose'){ await writeRel(o, {stage:'married'}); S.stats.married = 1; sendEv(o, 'proposeAcc'); postNews(`${PL[o]?.name||'누군가'}님과 ${S.char.name}님이 부부의 연을 맺었습니다. 모두 축하해 주세요!`, [o]); toast(`${nm}님과 부부가 되었습니다. 부부 버프: 경험치 +10%`, 'good'); }
   sfx('rare'); pubDirty(); render();
 }
 async function giftTo(o, k, n, msg){
@@ -1836,7 +1893,7 @@ async function giftTo(o, k, n, msg){
 function downedList(){
   const out = [];
   for (const p of Object.values(PL)){
-    if (p.uid === ST.uid || !p.exp || blocked(p.uid)) continue;
+    if (p.uid === ST.uid || !p.exp || blocked(p.uid) || hideOp(p)) continue;
     const rk = `${p.uid}_${p.exp.id}`;
     const es = expState(p.exp, RESC[rk] || null);
     if (es && es.st === 'down') out.push({p, es, rk});
@@ -1998,6 +2055,7 @@ async function startTravel(to){
   if (S.rest && !S.exp) endRest(true);
   if (to === S.loc && !S.travel) return;
   if (S.exp) return toast('장기 탐사 중에는 이동할 수 없습니다.');
+  if (S.hard) return toast('고난도 탐사 중에는 이동할 수 없습니다.');
   if (travelState()) return toast('이미 길을 걷는 중입니다.');
   if (shortRun) return toast('단기 탐사를 마치고 떠나세요.');
   const min = travelMin(S.loc, to), dur = min*MIN/SPD(), seed = (Math.random()*2**31)|0;
@@ -2018,6 +2076,24 @@ async function startTravel(to){
   sfx('go'); save(); pubDirty(); render();
 }
 
+// ---- 대장이 이동할 때 대원에게 묻기 ----
+function answerTravel(yes){
+  const A = S.travelAsk; if (!A) return;
+  S.travelAsk = null;
+  const P = myParty();
+  if (yes && P && !S.exp && !travelState()){
+    const others = P.members.filter(m => m !== ST.uid).map(nameOf);
+    S.travel = {from:S.loc, to:A.to, start:now(), arrive:now() + A.dur, seed:A.seed, with:others};
+    toast(`${others.join(', ')}${pp(others[others.length-1]||'','과','와')} 손을 잡고 함께 걷기로 했다.`, 'good'); sfx('go');
+  } else {
+    leaveParty(true); toast(yes ? '지금은 함께 떠날 수 없어 조사대에서 빠졌습니다.' : '이번에는 남기로 했다. 조사대에서 빠졌습니다.');
+  }
+  save(); pubDirty(); closeSheet(); render();
+}
+function travelAskTick(){
+  const A = S && S.travelAsk; if (!A) return;
+  if (now() >= A.deadline){ S.travelAsk = null; leaveParty(true); notify('social', '조사대 해산', '5분 동안 답하지 않아 조사대에서 빠졌습니다.'); if (SHEET && SHEET.k === 'travelAsk') closeSheet(); save(); render(); }
+}
 // 떠난 지 2분 안이면 발길을 돌려 원래 고장으로 돌아올 수 있다
 const CANCEL_MS = 2*MIN;
 const canCancelTravel = () => { const T = S.travel; if (!T || now() >= T.arrive || T.join) return false; if (now() - T.start > CANCEL_MS/SPD()) return false; const P = myParty(); return !(P && P.members.length > 1 && P.leader !== ST.uid); };
@@ -2044,15 +2120,29 @@ function partySync(){
     S.party = null; save(); pubDirty(); toast(doc ? '조사대에서 빠졌습니다.' : '조사대가 해산되었습니다.'); return;
   }
   if (!P) return;
+  if (P.handover && P.handover.at > (S.lastHand || 0)){
+    S.lastHand = P.handover.at; save();
+    if (P.handover.to === ST.uid) notify('social', '조사대장', `${nameOf(P.handover.from)}님이 조사대장을 넘겨주었습니다. 이제 이동과 조사대 탐사를 직접 정할 수 있어요.`);
+    else if (P.handover.from !== ST.uid) notify('social', '조사대장 교대', `${nameOf(P.handover.from)}님이 ${nameOf(P.handover.to)}님에게 조사대장을 넘겼습니다.`);
+    softRender && softRender();
+  }
   const others = P.members.filter(m => m !== ST.uid).map(nameOf);
   if (P.travelCancel && S.travel && S.travel.start === P.travelCancel && P.leader !== ST.uid){
     S.travel = null; UI.region = S.loc; notify('social', '되돌아감', '대장이 발길을 돌렸다. 일행과 함께 돌아왔다.'); save(); pubDirty(); render();
   }
+  if (P.travelCancel && S.travelAsk && S.travelAsk.start === P.travelCancel){ S.travelAsk = null; if (SHEET && SHEET.k === 'travelAsk') closeSheet(); toast('대장이 발길을 돌렸다.'); save(); }
   if (P.travel && P.travel.start > (S.lastPT || 0)){
     S.lastPT = P.travel.start;
     if (!S.exp && now() < P.travel.arrive){
-      S.travel = {...P.travel, with:others};
-      notify('social', '함께 이동', `${others.join(', ')}${pp(others[others.length-1]||'','과','와')} 손을 잡고 함께 걷기로 했다.`);
+      if (P.leader === ST.uid){
+        S.travel = {...P.travel, with:others};
+        notify('social', '함께 이동', `${others.join(', ')}${pp(others[others.length-1]||'','과','와')} 손을 잡고 함께 걷기로 했다.`);
+      } else {
+        // 대원에게는 함께 갈지 묻는다. 5분 안에 답하지 않으면 조사대에서 빠진다
+        S.travelAsk = {start:P.travel.start, from:P.travel.from, to:P.travel.to, dur:P.travel.arrive - P.travel.start, seed:P.travel.seed, leader:P.leader, deadline:now() + 5*MIN};
+        notify('social', '조사대 이동', `대장 ${nameOf(P.leader)}님이 ${josa(REG[P.travel.to].n,'으로','로')} 떠납니다. 함께 가시겠어요? (5분 안에 답해 주세요)`);
+        openSheet('travelAsk');
+      }
       save(); pubDirty();
     }
   }
@@ -2133,18 +2223,29 @@ async function partyGo(){
   const go = {id:g.id, region:g.region, start:now(), dur:g.hours*H/SPD(), tick:NT/SPD(), nt:NT, v:5, seed:(Math.random()*2**31)|0, roster};
   try { await ST.db.doc('parties/' + P.id).update({go, gather:null}); } catch(e){ toast('출발하지 못했습니다.', 'warn'); }
 }
+// 조사대장 넘기기: 대장이 대원 한 명을 골라 넘긴다. 모집 중이던 탐사는 취소된다
+async function partyHandover(u){
+  const P = myParty(); if (!P || P.leader !== ST.uid || !P.members.includes(u) || u === ST.uid) return;
+  if (S.travel && now() < S.travel.arrive && (S.travel.with || []).length) return toast('함께 걷는 중에는 대장을 넘길 수 없습니다. 도착한 뒤에 넘겨 주세요.');
+  const h = {from:ST.uid, to:u, at:now()};
+  try { await ST.db.doc('parties/' + P.id).update({leader:u, gather:null, handover:h}); }
+  catch(e){ return toast('대장을 넘기지 못했습니다.', 'warn'); }
+  PARTIES[P.id] = {...P, leader:u, gather:null, handover:h}; S.lastHand = h.at; stat('handover'); save();
+  toast(`${nameOf(u)}님이 새 조사대장이 되었습니다.`, 'good'); render();
+}
 async function partyCancel(){ const P = myParty(); if (!P || P.leader !== ST.uid) return; try { await ST.db.doc('parties/' + P.id).update({gather:null}); } catch(e){} }
 function partyCard(){
   const P = myParty(); if (!P) return '';
   const lead = P.leader === ST.uid, g = P.gather;
-  const mem = P.members.map(u => { const p = u === ST.uid ? null : PL[u]; const where = u === ST.uid ? (S.travel && now() < S.travel.arrive ? `${josa(REG[S.travel.to].n,'으로','로')} 이동 중` : REG[S.loc].n) : p ? (p.travel && p.travel.arrive > now() ? `${josa(REG[p.travel.to].n,'으로','로')} 이동 중` : p.exp ? '탐사 중' : REG[p.loc ?? 0]?.n) : ''; return `<span class="chip ${u===P.leader?'gold':''}">${esc(nameOf(u))}${u===P.leader?' · 대장':''} · ${esc(where||'')}</span>`; }).join(' ');
+  const mem = P.members.map(u => { const p = u === ST.uid ? null : PL[u]; const where = u === ST.uid ? (S.travel && now() < S.travel.arrive ? `${josa(REG[S.travel.to].n,'으로','로')} 이동 중` : REG[S.loc].n) : p ? (p.travel && p.travel.arrive > now() ? `${josa(REG[p.travel.to].n,'으로','로')} 이동 중` : p.exp ? '탐사 중' : REG[p.loc ?? 0]?.n) : ''; return `<span class="chip ${u===P.leader?'gold':''}">${u===P.leader?'👑 ':''}${esc(nameOf(u))}${u===P.leader?' · 대장':''} · ${esc(where||'')}</span>`; }).join(' ');
+  const hand = lead && P.members.length > 1 ? `<details class="sub" style="margin-top:8px"><summary class="small">조사대장 넘기기</summary><div class="row wrapf" style="gap:6px;margin-top:6px">${P.members.filter(u => u !== ST.uid).map(u => `<button class="btn sm ghost" data-act="partyLead" data-u="${esc(u)}">👑 ${esc(nameOf(u))}에게</button>`).join('')}</div><p class="tiny muted" style="margin:4px 0 0">넘기면 이동과 조사대 탐사 모집은 새 대장이 정합니다. 모집 중인 탐사는 취소됩니다.</p></details>` : '';
   let gat = '';
   if (g){
     const ready = Object.keys(g.ready || {});
     gat = `<div class="card" style="padding:10px;margin-top:8px"><b class="small">조사대 탐사 모집 · ${REG[g.region].n} ${g.hours}시간</b><p class="tiny muted" style="margin:2px 0 6px">준비: ${ready.map(nameOf).map(esc).join(', ')}</p>
       ${lead ? `<div class="row"><button class="btn sm seal" data-act="partyGo" ${ready.length < 2 ? 'disabled' : ''}>함께 출발</button><button class="btn sm ghost" data-act="partyCancel">모집 취소</button></div>` : ready.includes(ST.uid) ? '<span class="chip good">준비 완료</span>' : `<button class="btn sm seal" data-act="partyReady">함께 가기</button>`}</div>`;
   }
-  return `<div class="card" style="margin-bottom:10px"><div class="row"><h3 class="grow">우리 조사대 ${P.members.length}/4</h3><button class="btn sm ghost" data-act="leaveParty">조사대 나가기</button></div><div class="row wrapf" style="gap:6px;margin-top:6px">${mem}</div>${P.members.length < 2 ? '<p class="tiny muted" style="margin:6px 0 0">다른 개척자의 프로필에서 \'함께 가기\'를 누르면 조사대원이 됩니다.</p>' : ''}${gat}</div>`;
+  return `<div class="card" style="margin-bottom:10px"><div class="row"><h3 class="grow">우리 조사대 ${P.members.length}/4</h3><button class="btn sm ghost" data-act="leaveParty">조사대 나가기</button></div><div class="row wrapf" style="gap:6px;margin-top:6px">${mem}</div>${hand}${P.members.length < 2 ? '<p class="tiny muted" style="margin:6px 0 0">다른 개척자의 프로필에서 \'함께 가기\'를 누르면 조사대원이 됩니다.</p>' : ''}${gat}</div>`;
 }
 // ===================== 거점 실시간: 같은 시설에 있는 사람 · 담소 · 마주침 =====================
 // 시설에 들어가 있으면 공개 프로필에 at:{f, ts} 를 남긴다. 2분 30초 안의 기록만 '지금 여기 있음'으로 본다.
@@ -2154,7 +2255,7 @@ const AT_FRESH = 150000;
 let HERE = null, hereBeat = 0;
 const hereOf = () => (FG ? 'fish' : SHEET && FAC[SHEET.k] ? SHEET.k : SHEET && SOCIAL_SHEETS.includes(SHEET.k) ? HERE : null);
 const atFresh = p => p && p.at && p.at.f && now() - p.at.ts < AT_FRESH && now() - (p.seen || 0) < AT_FRESH;
-function whoAt(f){ if (ST.mode !== 'cloud') return []; return Object.values(PL).filter(p => p.uid !== ST.uid && !blocked(p.uid) && atFresh(p) && p.at.f === f); }
+function whoAt(f){ if (ST.mode !== 'cloud') return []; return Object.values(PL).filter(p => p.uid !== ST.uid && !blocked(p.uid) && !hideOp(p) && atFresh(p) && p.at.f === f); }
 const sameSpot = o => { const p = PL[o]; return !!(HERE && p && atFresh(p) && p.at.f === HERE); };
 
 function presenceTick(){
@@ -2316,6 +2417,7 @@ function pushDue(){
     } else add(E.start + E.dur, 'exp', '장기 탐사 완료', `${REG[E.region].n}에서 무사히 돌아왔습니다. 보상을 받으러 오세요.`, 'exp' + E.id, {tab:'explore'});
   }
   if (S.travel) add(S.travel.arrive, 'exp', '도착', `${REG[S.travel.to].n}에 도착했습니다.`, 'arrive' + S.travel.arrive, {tab:'explore'});
+  if (S.hard) add(S.hard.end, 'exp', '고난도 탐사', `${REG[S.hard.ri].n} 고난도 탐사가 끝날 시간입니다. 고르지 않은 사건은 자동으로 진행됐어요.`, 'hard' + S.hard.start, {tab:'explore'});
   if (S.rest) add(S.rest.until, 'harvest', '휴식 끝', '온천에서 푹 쉬었다. 체력이 많이 찼다.', 'rest' + S.rest.until);
   if (S.task) add(S.task.start + S.task.dur, 'harvest', '생활 작업', `${TASKS[S.task.kind].n}${pp(TASKS[S.task.kind].n,'을','를')} 마쳤습니다.`, 'task' + S.task.start);
   S.farm.forEach((f, i) => { if (f) add(f.at + f.dur, 'harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
@@ -2596,6 +2698,8 @@ function viewTop(){
   if (td) chips.push(`<button class="chip bad" data-act="sheet" data-s="fx" data-a="tired">지친 몸${td.weak?'(약화)':''} · <span class="num" data-cd="${td.until}"></span></button>`);
   if (encActive()) chips.push(`<button class="chip gold" data-act="sheet" data-s="fx" data-a="enc">격려 경험치 +10% · <span class="num" data-cd="${S.buffs.enc}"></span></button>`);
   if (isMarried()) chips.push('<button class="chip gold" data-act="sheet" data-s="fx" data-a="married">부부 버프 경험치 +10%</button>');
+  if (S.travelAsk) chips.push(`<button class="chip blue" data-act="sheet" data-s="travelAsk">조사대 이동 · 답하기 <span class="num" data-cd="${S.travelAsk.deadline}"></span></button>`);
+  if (S.hard) chips.push(`<button class="chip bad" data-act="tab" data-t="explore">⚔ 고난도 탐사${hardPending() ? ' · 선택!' : ''} · <span class="num" data-cd="${S.hard.end}"></span></button>`);
   if (restActive()) chips.push(`<button class="chip good" data-act="sheet" data-s="rest">♨ 휴식 중 · <span class="num" data-cd="${S.rest.until}"></span></button>`);
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
@@ -2700,7 +2804,7 @@ TABS.home = () => {
     ${tile('sheet', 'board', '게시판', `<span class="st ${dn?'on':''}">${dn ? `구조 요청 ${dn}` : ST.mode==='cloud' ? '구조 요청 · 토벌대 · 소식' : '마을 소식'}</span>`, 'data-s="board"')}
     ${tile('sheet', 'sub', '신사 (서브 직업)', `<span class="st">${SUBS[S.sub].n}${syn()?' · <b style="color:var(--moss)">궁합 보너스</b>':''}</span>`, 'data-s="subjob"')}
   </div>
-  ${ST.mode === 'cloud' && NEWS.length ? `<div class="sec-title"><h2>마을 소식</h2></div><div class="card"><div class="list">${NEWS.slice(0,4).map(n => `<div class="li"><div class="t"><b class="small" style="font-weight:400">${esc(n.text)}</b><span>${new Date(n.ts).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div></div>`).join('')}</div></div>` : ''}
+  ${ST.mode === 'cloud' && newsList().length ? `<div class="sec-title"><h2>마을 소식</h2></div><div class="card"><div class="list">${newsList().slice(0,4).map(n => `<div class="li"><div class="t"><b class="small" style="font-weight:400">${esc(n.text)}</b><span>${new Date(n.ts).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div></div>`).join('')}</div></div>` : ''}
   ${ST.mode !== 'cloud' ? `<p class="tiny muted" style="margin-top:16px">${storeNote()}</p>` : ''}`;
 };
 
@@ -2753,6 +2857,8 @@ function mapSVG(sel){
   </svg>`;
 }
 TABS.explore = () => {
+  const exSeg = `<div class="seg ex-seg" role="tablist" style="margin-bottom:10px"><button data-act="exTab" data-t="map" aria-pressed="${UI.exTab !== 'hard'}">지도 · 탐사</button><button data-act="exTab" data-t="hard" aria-pressed="${UI.exTab === 'hard'}">⚔ 고난도 탐사${S.hard ? ' ●' : ''}</button></div>`;
+  if (UI.exTab === 'hard') return `<div class="sec-title"><h2>탐사</h2><span class="small muted">오늘 고난도 ${(S.hardDay?.d === dayKey() ? S.hardDay.n : 0)}회</span></div>${exSeg}${hardView()}`;
   const T = travelState();
   if (S.loc == null || !REG[S.loc]) S.loc = 0;
   if (UI.region == null || !REG[UI.region]) UI.region = S.loc;
@@ -2805,7 +2911,7 @@ TABS.explore = () => {
     ${S.exp ? '<p class="tiny muted" style="margin:0">장기 탐사를 마친 뒤 떠날 수 있다.</p>' : T ? '<p class="tiny muted" style="margin:0">지금 길을 걷는 중이다.</p>' : inParty && !lead ? '<p class="tiny muted" style="margin:0">조사대의 이동은 대장이 정한다.</p>' : ''}`;
   }
   return `
-  <div class="sec-title"><h2>탐사</h2><span class="small muted">단기 탐사 ${S.short.n}/10</span></div>
+  <div class="sec-title"><h2>탐사</h2><span class="small muted">단기 탐사 ${S.short.n}/10</span></div>${exSeg}
   ${P ? partyCard() : ''}${where}${expCard}
   <div class="card map-card">${mapSVG(ri)}<p class="tiny muted" style="margin:6px 2px 0">고장을 누르면 정보가 나온다. 어디든 걸어갈 수 있고, 거리에 따라 6~15분이 걸린다.</p></div>
   <div class="card stack" style="margin-top:10px" id="regionCard">
@@ -2820,7 +2926,7 @@ TABS.explore = () => {
 const DOPEN = {};
 const dOpen = k => DOPEN[k] ? 'open' : '';
 document.addEventListener('toggle', e => { const d = e.target; if (d && d.dataset && d.dataset.ok) DOPEN[d.dataset.ok] = d.open; }, true);
-const HIST_KIND = {done:'완주',early:'조기 귀환',carry:'부축 귀환',heal:'치료 후 귀환',auto:'자동 귀환'};
+const HIST_KIND = {done:'완주',early:'조기 귀환',carry:'부축 귀환',heal:'치료 후 귀환',auto:'자동 귀환',hard_done:'고난도 · 완주',hard_quit:'고난도 · 중도 귀환',hard_down:'고난도 · 빈사'};
 function logGroups(lines, start, tick){
   const g = []; for (const l of lines){ const last = g[g.length-1]; if (last && last.i === l.i) last.ls.push(l); else g.push({i:l.i, ls:[l]}); }
   return g.map(x => `<div class="entry ${x.ls.some(l => l.k === 'enc') ? 'battle' : ''} ${x.ls.some(l => l.k === 'egg') ? 'special' : ''}"><time class="num">${start ? fmtClock(start + x.i*tick) : ''}</time><div>${x.ls.map(l => `<p class="${l.k}">${esc(l.x)}</p>`).join('')}</div></div>`);
@@ -2830,9 +2936,9 @@ function histCard(h, idx){
   const lines = h.lines || [];
   const battle = lines.filter(l => ['enc','fight','win','flee','down'].includes(l.k));
   const kills = Object.entries(h.kills || {});
-  return `<details class="card hist" data-ok="h${h.at}" ${dOpen('h'+h.at)}><summary><b>${REG[h.region].n}</b> <span class="small muted">${new Date(h.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${Math.round((h.dur||0)/H) || '?'}시간 · ${HIST_KIND[h.kind]}${h.party && h.party.length ? ` · 조사대 ${h.party.map(esc).join(', ')}` : ''}</span><br><span class="small num">물건 ${h.n}개 · ${h.gold}${CUR}${h.fee ? ` (치료비 −${h.fee})` : ''} · 경험치 ${h.xp}</span></summary>
+  return `<details class="card hist" data-ok="h${h.at}" ${dOpen('h'+h.at)}><summary><b>${REG[h.region].n}</b> <span class="small muted">${new Date(h.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${(h.dur||0) >= H ? Math.round(h.dur/H) + '시간' : Math.round((h.dur||0)/MIN) + '분'} · ${HIST_KIND[h.kind]}${h.party && h.party.length ? ` · 조사대 ${h.party.map(esc).join(', ')}` : ''}</span><br><span class="small num">물건 ${h.n}개 · ${h.gold}${CUR}${h.fee ? ` (치료비 −${h.fee})` : ''} · 경험치 ${h.xp}</span></summary>
     <div class="stack" style="gap:8px;margin-top:8px">
-      <div><b class="small">얻은 물건</b><div class="row wrapf" style="gap:6px;margin-top:4px">${items.length ? items.map(([k,v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('') : '<span class="muted small">없음</span>'}</div></div>
+      <div><b class="small">얻은 물건</b><div class="row wrapf" style="gap:6px;margin-top:4px">${items.length || h.egg ? items.map(([k,v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('') + (h.egg ? `<span class="chip gold">🥚 ${h.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : '') : '<span class="muted small">없음</span>'}</div></div>
       ${kills.length ? `<p class="small" style="margin:0">쓰러뜨린 몬스터: ${kills.map(([k,v]) => `${MON[k]?.n || k} ${v}`).join(', ')}</p>` : ''}
       ${lines.length ? `<details class="sub" data-ok="b${h.at}" ${dOpen('b'+h.at)}><summary class="small">전투 기록 (${battle.filter(l => l.k === 'enc').length}번)</summary><div class="log" style="max-height:320px">${logGroups(battle, h.start, h.tick).join('') || '<p class="muted small">전투가 없었다.</p>'}</div></details>
       <details class="sub" data-ok="l${h.at}" ${dOpen('l'+h.at)}><summary class="small">전체 탐사 일지 (${new Set(lines.map(l => l.i)).size}칸)</summary><div class="log" style="max-height:420px">${logGroups(lines, h.start, h.tick).join('')}</div></details>` : '<p class="tiny muted" style="margin:0">이 탐사는 업데이트 전 기록이라 일지가 남아 있지 않다.</p>'}
@@ -2887,7 +2993,7 @@ TABS.social = () => {
   if (ST.mode !== 'cloud') return `<div class="sec-title"><h2>교류</h2></div><div class="card"><p style="margin-top:0">다른 개척자들과의 호감도, 연인·청혼, 구조 요청은 공유 저장소가 연결되어 있을 때 쓸 수 있습니다.</p><p class="small muted" style="margin-bottom:0">${storeNote()}</p></div>`;
   const dl = downedList();
   const me = ST.uid;
-  const people = Object.values(PL).filter(p => p.uid !== me && !blocked(p.uid));
+  const people = Object.values(PL).filter(p => p.uid !== me && !blocked(p.uid) && !hideOp(p));
   const online = people.filter(isOnline).length;
   const rank = p => (isFav(p.uid) ? 0 : 2) + (isOnline(p) ? 0 : 1);
   const withRel = people.map(p => ({p, r:getRel(p.uid)})).sort((a,b) => rank(a.p) - rank(b.p) || stageRank(effStage(b.r)) - stageRank(effStage(a.r)) || (b.r.aff||0) - (a.r.aff||0));
@@ -3025,7 +3131,7 @@ SHEETS.board = () => {
   return sheetHead('게시판') + `
   <h3>구조 요청</h3>${dl.length ? `<div class="list">${dl.map(({p, es}) => `<div class="li">${PHOTO(p.photo)}<div class="t"><b>${esc(p.name)}</b><span>${REG[p.exp.region].n} · <span class="num" data-cd="${es.autoAt}"></span> 남음</span></div><div class="acts"><button class="btn sm" data-act="rescue" data-u="${esc(p.uid)}" data-k="carry">부축</button><button class="btn sm seal" data-act="rescue" data-u="${esc(p.uid)}" data-k="heal" ${cnt('cure')?'':'disabled'}>치료제</button></div></div>`).join('')}</div>` : '<p class="small muted">쓰러진 사람이 없습니다.</p>'}
   <h3 style="margin-top:14px">토벌 원정대</h3>${raids.length ? `<div class="list">${raids.map(r => { const ids = Object.keys(r.m||{}); const inR = ids.includes(ST.uid); const open = raidJoinable(r); return `<div class="li"><div class="t"><b>${REG[r.region].n} · ${BOSS[r.region].n}</b><span>${ids.map(i => esc(r.m[i].name)).join(', ')} (${ids.length}명) · ${open ? `출발까지 <span class="num" data-cd="${r.startAt}"></span>` : '출발함'}</span></div>${open && !inR ? `<button class="btn sm seal" data-act="joinRaid" data-id="${r.id}">합류</button>` : inR ? '<span class="chip good">참가</span>' : ''}</div>`; }).join('')}</div>` : '<p class="small muted">모집 중인 원정대가 없습니다. 탐사 탭의 우두머리에서 모집할 수 있습니다.</p>'}
-  <h3 style="margin-top:14px">마을 소식</h3>${NEWS.length ? `<div class="list">${NEWS.map(n => `<div class="li"><div class="t"><b style="font-weight:400" class="small">${esc(n.text)}</b><span>${new Date(n.ts).toLocaleString('ko-KR')}</span></div></div>`).join('')}</div>` : '<p class="small muted">아직 소식이 없습니다.</p>'}`;
+  <h3 style="margin-top:14px">마을 소식</h3>${newsList().length ? `<div class="list">${newsList().map(n => `<div class="li"><div class="t"><b style="font-weight:400" class="small">${esc(n.text)}</b><span>${new Date(n.ts).toLocaleString('ko-KR')}</span></div></div>`).join('')}</div>` : '<p class="small muted">아직 소식이 없습니다.</p>'}`;
 };
 SHEETS.subjob = () => sheetHead('서브 직업') + `
   <p class="small muted" style="margin-top:0">언제든 바꿀 수 있다. 숙련도는 직업마다 따로 쌓이고, 다시 돌아오면 이어진다. ${JOBS[S.job].n}와 궁합이 좋은 직업은 표시된다.</p>
@@ -3061,7 +3167,7 @@ SHEETS.result = s => {
   return sheetHead(ttl) + `<p style="margin-top:0">${REG[s.region].n} · ${Math.round(s.dur/H)}시간</p>
   ${s.note ? `<p class="small" style="color:${s.kind==='done'?'var(--ink)':'var(--seal)'}">${esc(s.note)}${['carry','heal','auto'].includes(s.kind)?' 12시간 동안 지친 몸 상태가 된다. 친구의 위로나 연인의 애정 표현으로 덜 수 있다.':''}</p>` : ''}
   <div class="card"><div class="row num" style="justify-content:space-between"><span>경험치 <b>+${s.xp}</b></span><span>엽전 <b>+${s.gold}</b>${s.fee?` / 치료비 −${s.fee}`:''}</span></div>
-  <hr class="rule">${items.length ? `<div class="row wrapf" style="gap:6px">${items.map(([k,v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('')}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}
+  <hr class="rule">${items.length || s.egg ? `<div class="row wrapf" style="gap:6px">${items.map(([k,v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('')}${s.egg ? `<span class="chip gold">🥚 ${s.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : ''}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}
   ${Object.keys(s.kills).length ? `<p class="small muted" style="margin-bottom:0">쓰러뜨린 몬스터: ${Object.entries(s.kills).map(([k,v]) => `${MON[k].n} ${v}`).join(', ')}</p>` : ''}</div>
   ${s.egg ? `<div class="card comp" style="margin-top:10px">${eggArt(s.egg.kind)}<div><b>${s.egg.kind==='pet'?'야생동물의 알':'요괴의 알'}을 얻었다!</b><br><span class="small muted">거점의 둥지에 두면 부화한다.</span><br><button class="btn sm" style="margin-top:6px" data-act="sheet" data-s="nest">둥지로 가기</button></div></div>` : ''}
   ${s.lines && s.lines.length ? (() => { const bl = s.lines.filter(l => ['enc','fight','win','flee','down'].includes(l.k)); return `<h3 style="margin-top:14px">이번 탐사 기록</h3>
@@ -3260,7 +3366,7 @@ SHEETS.board = () => {
   return sheetHead('게시판') + `<p class="small muted" style="margin-top:0">마을 어귀의 나무 팻말. 먹으로 쓴 쪽지들이 바람에 펄럭인다.</p>
   <h3>구조 요청</h3>${dl.length ? `<div class="list">${dl.map(({p, es}) => `<div class="li">${PHOTO(p.photo)}<div class="t"><b>${esc(p.name)}</b><span>${REG[p.exp.region].n} · <span class="num" data-cd="${es.autoAt}"></span> 남음</span></div><div class="acts">${S.loc === p.exp.region ? `<button class="btn sm" data-act="rescue" data-u="${esc(p.uid)}" data-k="carry">부축</button><button class="btn sm seal" data-act="rescue" data-u="${esc(p.uid)}" data-k="heal" ${cnt('cure')?'':'disabled'}>각성약</button>` : `<span class="tiny muted">${REG[p.exp.region].n}에 가야 함</span>`}</div></div>`).join('')}</div>` : '<p class="small muted">쓰러진 사람이 없습니다.</p>'}
   <h3 style="margin-top:14px">우두머리 토벌대</h3>${raids.length ? `<div class="list">${raids.map(r => { const ids = Object.keys(r.m||{}); const inR = ids.includes(ST.uid); const open = raidJoinable(r); return `<div class="li"><div class="t"><b>${REG[r.region].n} · ${BOSS[r.region].n}</b><span>${ids.map(i => esc(r.m[i].name)).join(', ')} (${ids.length}명) · ${open ? `출발까지 <span class="num" data-cd="${r.startAt}"></span>` : '출발함'}</span></div>${open && !inR ? (S.loc === r.region ? `<button class="btn sm seal" data-act="joinRaid" data-id="${r.id}">합류</button>` : `<span class="tiny muted">${REG[r.region].n}에서 합류</span>`) : inR ? '<span class="chip good">참가</span>' : ''}</div>`; }).join('')}</div>` : '<p class="small muted">모집 중인 토벌대가 없습니다. 탐사 탭의 우두머리에서 모집할 수 있습니다.</p>'}
-  <h3 style="margin-top:14px">마을 소식</h3>${NEWS.length ? `<div class="list">${NEWS.map(n => `<div class="li"><div class="t"><b style="font-weight:400" class="small">${esc(n.text)}</b><span>${new Date(n.ts).toLocaleString('ko-KR')}</span></div></div>`).join('')}</div>` : '<p class="small muted">아직 소식이 없습니다.</p>'}`;
+  <h3 style="margin-top:14px">마을 소식</h3>${newsList().length ? `<div class="list">${newsList().map(n => `<div class="li"><div class="t"><b style="font-weight:400" class="small">${esc(n.text)}</b><span>${new Date(n.ts).toLocaleString('ko-KR')}</span></div></div>`).join('')}</div>` : '<p class="small muted">아직 소식이 없습니다.</p>'}`;
 };
 
 function pwaBox(){
@@ -3387,7 +3493,7 @@ SHEETS.fx = k => {
 
 function compList(){
   const sorted = S.comps.slice().sort((a, b) => (b.out !== false) - (a.out !== false));
-  return `<div class="list">${sorted.map(x => { const on = activeComps().includes(x); return `<div class="li">${art(x.sp)}<button class="t click" style="background:none;border:0;padding:0;text-align:left;color:inherit" data-act="sheet" data-s="comp" data-a="${x.id}"><b>${esc(x.name)} <span class="small muted">Lv.${x.lv}</span> ${on ? '<span class="chip good">동행</span>' : '<span class="chip">쉬는 중</span>'}</b><span>${SPEC[x.sp].n} · ${SPEC[x.sp].k === 'pet' ? '펫' : '소환수'} · 친밀도 ${x.bond}</span></button><button class="btn sm ${on ? 'ghost' : ''}" data-act="compOut" data-id="${x.id}">${on ? '쉬게 하기' : '데리고 다니기'}</button></div>`; }).join('')}</div>`;
+  return `<div class="list">${sorted.map(x => { const on = activeComps().includes(x); return `<div class="li">${art(x.sp)}<button class="t click" style="background:none;border:0;padding:0;text-align:left;color:inherit" data-act="sheet" data-s="comp" data-a="${x.id}"><b>${esc(x.name)} <span class="small muted">Lv.${x.lv}</span> ${on ? '<span class="chip good">동행</span>' : '<span class="chip">쉬는 중</span>'}</b><span>${SPEC[x.sp].n} · ${SPEC[x.sp].k === 'pet' ? '펫' : '소환수'} · ${bondTier(x.bond)} ${x.bond} · ${compMood(x)[0]}</span></button><button class="btn sm ${on ? 'ghost' : ''}" data-act="compOut" data-id="${x.id}">${on ? '쉬게 하기' : '데리고 다니기'}</button></div>`; }).join('')}</div>`;
 }
 
 // 레시피를 배우는 곳
@@ -3410,12 +3516,21 @@ SHEETS.rest = () => {
   const mx = maxHP(), hp = curHP(), on = restActive(), fb = foodBuff();
   const perMin = mx * 0.05 / 10 * (fb && fb.regen ? 2 : 1);
   const needMin = Math.ceil((mx - hp) / (perMin * REST_MULT));
-  const opt = m => { const gain = Math.min(mx - hp, Math.round(perMin * REST_MULT * m)); return `<button class="btn ${m === 30 ? 'seal' : ''}" data-act="rest" data-m="${m}" ${hp >= mx ? 'disabled' : ''} style="flex-direction:column;height:auto;padding:10px 14px;flex:1"><b>${m}분</b><span class="tiny">체력 +${gain}</span></button>`; };
+  const opt = m => { const gain = Math.round(Math.min(mx - hp, perMin * REST_MULT * m)); return `<button class="btn ${m === 30 ? 'seal' : ''}" data-act="rest" data-m="${m}" ${hp >= mx ? 'disabled' : ''} style="flex-direction:column;height:auto;padding:10px 14px;flex:1"><b>${m}분</b><span class="tiny">체력 +${gain}</span></button>`; };
   return sheetHead('온천 · 휴식') + `<p class="small muted" style="margin-top:0">마을 뒤편에 김이 오르는 작은 온천. 몸을 담그고 있으면 체력이 평소보다 <b>5배</b> 빨리 찬다 (10분에 최대 체력의 25%).${fb && fb.regen ? ' 자연 회복 요리 버프까지 더해 10배!' : ''}</p>
   <div class="card"><div class="row small"><b class="grow">체력</b><span class="num">${Math.floor(hp)} / ${mx}</span></div><div class="bar" style="margin-top:6px"><i style="width:${hp/mx*100}%;background:var(--moss)"></i></div>
   <p class="tiny muted" style="margin:6px 0 0">${hp >= mx ? '체력이 가득하다.' : on ? `휴식 중 · 남은 시간 <span class="num" data-cd="${S.rest.until}"></span>` : `가득 찰 때까지 약 ${needMin}분`}</p></div>
   ${on ? `<button class="btn full" style="margin-top:10px" data-act="restEnd">온천에서 나오기</button>` : `<div class="row" style="margin-top:10px;gap:8px">${opt(10)}${opt(20)}${opt(30)}</div>`}
   <p class="tiny muted" style="margin:8px 0 0">휴식 중에 탐사를 떠나거나 다른 고장으로 걸어가거나 토벌전을 시작하면 휴식이 끝난다. 거점의 다른 시설은 그대로 쓸 수 있다.</p>`;
+};
+
+SHEETS.travelAsk = () => {
+  const A = S.travelAsk; if (!A) return sheetHead('조사대 이동') + '<p class="muted">지금은 물어볼 것이 없습니다.</p>';
+  return sheetHead('조사대 이동') + `<div class="card" style="border-color:var(--indigo)">
+    <p style="margin:0"><b>대장 ${esc(nameOf(A.leader))}님</b>이 ${REG[A.from].n}에서 <b>${josa(REG[A.to].n,'으로','로')}</b> 떠납니다.</p>
+    <p class="small muted" style="margin:6px 0 0">함께 가면 약 ${Math.round(A.dur*SPD()/MIN)}분 동안 일행과 손을 잡고 걷는다. 남으면 조사대에서 빠진다.</p>
+    <p class="small" style="margin:8px 0 0;color:var(--seal)">답하지 않으면 <b class="num" data-cd="${A.deadline}"></b> 뒤 자동으로 조사대에서 빠진다.</p></div>
+  <div class="row" style="margin-top:12px;gap:8px"><button class="btn ghost grow" data-act="travelNo">남기</button><button class="btn seal grow" data-act="travelYes">함께 가기</button></div>`;
 };
 // ===================== 토벌전: 실시간 턴제 전투 (혼자 · 토벌대) =====================
 // 매 턴 직접 행동을 고른다: 공격 · 고유 스킬 · 피하기 · 숨기 · 회복 · 도주.
@@ -3531,6 +3646,7 @@ function startBattle(ri, raid){
   if (S.rest) endRest(true);
   if (BT && BT.st === 'fight') return openSheet('battle');
   if (S.exp) return toast('장기 탐사 중에는 도전할 수 없습니다.');
+  if (S.hard && !raid) return toast('고난도 탐사 중에는 도전할 수 없습니다.');
   if (travelState()) return toast('길을 걷는 중입니다. 도착한 뒤에 할 수 있어요.');
   if (!raid && S.loc !== ri) return toast(`지금 있는 곳은 ${REG[S.loc].n}입니다. 지도에서 ${josa(REG[ri].n,'으로','로')} 먼저 이동하세요.`);
   if (!raid && S.lv < bossReqLv(ri)) return toast(`레벨 ${bossReqLv(ri)} 이상부터 도전할 수 있습니다.`);
@@ -3652,6 +3768,602 @@ SHEETS.battle = () => {
     ${B('flee', '🏃', '도주하기', bt.raidId ? '피해는 토벌대에 남는다' : '보상 없이 빠져나온다')}
   </div>` : res + `<button class="btn full" style="margin-top:10px" data-act="btClose">확인</button>`}
   <div class="log bt-log">${bt.log.slice(0, 14).map((l, i) => `<p class="${l[0]}${i === 0 ? ' new' : ''}"><span>${esc(l[1])}</span></p>`).join('')}</div>`;
+};
+// ===================== 고난도 탐사: 실시간 선택형 탐사 (10분 · 30분 · 1시간) =====================
+// 길 위에서 갈림길과 사건을 만나면 직접 고른다. 1분 안에 고르지 않으면 무작정 몸이 먼저 움직인다(위험 1.5배).
+// 앱을 닫아 두어도 시간은 흐르고, 고르지 못한 사건은 자동으로 진행된다.
+const HARD_MINS = [10, 30, 60];
+// 긴 탐사일수록 사건이 많으니 사건당 보상은 조금씩 줄인다
+const HARD_LMUL = {10:1, 30:0.7, 60:0.55};
+// 사건이 많은 만큼 한 번에 받는 피해도 줄인다
+const HARD_DMUL = {10:1, 30:0.8, 60:0.66};
+const HARD_PICK_MS = 60000, HARD_DAILY = 5, HARD_AUTO_DANGER = 1.5, HARD_DMG = 1.7;
+const HARD_RARE = ['gem','rareore','soul','scroll','talisman','ingot','rareherb'];
+
+// ---- 사건 정의: 선택지마다 쓰는 능력치(st), 성공 보상(ok), 실패(no) ----
+// ok/no 는 효과 꾸러미: mats(재료 개수), rare(희귀 확률), gold, xp, gear(장비 확률), egg(알 확률), dmg(최대 체력 대비 피해), heal, buff, fight('a'|'y'|'any')
+const HARD_SC = {
+  route:{t:'갈림길', w:0, d:['길이 세 갈래로 나뉜다. 어느 쪽으로 갈까?', '오래된 이정표가 쓰러져 있다. 길은 셋.', '안개 너머로 길이 갈라진다.'], o:[
+    {k:'short', t:'지름길로 간다', h:'다음 사건들의 위험 ↑ · 희귀 보상 ↑', route:{danger:1.3, loot:1.0, rare:1.6}, x:['덤불을 헤치고 가파른 지름길로 들어섰다.', '험하지만 빠른 길을 골랐다. 발밑을 조심하자.']},
+    {k:'long', t:'조금 더 멀리 돌아간다', h:'위험 ↓ · 재료 보상 ↑', route:{danger:0.7, loot:1.35, rare:0.8}, x:['느긋하게 둘러 가는 길을 택했다. 길가에 쓸 만한 것이 많다.', '멀리 돌아가기로 했다. 다리는 아프지만 마음은 편하다.']},
+    {k:'charge', t:'정면돌파!', h:'즉시 전투 · 이기면 보상 크게 ↑', route:{danger:1.0, loot:1.4, rare:1.3}, fight:'any', x:['가장 곧은 길로 성큼성큼 나아갔다. 무언가 길을 막아선다!', '정면으로 밀고 들어갔다. 기다렸다는 듯 그림자가 덮쳐 온다!']},
+  ]},
+  dirt:{t:'부드러운 흙더미', w:10, d:['발밑의 흙이 유난히 부드럽다. 무언가 묻혀 있는 것 같다.', '누군가 파헤쳤다 다시 덮은 흔적이 있다.'], o:[
+    {t:'흙을 걷어낸다', st:'STR', ok:{mats:2, rare:0.35, xp:1}, no:{dmg:0.06, mats:1}, okx:['흙을 걷어내자 단단한 것이 손끝에 걸렸다!', '한참을 파내자 묻혀 있던 것이 드러났다.'], nox:['돌부리에 손을 찧었다.', '파낸 흙이 무너져 내려 다리를 덮쳤다.']},
+    {t:'나뭇가지로 찔러 본다', st:'SEN', ok:{mats:1, rare:0.2}, no:{}, okx:['가지 끝에 걸린 것을 조심스럽게 끌어올렸다.'], nox:['아무것도 걸리지 않았다.']},
+    {t:'그냥 지나간다', safe:true, ok:{}, okx:['괜히 손을 더럽힐 필요는 없다. 그냥 지나갔다.']},
+  ]},
+  boulder:{t:'커다란 바위', w:9, d:['길 한가운데 집채만 한 바위가 박혀 있다. 아래쪽에 틈이 보인다.', '이끼 낀 거대한 바위가 길을 막고 있다.'], o:[
+    {t:'바위를 밀어본다', st:'STR', hard:1.2, ok:{mats:2, rare:0.6, xp:2}, no:{dmg:0.12}, okx:['끄응… 바위가 굴러가자 숨겨진 굴이 드러났다!', '온 힘을 다해 밀자 바위가 비켜났다. 그 아래 반짝이는 것이 있다.'], nox:['바위는 꿈쩍도 않고 허리만 삐끗했다.', '밀던 바위가 되밀려 와 몸을 짓눌렀다.']},
+    {t:'틈을 살핀다', st:'SEN', ok:{mats:1, rare:0.25, egg:0.18}, no:{dmg:0.04}, okx:['틈 사이로 손을 넣자 무언가 따뜻한 것이 만져졌다.', '틈 안쪽에 누군가 숨겨 둔 꾸러미가 있었다.'], nox:['틈에서 지네가 튀어나와 손등을 물었다.']},
+    {t:'옆으로 돌아간다', safe:true, ok:{}, okx:['바위를 빙 돌아 지나갔다.']},
+  ]},
+  chest:{t:'낡은 상자', w:8, d:['풀숲에 낡은 나무 상자가 반쯤 묻혀 있다. 자물쇠가 녹슬었다.', '쓰러진 수레 옆에 작은 궤짝이 떨어져 있다.'], o:[
+    {t:'힘껏 열어젖힌다', st:'LUK', ok:{gold:2, rare:0.5, gear:0.35}, no:{dmg:0.1}, okx:['뚜껑이 열리자 안에 든 것이 반짝였다!', '삐걱— 상자 안에는 누군가의 보물이 고스란히 남아 있었다.'], nox:['찰칵! 함정이었다. 바늘이 손을 찔렀다.', '상자를 여는 순간 연기가 뿜어져 나왔다. 콜록!']},
+    {t:'자물쇠를 살핀다', st:'AGI', ok:{gold:1.5, rare:0.3, gear:0.2}, no:{}, okx:['자물쇠를 살살 돌려 함정을 피해 열었다.'], nox:['자물쇠가 꿈쩍하지 않는다. 포기했다.']},
+    {t:'그냥 둔다', safe:true, ok:{}, okx:['괜히 건드렸다가 무슨 일이 날지 모른다.']},
+  ]},
+  herbs:{t:'약초 군락', w:9, d:['바위 그늘에 약초가 무리 지어 자라고 있다.', '처음 보는 풀이 군락을 이루고 있다. 향이 강하다.'], o:[
+    {t:'정성껏 캔다', st:'INT', ok:{herb:3, rareherb:0.35, xp:1}, no:{herb:1}, okx:['뿌리까지 다치지 않게 조심스럽게 캐냈다.'], nox:['캐다가 뿌리가 끊어졌다. 쓸 만한 건 조금뿐.']},
+    {t:'몽땅 뜯는다', st:'LUK', ok:{herb:5}, no:{herb:2, dmg:0.07}, okx:['한 아름 뜯었다! 보따리가 묵직하다.'], nox:['독풀이 섞여 있었다. 손이 퉁퉁 붓는다.']},
+    {t:'잎만 몇 장 딴다', safe:true, ok:{herb:1}, okx:['필요한 만큼만 땄다.']},
+  ]},
+  river:{t:'불어난 개울', w:8, d:['비에 불어난 개울이 길을 끊었다.', '물살이 거센 개울이 앞을 가로막는다.'], o:[
+    {t:'헤엄쳐 건넌다', st:'VIT', ok:{mats:1, fish:1, xp:2, nextSafe:true}, no:{dmg:0.11}, okx:['거센 물살을 가르고 건넜다. 물속에서 무언가를 건져 올렸다.'], nox:['물살에 휩쓸려 바위에 부딪혔다.']},
+    {t:'돌다리를 찾는다', st:'SEN', ok:{mats:1}, no:{dmg:0.03}, okx:['멀지 않은 곳에 징검돌을 찾았다.'], nox:['미끄러운 돌에 발을 헛디뎠다.']},
+    {t:'낚싯대를 드리운다', st:'AGI', ok:{fish:2}, no:{}, okx:['물살이 센 곳일수록 물고기가 크다!'], nox:['입질만 몇 번. 물고기가 더 똑똑했다.']},
+  ]},
+  yokai:{t:'요괴의 기척', w:9, d:['등골이 서늘하다. 누군가 지켜보고 있다.', '길가의 석등에 푸른 불이 켜졌다. 요기가 짙다.'], o:[
+    {t:'맞서 싸운다', fight:'y', ok:{rare:0.4, xp:2}, okx:['요괴가 모습을 드러냈다!']},
+    {t:'숨죽이고 숨는다', st:'AGI', ok:{mats:1, rare:0.2}, no:{fight:'y', ambush:true}, okx:['숨을 죽이고 기다리자 요괴가 떨어뜨린 것만 남기고 사라졌다.'], nox:['들켰다! 요괴가 덮쳐 온다!']},
+    {t:'정화한다', st:'SPI', ok:{talisman:2, rare:0.35, xp:2}, no:{dmg:0.1, curse:true}, okx:['주문을 외자 요기가 흩어지며 부적 조각이 떨어졌다.'], nox:['요기가 몸에 스며들었다. 한기가 돈다… (저주)']},
+  ]},
+  beast:{t:'굶주린 짐승', w:8, d:['수풀 너머에서 낮은 으르렁 소리가 들린다.', '굶주린 눈빛이 이쪽을 노려본다.'], o:[
+    {t:'맞서 싸운다', fight:'a', ok:{xp:2}, okx:['짐승이 달려든다!']},
+    {t:'먹이를 던져 준다', st:'LUK', ok:{egg:0.35, xp:1}, no:{dmg:0.06}, okx:['짐승이 먹이를 물고 물러나며 둥지 쪽을 힐끗 본다.', '배를 채운 짐승이 꼬리를 흔들며 사라졌다. 둥지가 남았다.'], nox:['먹이는 무시하고 발톱을 휘둘렀다.']},
+    {t:'천천히 물러선다', st:'AGI', ok:{}, no:{dmg:0.08}, okx:['눈을 마주친 채 천천히 물러났다.'], nox:['등을 보인 순간 할퀴어 왔다.']},
+  ]},
+  shrine:{t:'무너진 사당', w:7, d:['이름 잃은 신을 모시던 작은 사당이 무너져 있다.', '길가에 이끼 낀 사당과 빈 공양 그릇이 있다.'], o:[
+    {t:'손을 모아 기도한다', ok:{buff:'luck', xp:1}, okx:['마음이 맑아진다. 다음 시도가 잘 풀릴 것 같다. (행운 +)']},
+    {t:'공물을 뒤진다', st:'LUK', ok:{gold:2, rare:0.4, scroll:0.3}, no:{dmg:0.08, curse:true}, okx:['오래된 공물 사이에서 귀한 것을 찾았다.'], nox:['벌을 받은 걸까. 몸이 무겁다… (저주)']},
+    {t:'사당을 정돈해 준다', st:'SPI', ok:{heal:0.15, xp:2}, no:{xp:1}, okx:['쓰러진 기둥을 세우자 따뜻한 바람이 불었다. 기운이 돈다.'], nox:['정돈을 마쳤다. 아무 일도 없었지만 뿌듯하다.']},
+  ]},
+  cave:{t:'동굴 입구', w:6, d:['절벽에 시커먼 동굴이 입을 벌리고 있다. 안에서 바람이 분다.', '덩굴에 가려진 동굴 입구를 발견했다.'], o:[
+    {t:'안으로 들어간다', st:'VIT', hard:1.3, ok:{mats:2, rare:0.8, gear:0.25, xp:3}, no:{dmg:0.16}, okx:['어둠 속에서 광맥이 반짝였다!', '동굴 깊은 곳에서 누군가 남긴 보물을 찾았다.'], nox:['천장에서 돌이 떨어졌다!', '발을 헛디뎌 구덩이로 굴러떨어졌다.']},
+    {t:'횃불로 비춰 본다', st:'INT', ok:{mats:1, rare:0.35}, no:{}, okx:['입구 근처에서 쓸 만한 것을 주웠다.'], nox:['너무 어두워 아무것도 보이지 않는다.']},
+    {t:'표시만 하고 지나간다', safe:true, ok:{xp:1}, okx:['지도에 동굴 위치를 적어 두었다.']},
+  ]},
+  traveler:{t:'쓰러진 나그네', w:6, d:['길가에 나그네가 쓰러져 신음하고 있다.', '짐을 잔뜩 진 행상인이 발목을 감싸 쥐고 있다.'], o:[
+    {t:'환약을 나눠 준다', pot:true, ok:{gold:2, scroll:0.3, gear:0.3, xp:2}, okx:['나그네가 고맙다며 품에서 무언가를 꺼내 주었다.', '행상인이 답례로 물건 하나를 골라 가라고 했다.']},
+    {t:'상처를 돌봐 준다', st:'SPI', ok:{gold:1, xp:2}, no:{xp:1}, okx:['정성껏 돌봐 주자 엽전 꾸러미를 건넸다.'], nox:['할 수 있는 만큼 했다. 나그네가 고개를 숙였다.']},
+    {t:'길만 묻는다', ok:{nextSafe:true}, okx:['이 앞 길이 험하다는 이야기를 들었다. 조심해서 가자.']},
+  ]},
+  ruins:{t:'선조의 유적', w:5, d:['돌기둥에 알 수 없는 문양이 빼곡하다. 선조들의 흔적이다.', '무너진 돌벽 사이로 오래된 방이 보인다.'], o:[
+    {t:'문양을 해독한다', st:'INT', hard:1.2, ok:{scroll:0.5, ingot:0.4, xp:4}, no:{xp:1}, okx:['문양의 뜻을 알아냈다! 숨겨진 칸이 열렸다.'], nox:['도무지 무슨 뜻인지 모르겠다.']},
+    {t:'벽을 두드려 본다', st:'STR', ok:{mats:2, rare:0.4}, no:{dmg:0.12}, okx:['빈 소리가 나는 곳을 깨자 보관함이 나왔다.'], nox:['벽이 무너져 돌 더미에 깔렸다!']},
+    {t:'조용히 살펴보고 나온다', safe:true, ok:{xp:1}, okx:['선조들의 흔적을 눈에 담고 나왔다.']},
+  ]},
+  storm:{t:'갑작스러운 비바람', w:6, d:['하늘이 순식간에 어두워지더니 비바람이 몰아친다.', '우박 섞인 돌풍이 몰아친다!'], o:[
+    {t:'바위 밑에서 버틴다', ok:{heal:0.06}, okx:['바위 밑에서 숨을 고르며 비가 그치길 기다렸다.']},
+    {t:'비를 뚫고 강행한다', st:'VIT', ok:{xp:3, mats:1}, no:{dmg:0.1}, okx:['비바람을 뚫고 나아갔다. 단련이 됐다.'], nox:['돌풍에 휘청이다 넘어졌다.']},
+  ]},
+};
+
+// 작은 사건: 길 위에서 자주 마주치는 짧은 선택 (보상·위험이 작다)
+Object.assign(HARD_SC, {
+  m_tracks:{t:'짐승 발자국', w:7, minor:true, d:['진흙 위에 선명한 발자국이 이어진다.', '부러진 가지와 발자국이 숲 안쪽으로 나 있다.'], o:[
+    {t:'발자국을 따라가 본다', st:'SEN', ok:{mats:1, egg:0.06}, no:{dmg:0.04}, okx:['발자국 끝에 짐승이 떨어뜨린 것이 있었다.'], nox:['발자국을 쫓다 가시덤불에 긁혔다.']},
+    {t:'못 본 척 지나간다', safe:true, ok:{}, okx:['괜히 짐승 굴에 들어갈 필요는 없다.']}]},
+  m_fruit:{t:'열매 달린 나무', w:7, minor:true, d:['가지가 휘도록 열매가 달린 나무가 있다.'], o:[
+    {t:'나무에 올라 딴다', st:'AGI', ok:{berry:2, heal:0.04}, no:{dmg:0.05}, okx:['잘 익은 열매를 땄다. 한 입 베어 무니 기운이 난다.'], nox:['가지가 부러져 엉덩방아를 찧었다.']},
+    {t:'떨어진 것만 줍는다', safe:true, ok:{berry:1}, okx:['바닥에 떨어진 열매를 몇 개 주웠다.']}]},
+  m_spring:{t:'맑은 샘', w:5, minor:true, d:['바위틈에서 맑은 물이 솟는다.', '이끼 사이로 차가운 샘물이 흐른다.'], o:[
+    {t:'물을 마시고 쉰다', ok:{heal:0.08}, okx:['차가운 샘물이 목을 타고 내려간다. 살 것 같다.']},
+    {t:'물통을 채우고 서두른다', ok:{xp:1, nextSafe:true}, okx:['물통을 채우고 발걸음을 재촉했다. 이 근처 지형이 눈에 익는다.']}]},
+  m_cliff:{t:'좁은 벼랑길', w:6, minor:true, d:['한 사람 겨우 지나갈 벼랑길이 이어진다. 아래는 아찔하다.'], o:[
+    {t:'성큼성큼 건넌다', st:'AGI', ok:{xp:1}, no:{dmg:0.07}, okx:['겁먹지 않고 단숨에 건넜다.'], nox:['발을 헛디뎌 바위에 무릎을 찧었다.']},
+    {t:'벽에 붙어 천천히 간다', safe:true, ok:{}, okx:['시간은 걸렸지만 무사히 건넜다.']}]},
+  m_glint:{t:'반짝이는 것', w:6, minor:true, d:['풀숲 사이에서 무언가 반짝였다.', '물웅덩이 바닥에 빛나는 것이 가라앉아 있다.'], o:[
+    {t:'손을 뻗어 줍는다', st:'LUK', ok:{gold:0.6, rare:0.12}, no:{dmg:0.03}, okx:['주워 보니 꽤 쓸 만한 것이다!'], nox:['깨진 유리 조각이었다. 손가락을 베었다.']},
+    {t:'무시한다', safe:true, ok:{}, okx:['반짝인다고 다 금은 아니다.']}]},
+  m_mushroom:{t:'수상한 버섯', w:5, minor:true, d:['나무 밑동에 알록달록한 버섯이 돋아 있다.'], o:[
+    {t:'한 입 먹어 본다', st:'LUK', ok:{heal:0.1}, no:{dmg:0.06}, okx:['의외로 맛있다! 몸이 따뜻해진다.'], nox:['혀가 얼얼하다… 독버섯이었다.']},
+    {t:'따서 챙긴다', safe:true, ok:{mushroom:1}, okx:['나중에 부엌에서 확인해 보자.']}]},
+  m_bridge:{t:'흔들다리', w:5, minor:true, d:['낡은 흔들다리가 계곡 위에 걸려 있다. 판자 몇 장이 빠졌다.'], o:[
+    {t:'뛰어서 건넌다', st:'AGI', ok:{xp:1}, no:{dmg:0.08}, okx:['판자가 끊어지기 전에 건너편에 닿았다!'], nox:['판자가 부서지며 다리가 빠졌다.']},
+    {t:'한 칸씩 조심조심', safe:true, ok:{}, okx:['줄을 꼭 붙잡고 천천히 건넜다.']}]},
+  m_fog:{t:'짙은 안개', w:5, minor:true, d:['순식간에 안개가 몰려와 한 치 앞도 보이지 않는다.'], o:[
+    {t:'표식을 찾아 나아간다', st:'SEN', ok:{nextSafe:true, xp:1}, no:{dmg:0.04, curse:true}, okx:['나무에 새겨진 표식을 찾아 길을 잃지 않았다.'], nox:['같은 자리를 맴돌다 기운이 빠졌다…']},
+    {t:'멈춰서 걷히길 기다린다', ok:{heal:0.04}, okx:['앉아서 숨을 고르는 사이 안개가 걷혔다.']}]},
+  m_camp:{t:'꺼진 모닥불', w:5, minor:true, d:['누군가 머물다 간 모닥불 자리가 있다. 재가 아직 따뜻하다.'], o:[
+    {t:'불을 다시 피워 쉰다', ok:{heal:0.09}, okx:['따뜻한 불 앞에서 잠시 몸을 녹였다.']},
+    {t:'재를 뒤져 본다', st:'LUK', ok:{gold:0.8, mats:1}, no:{}, okx:['재 속에 누군가 흘린 것이 묻혀 있었다.'], nox:['재만 잔뜩 묻었다.']}]},
+  m_bird:{t:'놀란 새 떼', w:4, minor:true, d:['발소리에 놀란 새 떼가 한꺼번에 날아올랐다.'], o:[
+    {t:'새들이 앉았던 곳을 살핀다', st:'SEN', ok:{feather:2, egg:0.05}, no:{}, okx:['깃털과 함께 둥지 하나를 찾았다.'], nox:['아무것도 없었다.']},
+    {t:'조용히 지켜본다', ok:{xp:1}, okx:['하늘을 가르는 새 떼가 아름답다. 마음이 차분해진다.']}]},
+});
+// 지도에 그리는 사건 표시
+const HARD_IC = {route:'⑂', dirt:'⛏', boulder:'🪨', chest:'📦', herbs:'🌿', river:'💧', yokai:'👁', beast:'🐾', shrine:'⛩', cave:'🕳', traveler:'🧍', ruins:'🏛', storm:'⛈', m_tracks:'·', m_fruit:'🍒', m_spring:'💦', m_cliff:'⛰', m_glint:'✨', m_mushroom:'🍄', m_bridge:'🌉', m_fog:'🌫', m_camp:'🔥', m_bird:'🐦'};
+const HARD_AMB = ['숨이 가빠 온다. 조금만 더.', '이 길은 사람이 다닌 흔적이 거의 없다.', '발밑의 돌이 와르르 굴러 떨어졌다.', '어디선가 낯선 울음소리가 메아리친다.', '짐 끈을 다시 졸라맸다.', '땀이 이마를 타고 흘러내린다.', '멀리서 무언가 반짝인 것 같다.', '길이 점점 좁아진다.', '바람이 방향을 바꿨다. 냄새가 달라졌다.', '나뭇가지에 옷깃이 걸렸다.'];
+const HARD_AUTO_X = ['머뭇거리는 사이 몸이 먼저 움직였다…', '생각할 겨를도 없이 무작정 몸을 던졌다.', '정신을 차려 보니 이미 손이 움직이고 있었다.'];
+
+// ---- 계산 ----
+const hardStat = (k) => effStats()[k] || 0;
+function hardChance(H, o, auto){
+  if (!o.st) return 1;
+  const T = 5 + REG[H.ri].lv*0.55;               // 그 고장에서 기대되는 능력치
+  let p = 0.55 + (hardStat(o.st) - T)*0.05;
+  p /= (o.hard || 1);
+  if (H.buff.luck) p += 0.15;
+  if (H.buff.curse) p -= 0.1;
+  if (auto) p -= 0.15;
+  return clamp(p, 0.12, 0.92);
+}
+function hardAddItem(H, k, n = 1){ if (!IT[k] || n <= 0) return; H.loot[k] = (H.loot[k] || 0) + n; }
+function hardLog(H, x, k = '', t){ H.log.push({t:t || H.clock || now(), x, k}); if (H.log.length > 400) H.log.shift(); }
+function hardDamage(H, frac, danger){
+  const lvGap = Math.max(0, REG[H.ri].lv - S.lv) * 0.04;
+  const d = Math.max(1, Math.round(H.max * frac * HARD_DMG * (0.8 + Math.random()*0.4) * danger * (1 + lvGap)));
+  H.hp -= d; return d;
+}
+function hardReward(H, r, mult){
+  const R = REG[H.ri], got = [];
+  const add = (k, n) => { n = Math.max(0, Math.round(n)); if (n > 0){ hardAddItem(H, k, n); got.push(`${itemName(k)} ${n}`); } };
+  const lm = mult.loot * (HARD_LMUL[H.mins] || 1), rm = mult.rare * (HARD_LMUL[H.mins] || 1);
+  if (r.mats) for (let i = 0; i < Math.round(r.mats * lm + Math.random()*0.6); i++) add(wpick(Math.random, R.mats), 1);
+  if (r.herb) add('herb', r.herb * lm);
+  if (r.fish){ const fs = FISH.filter(f => !f.rare); for (let i = 0; i < r.fish; i++) add(pick(Math.random, fs).id, 1); }
+  if (r.talisman) add('talisman', r.talisman);
+  if (r.berry) add('berry', r.berry);
+  if (r.mushroom) add('mushroom', r.mushroom);
+  if (r.feather) add('feather', r.feather);
+  if (r.rareherb && Math.random() < r.rareherb * rm) add('rareherb', 1);
+  if (r.scroll && Math.random() < r.scroll * rm) add('scroll', 1);
+  if (r.ingot && Math.random() < r.ingot * rm) add('ingot', 1);
+  if (r.rare && Math.random() < Math.min(0.95, r.rare * rm)) add(pick(Math.random, HARD_RARE), 1);
+  if (r.gear && Math.random() < r.gear * rm){ const g = pick(Math.random, ['gw','ga','gx']) + H.ri; add(g, 1); }
+  if (r.egg && !H.egg && Math.random() < r.egg){ H.egg = Math.random() < 0.6 ? {kind:'pet', sp:pick(Math.random, PET_SP)} : {kind:'summon', sp:pick(Math.random, SUM_SP)}; got.push(H.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'); }
+  if (r.gold){ const g = Math.round(r.gold * (8 + Math.random()*16) * (1 + H.ri*0.5) * lm); H.gold += g; got.push(`엽전 ${g}${CUR}`); }
+  if (r.xp){ const x = Math.round(r.xp * (5 + R.lv*1.5)); H.xp += x; got.push(`경험치 ${x}`); }
+  if (r.heal){ const h = Math.round(H.max * r.heal); H.hp = Math.min(H.max, H.hp + h); got.push(`체력 +${h}`); }
+  if (r.buff === 'luck'){ H.buff.luck = 2; }
+  if (r.nextSafe){ H.buff.safe = 1; }
+  if (r.curse){ H.buff.curse = 2; }
+  return got;
+}
+// 짧은 자동 전투 (최대 6합)
+function hardFight(H, kind, danger, ambush){
+  const R = REG[H.ri], pool = R.mons.filter(m => kind === 'any' || MON[m].t === kind);
+  const id = pick(Math.random, pool.length ? pool : R.mons), m = monStats(id, 2);
+  const s = {...makeSnap(H.ri)}; s.hp = H.hp;
+  let first = !ambush && (S.job === 'thief' || s.agi >= m.agi), r = 0, dealt = 0, taken = 0;
+  hardLog(H, `${josa(m.n,'과','와')} 맞붙었다! (Lv.${m.L}${m.t === 'y' ? ' · 요괴' : ''})${ambush ? ' 기습을 당했다!' : ''}`, 'enc');
+  while (r < 6 && m.hp > 0 && H.hp > 0){
+    r++;
+    const mine = () => { let d = pDmg(s, m, Math.random); if (S.job === 'samurai' && r === 1 && first) d *= 2; if (s.summ) d += Math.round(s.summ); m.hp -= d; dealt += d; };
+    const theirs = () => { const d = Math.max(1, Math.round(mDmg(m, s, Math.random) * danger * 1.25)); H.hp -= d; taken += d; };
+    if (first){ mine(); if (m.hp > 0) theirs(); } else { theirs(); if (H.hp > 0) mine(); }
+  }
+  if (H.hp <= 0) return {win:false, down:true};
+  if (m.hp <= 0){
+    const drops = []; for (const [it, ch] of MON[id].dr) if (Math.random() < ch * 1.2){ hardAddItem(H, it, 1); drops.push(IT[it].n); }
+    const x = 6 + m.L*4; H.xp += x;
+    S.codex.mon[id] = (S.codex.mon[id] || 0) + 1; stat(m.t === 'y' ? 'yokai' : 'animal');
+    hardLog(H, `${r}합 만에 ${josa(m.n,'을','를')} 쓰러뜨렸다! 피해 ${dealt}, 받은 피해 ${taken} · 경험치 +${x}${drops.length ? ' · ' + drops.join(', ') : ''}`, 'win');
+    return {win:true};
+  }
+  hardLog(H, `여섯 합을 겨루고도 끝나지 않았다. ${josa(m.n,'이','가')} 물러났다. (받은 피해 ${taken})`, 'flee');
+  return {win:false};
+}
+
+// ---- 진행: 사건이 끝나면 잠깐 걷고(20~45초), 다음 사건이 무작위로 온다 ----
+const HARD_WALK = () => (20000 + Math.random()*25000) / SPD();
+function hardPickScenario(H){
+  if (H.sinceRoute >= 3 && Math.random() < 0.28) return 'route';
+  if (H.count === 0) return 'route';
+  const keys = Object.keys(HARD_SC).filter(k => k !== 'route' && k !== H.lastSc);
+  // 큰 사건 35% · 작은 사건 65%
+  const major = Math.random() < 0.35;
+  const pool = keys.filter(k => !!HARD_SC[k].minor !== major);
+  return wpick(Math.random, pool.map(k => [k, HARD_SC[k].w]));
+}
+function hardScheduleWalk(H, from){
+  H.lastAt = from; H.nextAt = Math.round(from + HARD_WALK());
+  // 걷는 동안 풍경 일지를 7~12초마다
+  H.ambQ = [];
+  for (let t = from + (7000 + Math.random()*5000)/SPD(); t < H.nextAt - 3000/SPD() && t < H.end; t += (7000 + Math.random()*5000)/SPD()){
+    const r = Math.random(), cs = compSnap();
+    if (cs.length && Math.random() < 0.24){ H.ambQ.push({at:Math.round(t), x:compSay(Math.random, 'walk', cs), k:'comp'}); continue; }
+    H.ambQ.push({at:Math.round(t), x: r < 0.4 ? pick(Math.random, HARD_AMB) : r < 0.7 ? pick(Math.random, AMB_REG[H.ri]) : r < 0.85 ? pick(Math.random, AMB) : pick(Math.random, AMB_WEATHER)});
+  }
+}
+function hardSpawn(H, at){
+  const sc = hardPickScenario(H);
+  H.clock = at;
+  H.ev = {sc, d:Math.floor(Math.random()*HARD_SC[sc].d.length), at, deadline:at + HARD_PICK_MS};
+  H.count++; H.lastSc = sc; H.sinceRoute = sc === 'route' ? 0 : H.sinceRoute + 1;
+  // 지도에 점 하나 추가 (갈림길 방향에 따라 위아래로 굽는다)
+  const last = H.path[H.path.length - 1];
+  const tr = H.trend || 0, y = clamp(last.y + tr + (Math.random() - 0.5)*18, 34, 146);
+  H.path.push({x:last.x + 64, y:Math.round(y), sc});
+  if (H.path.length > 60) H.path.shift();
+  hardLog(H, `【${HARD_SC[sc].t}】 ${HARD_SC[sc].d[H.ev.d]}`, 'node', at);
+  if (document.hidden && at > now() - 5000) notify('exp', '고난도 탐사', `【${HARD_SC[sc].t}】 1분 안에 고르지 않으면 자동으로 진행됩니다.`, 'hn' + at);
+  else if (at > now() - 5000) sfx('bell');
+}
+const hardPending = (H = S.hard) => H ? H.ev : null;
+function hardStart(mins){
+  if (S.hard) return toast('이미 고난도 탐사 중입니다.');
+  if (S.exp) return toast('장기 탐사 중에는 떠날 수 없습니다.');
+  if (travelState()) return toast('길을 걷는 중입니다.');
+  if (S.hardDay?.d !== dayKey()) S.hardDay = {d:dayKey(), n:0};
+  setHP(curHP());
+  if (curHP() < maxHP()*0.4) return toast('체력이 너무 적습니다. 최대 체력의 40% 이상일 때 떠날 수 있어요. 온천에서 쉬고 오세요.', 'warn');
+  if (S.rest) endRest(true);
+  const pots = {pot1:Math.min(UI.hp1 ?? 2, cnt('pot1')), pot2:Math.min(UI.hp2 ?? 0, cnt('pot2'))};
+  for (const k in pots) if (pots[k]) takeItem(k, pots[k]);
+  const ri = S.loc, start = now();
+  S.hard = {id:uid36(), ri, mins, start, end:start + mins*MIN/SPD(), ev:null, count:0, sinceRoute:0, lastSc:'', path:[{x:40, y:90, sc:'start'}], trend:0, route:'',
+    hp:Math.round(curHP()), max:maxHP(), loot:{}, gold:0, xp:0, egg:null, log:[], buff:{}, seg:{danger:1, loot:1, rare:1}, pots, auto:0, picks:0, ambQ:[]};
+  S.hardDay.n++; stat('hard');
+  hardLog(S.hard, `${REG[ri].n}의 험한 길로 들어섰다. (고난도 탐사 ${mins === 60 ? '1시간' : mins + '분'})`, 'start', start);
+  if (compSnap().length) hardLog(S.hard, compSay(Math.random, 'start', compSnap()), 'comp', start);
+  hardScheduleWalk(S.hard, start); S.hard.nextAt = start + 4000/SPD(); // 첫 갈림길은 곧바로
+  sfx('go'); save(); pubDirty(); UI.exTab = 'hard'; render();
+}
+function hardChoose(idx, auto, at){
+  const H = S.hard; if (!H || !H.ev) return;
+  at = at || now(); H.clock = at;
+  const ev = H.ev, SC = HARD_SC[ev.sc], opts = SC.o;
+  if (auto){ idx = Math.floor(Math.random()*opts.length); hardLog(H, pick(Math.random, HARD_AUTO_X), 'sys'); H.auto++; stat('hardAuto'); }
+  const o = opts[idx]; if (!o) return;
+  H.ev = null; if (!auto) H.picks++;
+  H.path[H.path.length - 1].pick = idx; H.path[H.path.length - 1].auto = !!auto;
+  const danger = H.seg.danger * (auto ? HARD_AUTO_DANGER : 1) * (H.buff.safe ? 0.6 : 1) * (HARD_DMUL[H.mins] || 1);
+  const mult = {loot:H.seg.loot, rare:H.seg.rare};
+  hardLog(H, `▶ ${o.t}`, 'choice');
+  const hp0 = H.hp, loot0 = Object.values(H.loot).reduce((a, b) => a + b, 0);
+  const done = () => {
+    const cs = compSnap();
+    if (cs.length && S.hard){ const lt = Object.values(H.loot).reduce((a, b) => a + b, 0); const kind = H.hp < hp0 - H.max*0.04 ? (Math.random() < 0.5 ? 'hurt' : null) : lt > loot0 ? (Math.random() < 0.35 ? 'find' : null) : Math.random() < 0.12 ? 'good' : null; if (kind) hardLog(H, compSay(Math.random, kind, cs), 'comp'); }
+    hardScheduleWalk(H, at); hardAfter(auto);
+  };
+  if (ev.sc === 'route'){
+    H.seg = {...o.route}; H.route = o.k; H.trend = o.k === 'short' ? -16 : o.k === 'long' ? 16 : 0;
+    hardLog(H, pick(Math.random, o.x), 'amb');
+    if (o.fight){ const f = hardFight(H, 'any', danger, false); if (f.down) return hardDown(); if (f.win){ const got = hardReward(H, {mats:1, rare:0.45, gold:1, gear:0.12}, mult); if (got.length) hardLog(H, `전리품: ${got.join(', ')}`, 'item'); } }
+    return done();
+  }
+  if (H.buff.safe) H.buff.safe = 0;
+  if (o.pot){
+    const k = H.pots.pot1 ? 'pot1' : H.pots.pot2 ? 'pot2' : null;
+    if (!k){ hardLog(H, '나눠 줄 환약이 없다… 미안한 마음으로 지나쳤다.', 'amb'); return done(); }
+    H.pots[k]--; const got = hardReward(H, o.ok, mult); hardLog(H, pick(Math.random, o.okx) + (got.length ? ` (${got.join(', ')})` : ''), 'item'); return done();
+  }
+  if (o.fight){
+    hardLog(H, pick(Math.random, o.okx), 'enc');
+    const f = hardFight(H, o.fight, danger, false); if (f.down) return hardDown();
+    if (f.win){ const got = hardReward(H, o.ok, mult); if (got.length) hardLog(H, `전리품: ${got.join(', ')}`, 'item'); }
+    return done();
+  }
+  const p = hardChance(H, o, auto), ok = Math.random() < p;
+  if (H.buff.luck) H.buff.luck--;
+  if (H.buff.curse) H.buff.curse--;
+  if (ok){
+    const got = hardReward(H, o.ok, mult);
+    hardLog(H, pick(Math.random, o.okx) + (got.length ? ` (${got.join(', ')})` : ''), got.length ? 'item' : 'amb');
+  } else {
+    const r = o.no || {};
+    let t = pick(Math.random, o.nox || ['잘 되지 않았다.']);
+    if (r.dmg){ const d = hardDamage(H, r.dmg * (SC.minor ? 1 : 1), danger); t += ` 체력 −${d}`; }
+    const got = hardReward(H, {...r, dmg:0, fight:0}, {loot:1, rare:1});
+    if (got.length) t += ` (${got.join(', ')})`;
+    hardLog(H, t, r.dmg ? 'fight' : 'amb');
+    if (r.fight){ const f = hardFight(H, r.fight, danger, !!r.ambush); if (f.down) return hardDown(); }
+    if (H.hp <= 0) return hardDown();
+  }
+  done();
+}
+function hardAfter(auto){
+  const H = S.hard; if (!H) return;
+  if (!auto && H.hp < H.max*0.3){ const k = H.pots.pot2 && H.hp < H.max*0.15 ? 'pot2' : H.pots.pot1 ? 'pot1' : H.pots.pot2 ? 'pot2' : null; if (k){ H.pots[k]--; const h = Math.round(IT[k].heal*(S.job === 'healer' ? 1.3 : 1)); H.hp = Math.min(H.max, H.hp + h); hardLog(H, `숨이 넘어가기 직전에 ${IT[k].n}${pp(IT[k].n,'을','를')} 삼켰다. 체력 +${h}`, 'heal'); } }
+  save(); render();
+}
+function hardDrink(){
+  const H = S.hard; if (!H) return;
+  const k = H.pots.pot1 ? 'pot1' : H.pots.pot2 ? 'pot2' : null; if (!k) return toast('챙겨 온 환약이 없습니다.');
+  if (H.hp >= H.max) return toast('체력이 가득합니다.');
+  H.pots[k]--; const h = Math.round(IT[k].heal*(S.job === 'healer' ? 1.3 : 1)); H.hp = Math.min(H.max, H.hp + h);
+  hardLog(H, `${IT[k].n}${pp(IT[k].n,'을','를')} 먹었다. 체력 +${h}`, 'heal', now()); sfx('eat'); save(); render();
+}
+function hardDown(){ const H = S.hard; H.hp = 0; hardLog(H, '눈앞이 하얘졌다… 무리한 탐사 끝에 빈사 상태가 되었다.', 'down'); if (compSnap().length) hardLog(H, compSay(Math.random, 'down', compSnap()), 'comp'); hardFinish('down'); }
+function hardFinish(kind){
+  const H = S.hard; if (!H) return;
+  const mult = kind === 'down' ? 0.4 : kind === 'quit' ? 0.5 : 1;
+  const got = {}; for (const k in H.loot){ const n = Math.floor(H.loot[k]*mult + (mult < 1 ? Math.random()*0.99 : 0)); if (n > 0){ got[k] = n; addItem(k, n); } }
+  const gold = Math.round(H.gold*mult), xpRaw = Math.round(H.xp*(kind === 'down' ? 0.5 : mult));
+  S.gold += gold; const xp = addXP(xpRaw + (kind === 'done' ? Math.round(H.mins*1.5*(1 + H.ri*0.4)) : 0));
+  let egg = null; if (H.egg && kind !== 'down'){ egg = H.egg; S.eggs.push({...egg, id:uid36()}); }
+  for (const k in H.pots) if (H.pots[k]) addItem(k, H.pots[k]);
+  if (kind === 'down'){ setHP(maxHP()*0.05); S.tired = {until:now() + 6*H_MS()/SPD(), weak:false}; stat('hardDown'); }
+  else { setHP(Math.max(1, H.hp)); if (kind === 'done') stat('hardDone'); }
+  const lines = H.log.map(l => ({i:Math.round((l.t - H.start)/1000), x:l.x, k:l.k === 'choice' ? 'start' : l.k}));
+  const n = Object.values(got).reduce((a, b) => a + b, 0) + (egg ? 1 : 0);
+  S.hist.unshift({kind:'hard_' + kind, region:H.ri, at:now(), start:H.start, tick:1000, xp, gold, fee:0, n, got, egg, kills:{}, dur:H.mins*MIN, party:[], lines:lines.slice(-250)}); S.hist = S.hist.slice(0, 8);
+  const sum = {kind:'hard_' + kind, region:H.ri, mins:H.mins, got, gold, xp, egg, lines, start:H.start, auto:H.auto, picks:H.picks, count:H.count};
+  S.hard = null; save(); pubDirty();
+  notify('exp', '고난도 탐사', kind === 'down' ? `${REG[sum.region].n}에서 빈사 상태로 돌아왔습니다.` : `${REG[sum.region].n} 고난도 탐사를 마쳤습니다.`, 'hard' + sum.start);
+  openSheet('hardres', sum); sfx(kind === 'done' ? 'win' : 'soft'); render();
+}
+const H_MS = () => H;
+// 매초: 풍경 일지 · 다음 사건 · 1분 지난 사건 자동 진행 · 끝. 앱을 닫아 둔 사이 일도 순서대로 따라잡는다
+function hardTick(){
+  if (!S || !S.hard) return;
+  let changed = false, guard = 0;
+  while (S.hard && guard++ < 400){
+    const H = S.hard, t = now();
+    while (H.ambQ.length && H.ambQ[0].at <= t && (!H.ev || H.ambQ[0].at < H.ev.at)){ const a = H.ambQ.shift(); hardLog(H, a.x, a.k || 'amb', a.at); changed = true; }
+    if (H.ev){ if (t >= H.ev.deadline){ hardChoose(0, true, H.ev.deadline); changed = true; continue; } break; }
+    if (H.nextAt >= H.end){ if (t >= H.end){ H.clock = H.end; hardLog(H, '험한 길을 무사히 빠져나왔다!', 'end', H.end); if (compSnap().length) hardLog(H, compSay(Math.random, 'end', compSnap()), 'comp', H.end); hardFinish('done'); return; } break; }
+    if (t >= H.nextAt){ hardSpawn(H, H.nextAt); changed = true; continue; }
+    break;
+  }
+  if (!S.hard) return;
+  if (changed){ save(); render(); }
+  const H = S.hard;
+  const bar = document.getElementById('hdPick');
+  if (bar && H.ev){ const left = Math.max(0, H.ev.deadline - now()); bar.style.width = (left/HARD_PICK_MS*100) + '%'; const tx = document.getElementById('hdPickTx'); if (tx) tx.textContent = Math.ceil(left/1000) + '초'; }
+  const mk = document.getElementById('hdMe'); if (mk){ const [x, y] = hardMePos(H); mk.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`); }
+}
+async function hardQuit(){ if (!S.hard) return; if (!await ask('돌아가기', '지금까지 모은 것의 절반만 챙겨 돌아갑니다.', '돌아가기')) return; hardLog(S.hard, '더는 무리라고 판단하고 발길을 돌렸다.', 'end', now()); hardFinish('quit'); }
+
+// ---- 험로 지도: 지나온 길과 지금 위치, 갈림길의 세 갈래 ----
+const hardOff = H => { const last = H.path[H.path.length - 1]; return Math.max(0, last.x + 64 - 300); };
+function hardNextPt(H){ const last = H.path[H.path.length - 1]; return {x:last.x + 64, y:clamp(last.y + (H.trend || 0), 34, 146)}; }
+function hardMePos(H){
+  const off = hardOff(H), last = H.path[H.path.length - 1];
+  if (H.ev || !H.nextAt) return [last.x - off, last.y];
+  const nx = hardNextPt(H), f = clamp((now() - H.lastAt)/Math.max(1, H.nextAt - H.lastAt), 0, 1);
+  return [last.x + (nx.x - last.x)*f - off, last.y + (nx.y - last.y)*f];
+}
+const hHash = n => { let x = Math.sin(n*12.9898)*43758.5453; return x - Math.floor(x); };
+function hardMapSVG(H){
+  const off = hardOff(H), pts = H.path, last = pts[pts.length - 1];
+  const tone = ['sea','bamboo','swamp','forest','rock','lake','maple','volcano','ruin','snow','ice','thunder','sky'][H.ri] || 'forest';
+  // 배경 장식: 절대 x 좌표에 묶여 있어 길을 따라 함께 흘러간다
+  let deco = '';
+  const x0 = Math.floor(off/40) - 1;
+  for (let i = x0; i < x0 + 12; i++){
+    const r = hHash(i + H.ri*97), r2 = hHash(i*3.1 + 7), x = i*40 - off + r*20, yTop = 10 + r2*20, yBot = 160 + r*16;
+    const glyph = (y) => tone === 'sea' || tone === 'lake' ? `<path d="M${x} ${y}q5-4 10 0t10 0" class="hm-wave"/>` : tone === 'bamboo' ? `<path d="M${x} ${y}v-16M${x+5} ${y}v-20" class="hm-plant"/>` : tone === 'snow' || tone === 'ice' ? `<path d="M${x} ${y}l6-10l6 10z" class="hm-snow"/>` : tone === 'volcano' || tone === 'rock' || tone === 'thunder' ? `<path d="M${x} ${y}l7-12l8 12z" class="hm-rock"/>` : tone === 'maple' ? `<circle cx="${x}" cy="${y-6}" r="6" class="hm-maple"/>` : `<circle cx="${x}" cy="${y-8}" r="7" class="hm-tree"/><path d="M${x} ${y-1}v-4" class="hm-plant"/>`;
+    deco += glyph(yTop + 14) + glyph(yBot);
+  }
+  const path = pts.map((p, i) => `${i ? 'L' : 'M'}${(p.x - off).toFixed(1)} ${p.y}`).join('');
+  const nodes = pts.slice(1).map(p => { const big = !HARD_SC[p.sc]?.minor; return `<g transform="translate(${(p.x - off).toFixed(1)} ${p.y})"><circle r="${big ? 11 : 7}" class="hm-node ${p.auto ? 'auto' : ''}"/><text y="${big ? 4 : 3}" text-anchor="middle" class="hm-ic" font-size="${big ? 11 : 8}">${HARD_IC[p.sc] || '·'}</text></g>`; }).join('');
+  let ahead = '';
+  if (H.ev && H.ev.sc === 'route'){
+    const bx = last.x - off, by = last.y;
+    const br = [[-34, '지름길', 'short'], [0, '정면', 'charge'], [34, '우회로', 'long']];
+    ahead = br.map(([dy, nm]) => `<path d="M${bx} ${by} C${bx + 30} ${by} ${bx + 34} ${by + dy} ${bx + 62} ${clamp(by + dy, 18, 162)}" class="hm-branch"/><text x="${bx + 66}" y="${clamp(by + dy, 18, 162) + 4}" class="hm-blabel">${nm}</text>`).join('');
+  } else if (!H.ev){
+    const nx = hardNextPt(H);
+    ahead = `<path d="M${last.x - off} ${last.y}L${nx.x - off} ${nx.y}" class="hm-ahead"/><text x="${nx.x - off + 8}" y="${nx.y + 4}" class="hm-blabel">?</text>`;
+  }
+  const [mx, my] = hardMePos(H);
+  return `<svg class="hard-map" viewBox="0 0 360 180" role="img" aria-label="험로 지도: 지나온 사건 ${pts.length - 1}곳">
+    <rect width="360" height="180" rx="8" class="hm-bg hm-${tone}"/>${deco}
+    <path d="${path}" class="hm-trail-bg"/><path d="${path}" class="hm-trail"/>${ahead}${nodes}
+    <g transform="translate(${(pts[0].x - off).toFixed(1)} ${pts[0].y})"><rect x="-14" y="-9" width="28" height="18" rx="4" class="hm-start"/><text y="4" text-anchor="middle" class="hm-blabel" font-size="9">입구</text></g>
+    <g id="hdMe" transform="translate(${mx.toFixed(1)} ${my.toFixed(1)})"><path d="M0 -2C-6 -10 -8 -14 -8 -18a8 8 0 0 1 16 0c0 4-2 8-8 16z" class="m-me"/><circle cx="0" cy="-18" r="3" class="m-me-dot"/></g>
+  </svg>`;
+}
+
+// ---- 화면 ----
+function hardView(){
+  const H = S.hard;
+  if (!H){
+    if (S.hardDay?.d !== dayKey()) S.hardDay = {d:dayKey(), n:0};
+    const ri = S.loc, R = REG[ri], T = travelState(), lock = S.exp || T;
+    const potSel = k => { const v = Math.min(UI['h' + k.slice(-1)] ?? (k === 'pot1' ? 2 : 0), cnt(k)); return `<div class="row"><span class="grow">${IT[k].n} <span class="muted small">보유 ${cnt(k)}</span></span><button class="btn sm ghost" data-act="hdPot" data-k="${k}" data-d="-1">−</button><b class="num" style="min-width:1.5em;text-align:center">${v}</b><button class="btn sm ghost" data-act="hdPot" data-k="${k}" data-d="1">+</button></div>`; };
+    return `<div class="card stack">
+      <div><h2 style="font-size:1.6rem">고난도 탐사 · ${R.n}</h2><div class="row wrapf" style="gap:6px;margin-top:4px">${starHTML(ri)}<span class="chip">권장 ${recLv(ri)}</span><span class="chip">오늘 ${S.hardDay.n}회 다녀옴</span></div></div>
+      <p class="small" style="margin:0">지금 있는 고장의 깊숙한 험로로 들어간다. 레벨과 상관없이 처음부터 백사 해안에서 시작할 수 있다. 길 위에서는 갈림길(지름길 · 정면돌파! · 우회로)과 크고 작은 사건이 <b>쉬지 않고 무작위로</b> 이어지고, 하나하나 <b>직접 고른다</b>. 고른 길을 따라 지도 위 내 위치가 움직인다.</p>
+      <div class="hd-warn"><b>⚠ 자동 진행 주의</b><br>사건이 나타난 뒤 <b>1분 안에 고르지 않으면</b> 몸이 먼저 무작정 움직인다. 자동 진행은 위험이 1.5배이고 환약도 챙기지 못해 <b>빈사 확률이 크게 높아진다.</b> 빈사가 되면 모은 것의 40%만 챙겨 돌아오고, 6시간 동안 지친 몸이 된다. 고른 시간 동안 화면을 지켜볼 수 있을 때 떠나자.</div>
+      <div class="seg hours" role="group" aria-label="탐사 시간">${HARD_MINS.map(m => `<button data-act="hdStart" data-m="${m}" ${lock ? 'disabled' : ''}>${m === 60 ? '1시간' : m + '분'}<span class="tiny">${m === 10 ? '가볍게' : m === 30 ? '제대로' : '끝까지'}</span></button>`).join('')}</div>
+      <div class="stack" style="gap:6px">${potSel('pot1')}${potSel('pot2')}</div>
+      <p class="tiny muted" style="margin:0">체력 ${Math.floor(curHP())}/${maxHP()} · 최대 체력의 40% 이상이어야 떠날 수 있다. ${lock ? '<b style="color:var(--seal)">지금은 다른 일을 하는 중이라 떠날 수 없다.</b>' : ''}</p>
+    </div>`;
+  }
+  const ev = H.ev, SC = ev && HARD_SC[ev.sc];
+  const pct = clamp((now() - H.start)/(H.end - H.start)*100, 0, 100);
+  const lootChips = Object.entries(H.loot).map(([k, v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('') + (H.egg ? `<span class="chip gold">🥚 ${H.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'}</span>` : '') + (H.gold ? `<span class="chip gold">${H.gold}${CUR}</span>` : '');
+  const potN = (H.pots.pot1 || 0) + (H.pots.pot2 || 0);
+  const segTxt = H.route === 'short' ? '지름길 · 위험 ↑ 희귀 ↑' : H.route === 'long' ? '우회로 · 위험 ↓ 재료 ↑' : H.route === 'charge' ? '정면돌파 · 보상 ↑' : '입구';
+  return `<div class="card stack">
+    <div class="row"><div class="grow"><h2 style="font-size:1.5rem">고난도 · ${REG[H.ri].n}</h2><span class="small muted">${H.mins === 60 ? '1시간' : H.mins + '분'} · 지나온 사건 ${H.count - (ev ? 1 : 0)}곳 · ${segTxt}</span></div><div style="text-align:right"><span class="small muted">남은 시간</span><br><b class="num" data-cd="${H.end}"></b></div></div>
+    <div class="bar xp"><i style="width:${pct}%"></i></div>
+    ${hardMapSVG(H)}
+    <div class="bt-hp me"><div class="row small"><b class="grow">체력</b><span class="num">${Math.max(0, Math.round(H.hp))} / ${H.max}</span></div><div class="bar"><i style="width:${Math.max(0, H.hp)/H.max*100}%"></i></div>
+      <div class="row wrapf" style="gap:4px;margin-top:4px">${H.buff.luck ? '<span class="chip good">행운</span>' : ''}${H.buff.curse ? '<span class="chip bad">저주</span>' : ''}${H.buff.safe ? '<span class="chip blue">길을 안다</span>' : ''}${H.auto ? `<span class="chip bad">자동 진행 ${H.auto}번</span>` : ''}</div></div>
+    ${ev ? `<div class="hd-node ${SC.minor ? 'minor' : ''}"><div class="row"><b class="grow">${HARD_IC[ev.sc] || ''} 【${SC.t}】</b><span class="tiny muted" id="hdPickTx">${Math.ceil(Math.max(0, ev.deadline - now())/1000)}초</span></div>
+      <p style="margin:6px 0 8px">${SC.d[ev.d]}</p>
+      <div class="bar" style="height:5px"><i id="hdPick" style="width:${Math.max(0, ev.deadline - now())/HARD_PICK_MS*100}%;background:var(--gold)"></i></div>
+      <div class="hd-opts">${SC.o.map((o, i) => { const p = o.st ? Math.round(hardChance(H, o, false)*100) : null; return `<button class="btn hd-opt ${o.fight || o.k === 'charge' ? 'seal' : ''}" data-act="hdPick" data-i="${i}"><b>${o.t}</b><span class="tiny">${o.h || (o.st ? `${STN[o.st]} 판정 · 성공 약 ${p}%` : o.fight ? '전투' : o.pot ? `환약 1개 (${potN}개 남음)` : o.safe ? '안전' : '')}</span></button>`; }).join('')}</div></div>`
+    : `<p class="small muted" style="margin:0">${H.nextAt < H.end ? '험한 길을 헤쳐 나가는 중… 무언가 다가온다.' : '출구가 보인다. 조금만 더!'}</p>`}
+    <div class="row wrapf" style="gap:6px"><button class="btn sm" data-act="hdDrink" ${potN && H.hp < H.max ? '' : 'disabled'}>환약 먹기 (${potN})</button><button class="btn sm ghost" data-act="hdQuit">포기하고 돌아가기 (절반)</button></div>
+    ${lootChips ? `<div><b class="small">지금까지 모은 것</b><div class="row wrapf" style="gap:6px;margin-top:4px">${lootChips}</div></div>` : ''}
+    <div class="log" style="max-height:340px">${H.log.slice().reverse().slice(0, 40).map(l => `<p class="${l.k}"><time class="num">${fmtClock(l.t)}</time><span>${esc(l.x)}</span></p>`).join('')}</div>
+  </div>`;
+}
+SHEETS.hardres = s => {
+  const ttl = s.kind === 'hard_done' ? '고난도 탐사 완료' : s.kind === 'hard_down' ? '빈사 상태로 귀환' : '도중에 돌아옴';
+  const items = Object.entries(s.got);
+  return sheetHead(ttl) + `<p style="margin-top:0">${REG[s.region].n} · ${s.mins === 60 ? '1시간' : s.mins + '분'} · 만난 사건 ${s.count}곳 · 직접 고른 사건 ${s.picks}번${s.auto ? ` · 자동 진행 ${s.auto}번` : ''}</p>
+    ${s.kind === 'hard_down' ? '<p class="small" style="color:var(--seal)">무리한 끝에 쓰러졌다. 모은 것의 40%만 챙겼고, 6시간 동안 지친 몸이 된다.</p>' : s.kind === 'hard_quit' ? '<p class="small">모은 것의 절반을 챙겨 돌아왔다.</p>' : ''}
+    <div class="card"><div class="row num" style="justify-content:space-between"><span>경험치 <b>+${s.xp}</b></span><span>엽전 <b>+${s.gold}</b></span></div><hr class="rule">
+    ${items.length || s.egg ? `<div class="row wrapf" style="gap:6px">${items.map(([k, v]) => `<span class="chip">${esc(itemName(k))} ×${v}</span>`).join('')}${s.egg ? `<span class="chip gold">🥚 ${s.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : ''}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}</div>
+    <details class="sub" style="margin-top:10px" open><summary class="small">탐사 기록 (${s.lines.length}줄)</summary><div class="log" style="max-height:340px">${s.lines.map(l => `<p class="${l.k}"><time class="num">${fmtClock(s.start + l.i*1000)}</time><span>${esc(l.x)}</span></p>`).join('')}</div></details>
+    <button class="btn full" style="margin-top:12px" data-act="closeSheet">확인</button>`;
+};
+// ===================== 동료와의 교감: 쓰다듬기 · 말 걸기 · 놀아 주기 · 칭찬하기 =====================
+// 친밀도가 오를수록 반응이 달라지고, 동료의 탐사 효과도 최대 50% 커진다.
+// 함께 다니는 동료는 장기·고난도·단기 탐사 기록에 끼어들어 한마디씩 거든다.
+
+// 종마다 울음소리{s}와 버릇{m}
+const SP_FX = {
+  kit:{s:'캥캥', m:'꼬리를 살랑살랑 흔들었다'}, owl:{s:'부엉', m:'고개를 빙글 돌리며 갸웃했다'}, otter:{s:'끽끽', m:'배를 보이며 데굴데굴 굴렀다'},
+  fawn:{s:'삐익', m:'귀를 쫑긋 세우고 깡충 뛰었다'}, piglet:{s:'꿀꿀', m:'코를 킁킁거리며 몸을 비볐다'},
+  wisp:{s:'화르륵', m:'불꽃이 기분 좋게 일렁였다'}, kappa:{s:'퐁', m:'머리 위 물방울이 찰랑 튀었다'}, tanu:{s:'뿅', m:'나뭇잎을 머리에 얹고 빙글 돌았다'},
+  fox9:{s:'콘콘', m:'작은 여우불을 동그랗게 띄웠다'}, yuki:{s:'사르르', m:'반짝이는 눈송이를 흩날렸다'},
+};
+const BOND_T = [[100,'영혼의 짝'],[80,'단짝'],[50,'친한 사이'],[25,'마음을 엶'],[0,'낯가림']];
+const bondTier = b => BOND_T.find(([v]) => b >= v)[1];
+const bondMul = c => 1 + (c.bond || 0)/200; // 친밀도 100 → 동료 효과 ×1.5
+const JS = {이:['이','가'], 가:['이','가'], 은:['은','는'], 는:['은','는'], 을:['을','를'], 를:['을','를'], 과:['과','와'], 와:['과','와'], 의:null, 아:['아','야']};
+// "{n이} {s}" 같은 틀에 이름과 조사를 채운다. a·b 는 두 번째 동료가 있을 때
+function cfill(t, n, sp, b){
+  const fx = SP_FX[sp] || {s:'…', m:'몸을 흔들었다'};
+  return t.replace(/\{([nab])(이|가|은|는|을|를|과|와|의|아)?\}/g, (_, w, j) => { const nm = w === 'b' ? b : n; if (!j) return nm; if (j === '의') return nm + '의'; return nm + pp(nm, JS[j][0], JS[j][1]); })
+    .replace(/\{s\}/g, fx.s).replace(/\{m\}/g, fx.m);
+}
+
+// ---- 탐사 중 대사 ----
+const CL = {
+  start:['{n이} 앞장서서 길을 나섰다. 신이 났다.', '{n이} "{s}!" 하고 출발을 알렸다.', '{n이} 내 발치에 바싹 붙어 따라온다.', '{n은} 짐 보따리 위에 올라타 길을 내다본다.'],
+  walk:['{n이} 길가의 풀냄새를 맡으며 앞서 걷는다.', '{n이} 나비를 쫓아 폴짝 뛰었다가 돌아왔다.', '{n이} 뒤돌아보며 내가 잘 따라오는지 확인했다.', '{n은} 웅덩이를 피해 돌다리를 콩콩 건넜다.', '{n이} 지친 듯 내 다리에 기댔다. 잠깐 쉬어 가자.', '{n이} 낯선 소리에 귀를 기울이다 {m}.', '{n이} 혼자 콧노래 같은 소리를 낸다. "{s}~"', '{n이} 떨어진 솔방울을 물고 와 자랑했다.', '{n은} 바람이 불 때마다 눈을 가늘게 뜬다.', '{n이} 그늘에 들어가더니 꼼짝도 않는다. 더운 모양이다.'],
+  walkHi:['{n이} 내 발걸음에 맞춰 나란히 걷는다. 말하지 않아도 마음이 통한다.', '{n이} 내 손등에 살며시 머리를 갖다 댔다.', '{n이} 앞길을 살피고 돌아와 "{s}" 하고 괜찮다는 신호를 보냈다.', '{n은} 힘든 오르막에서 나를 기다려 주었다.', '잠시 쉬는 동안 {n이} 무릎 위에서 새근새근 잠들었다.'],
+  duo:['{a와} {b가} 서로 장난을 치며 앞서 달려갔다.', '{a이} {b의} 등에 올라타 꾸벅꾸벅 졸고 있다.', '{a와} {b가} 나뭇가지 하나를 두고 실랑이를 벌인다.', '{b가} 넘어지자 {a이} 다가가 일으켜 세웠다.', '{a와} {b가} 나란히 앉아 같은 쪽을 바라본다. 사이가 좋다.', '{a이} 주운 열매를 {b와} 반씩 나눠 먹었다.'],
+  find:['{n이} 킁킁대더니 흙 속을 가리켰다. 덕분에 찾았다!', '{n이} 반짝이는 눈으로 주운 것을 바라본다.', '{n이} 내가 주운 것을 보고 {m}.', '{n이} 먼저 달려가 그 자리를 지키고 있었다.'],
+  rare:['{n이} 깜짝 놀라 털을 곤두세웠다. 귀한 물건이다!', '{n이} "{s}! {s}!" 하고 신이 나서 주위를 빙빙 돈다.', '{n은} 귀한 것을 찾은 걸 아는지 의기양양하다.'],
+  egg:['{n이} 알을 조심스럽게 들여다본다. 동생이 생길지도 모른다.', '{n이} 알 곁에 바싹 붙어 체온을 나눠 준다.', '{n은} 알을 보더니 꼬리를 감추고 내 뒤로 숨었다.'],
+  enc:['{n이} 몸을 낮추고 "{s}…" 하고 경고했다.', '{n이} 내 앞을 가로막고 섰다. 작지만 용감하다.', '{n이} 털을 곤두세우고 적을 노려본다.'],
+  encSum:['{n이} "{s}!" 소리와 함께 적에게 먼저 달려들었다.', '{n의} 기운이 사납게 일렁인다. 싸울 준비가 됐다.', '{n이} 내 어깨 위에 올라 적의 빈틈을 노린다.'],
+  win:['{n이} 이긴 걸 아는지 {m}.', '{n이} "{s}!" 하고 승리의 소리를 질렀다.', '{n이} 다친 곳은 없는지 내 손을 핥았다.', '{n은} 쓰러진 적 쪽으로 다가가 킁킁 냄새를 맡았다.'],
+  flee:['{n이} 앞장서서 도망칠 길을 찾아냈다!', '{n이} 내 소매를 물고 뒤로 잡아끌었다.'],
+  hurt:['{n이} 걱정스러운 얼굴로 상처를 바라본다.', '{n이} 낑낑대며 내 곁을 떠나지 않는다.', '{n이} 상처 난 곳에 조심스레 몸을 기댔다. 조금 덜 아프다.'],
+  down:['{n이} 쓰러진 내 곁을 지키며 밤새 울었다… 누군가 와 주기를.', '{n이} 내 소매를 물고 끌어 보지만 꿈쩍도 하지 않는다.', '{n은} 쓰러진 내 얼굴을 핥으며 "{s}…" 하고 애타게 불렀다.'],
+  end:['{n이} 거점이 보이자 먼저 뛰어갔다.', '{n이} 내 품에 안겨 곯아떨어졌다. 오늘 고생 많았어.', '{n이} 무사히 돌아온 게 기쁜지 {m}.'],
+  good:['{n이} 박수 치듯 {m}.', '{n이} "{s}!" 하고 잘했다는 듯 울었다.', '{n이} 옆에서 지켜보다 고개를 끄덕였다.'],
+  short:['{n이} 따라와서 같이 주웠다.', '{n이} 앞장서서 쓸 만한 것을 찾아냈다.', '{n은} 주운 것을 물고 와 내 손에 놓았다.'],
+};
+function compSay(rng, kind, comps){
+  if (!comps || !comps.length) return null;
+  const c = comps[Math.floor(rng()*comps.length)];
+  let pool = CL[kind] || CL.walk;
+  if (kind === 'walk'){
+    if (comps.length > 1 && rng() < 0.28){ const o = comps.find(x => x !== c); return cfill(pick(rng, CL.duo), c.n, c.sp, o.n); }
+    if ((c.b || 0) >= 50 && rng() < 0.45) pool = CL.walkHi;
+  }
+  if (kind === 'enc' && SPEC[c.sp]?.k === 'summon') pool = CL.encSum;
+  return cfill(pick(rng, pool), c.n, c.sp);
+}
+// 장기 탐사 기록에 동료 대사를 끼워 넣는다. 결과(아이템·전투)에 쓰는 난수와는 따로 놀아 결과가 바뀌지 않는다
+function compInject(lines, comps, seed){
+  if (!comps || !comps.length) return lines;
+  const rng = mulberry32((seed ^ 0x5bd1e995) >>> 0), out = [];
+  const P = {start:1, amb:0.08, item:0.1, rare:0.5, egg:0.7, enc:0.35, win:0.3, flee:0.45, down:1, end:1};
+  for (const l of lines){
+    out.push(l);
+    const p = P[l.k]; if (!p || rng() >= p) continue;
+    const kind = l.k === 'amb' ? 'walk' : l.k === 'item' ? (rng() < 0.5 ? 'find' : 'walk') : l.k;
+    const x = compSay(rng, kind, comps); if (x) out.push({i:l.i, x, k:'comp'});
+  }
+  return out;
+}
+const compSnap = () => activeComps().map(c => ({n:c.name, sp:c.sp, b:c.bond || 0}));
+
+// ---- 거점에서의 교감 ----
+const TOUCH = {
+  pat:{n:'쓰다듬기', cd:10, g:2, xp:2},
+  talk:{n:'말 걸기', cd:10, g:1, xp:2},
+  play:{n:'놀아 주기', cd:60, g:3, xp:6},
+  praise:{n:'칭찬하기', cd:30, g:1, xp:3},
+};
+const TOUCH_DAY = 12; // 하루에 교감으로 오르는 친밀도 상한 (먹이는 따로)
+const TR = {
+  pat:{lo:['{n은} 움찔하더니 슬그머니 머리를 내밀었다.', '{n은} 손길을 피하려다 결국 가만히 있었다. 조금 익숙해진 모양이다.', '손을 대자 {n이} "{s}" 하고 작게 울었다.'],
+       mid:['{n이} 손바닥에 머리를 비비며 {m}.', '쓰다듬어 주자 {n이} 눈을 가늘게 뜨고 "{s}" 하고 울었다.', '{n은} 기분이 좋은지 몸을 쭉 늘였다.'],
+       hi:['{n이} 손이 닿기도 전에 먼저 달려와 품에 안겼다.', '손을 떼려 하자 {n이} 아쉬운 듯 다시 머리를 들이밀었다. 조금만 더.', '{n은} 벌렁 누워 배를 내보였다. 완전히 믿는다는 뜻이다.']},
+  play:{lo:['나뭇가지를 흔들어 보였지만 {n은} 멀뚱멀뚱 바라만 본다. 그래도 눈은 따라온다.', '공을 굴려 주자 {n이} 조심스럽게 코로 툭 건드렸다.'],
+        mid:['공을 굴려 주자 {n이} 쏜살같이 쫓아가 물고 돌아왔다!', '숨바꼭질을 했다. {n은} 금세 나를 찾아내고 {m}.', '나뭇잎을 날려 주자 {n이} 폴짝폴짝 뛰며 잡으려 한다.'],
+        hi:['술래잡기를 했다. {n이} 일부러 져 주는 것 같다…', '{n과} 마당을 몇 바퀴나 뛰었다. 둘 다 숨이 차서 나란히 누웠다.', '{n이} 새 놀이를 생각해 냈는지 나뭇가지를 물고 와 내밀었다.']},
+  praise:{lo:['{n은} 무슨 말인지 모르는 얼굴이지만, 싫지는 않은 눈치다.'],
+          mid:['{n이} 가슴을 쭉 펴고 의기양양하게 {m}.', '"잘했어!" 한마디에 {n이} 제자리에서 빙글 돌았다.'],
+          hi:['{n이} 쑥스러운 듯 고개를 돌렸지만 꼬리 끝이 신이 났다.', '{n은} 칭찬을 듣자 내 곁에 꼭 붙어 앉았다. "{s}…"']},
+};
+const TALK = [
+  {t:'오늘 날씨 좋다', r:c => c.bond >= 25 ? '{n이} 하늘을 올려다보며 "{s}!" 하고 맞장구쳤다.' : '{n은} 고개를 갸웃했다. 무슨 말인지 모르는 눈치다.'},
+  {t:'배고프니?', r:c => now() - (c.fed || 0) > 6*H ? '{n의} 배에서 꼬르륵 소리가 났다. 뭔가 먹여 주자.' : '{n은} 배를 통통 두드려 보였다. 아직 배부른 모양이다.'},
+  {t:'늘 고마워', r:c => c.bond >= 50 ? '{n이} 쑥스러운 듯 고개를 돌렸지만 {m}.' : '{n은} 가만히 나를 바라보았다. 마음은 전해진 것 같다.'},
+  {t:'같이 탐사 갈래?', r:c => c.out !== false ? '{n이} 신이 나서 제자리에서 빙글빙글 돌았다. 벌써 갈 준비가 됐다.' : '{n이} 귀를 쫑긋 세웠다. 둥지에서 쉬는 게 조금 지겨운 모양이다.'},
+  {t:'오늘 있었던 일 들려주기', r:c => c.bond >= 25 ? '{n은} 내 이야기를 끝까지 들어 주었다. 마음이 한결 가벼워졌다.' : '{n은} 듣는 둥 마는 둥 하다가 슬쩍 곁에 앉았다.'},
+  {t:'이름 불러 주기', r:c => c.bond >= 50 ? '"{n아}!" 부르자마자 {n이} 쏜살같이 달려왔다.' : '"{n아}?" 부르자 {n이} 한 박자 늦게 돌아보았다.'},
+];
+function compMood(c){
+  const h = (now() - (c.touch || c.born || 0))/H;
+  if (h < 2) return ['신남', 'good'];
+  if (h < 8) return ['평온', ''];
+  if (h < 24) return ['심심함', 'blue'];
+  return ['외로움', 'bad'];
+}
+function compTouch(id, kind, topic){
+  const c = S.comps.find(x => x.id === id); if (!c) return;
+  const T = TOUCH[kind]; c.cd = c.cd || {};
+  const left = (c.cd[kind] || 0) - now();
+  if (left > 0) return toast(`${c.name}${pp(c.name,'이','가')} 아직 여운에 잠겨 있다. ${Math.ceil(left/MIN)}분 뒤에 다시 해 보자.`);
+  c.cd[kind] = now() + T.cd*MIN/SPD();
+  if (!c.td || c.td.d !== dayKey()) c.td = {d:dayKey(), g:0};
+  const mood = compMood(c)[0];
+  let g = Math.min(T.g + (mood === '외로움' && kind !== 'talk' ? 1 : 0), TOUCH_DAY - c.td.g);
+  const tier = c.bond >= 80 ? 'hi' : c.bond >= 25 ? 'mid' : 'lo';
+  let line;
+  if (kind === 'talk'){ const tp = TALK[topic] || TALK[0]; line = `"${tp.t}" — ` + cfill(tp.r(c), c.name, c.sp); }
+  else line = cfill(pick(Math.random, TR[kind][tier]), c.name, c.sp);
+  if (mood === '외로움') line = cfill('{n이} 오랜만이라는 듯 와락 달려들었다. ', c.name, c.sp) + line;
+  const was = bondTier(c.bond);
+  if (g > 0){ c.bond = Math.min(100, c.bond + g); c.td.g += g; }
+  compXP(c, T.xp); c.touch = now();
+  stat('touch'); stat('t_' + kind);
+  // 친한 동료는 가끔 선물을 물어 온다 (6시간에 한 번)
+  let gift = null;
+  if (c.bond >= 50 && now() - (c.giftAt || 0) > 6*H/SPD() && Math.random() < 0.12){
+    gift = wpick(Math.random, [['berry',5],['feather',4],['mushroom',4],['herb',3],['gem',1]]);
+    if (!IT[gift]) gift = 'berry';
+    addItem(gift); c.giftAt = now(); stat('compGift');
+  }
+  UI.compSay = {id, x:line, at:now(), g, gift, kind, up:was !== bondTier(c.bond) ? bondTier(c.bond) : null};
+  UI.compTalk = null;
+  sfx(kind === 'play' ? 'win' : 'soft'); save(); pubDirty(); renderSheet(true);
+}
+
+// ---- 동료 시트 (교감판) ----
+SHEETS.comp = id => {
+  const c = S.comps.find(x => x.id === id); if (!c) return sheetHead('동료') + '<p>떠나간 동료입니다.</p>';
+  const sp = SPEC[c.sp], foods = Object.keys(S.inv).filter(k => ['food','fish'].includes(IT[k.replace('*','')]?.t) || k === 'berry');
+  const bm = bondMul(c), [mood, mcls] = compMood(c);
+  const say = UI.compSay && UI.compSay.id === c.id && now() - UI.compSay.at < 60000 ? UI.compSay : null;
+  const fresh = say && now() - say.at < 2500;
+  const td = c.td && c.td.d === dayKey() ? c.td.g : 0;
+  const cdTxt = k => { const l = ((c.cd || {})[k] || 0) - now(); return l > 0 ? `<span class="tiny muted">${Math.ceil(l/MIN)}분 뒤</span>` : `<span class="tiny">친밀도 +${TOUCH[k].g}</span>`; };
+  const tb = (k, ic) => `<button class="btn touch ${((c.cd || {})[k] || 0) > now() ? 'cool' : ''}" data-act="touch" data-id="${c.id}" data-k="${k}"><span class="ti">${ic}</span><b>${TOUCH[k].n}</b>${cdTxt(k)}</button>`;
+  return sheetHead(esc(c.name)) + `
+  <div class="comp-stage ${fresh ? 'pop' : ''}">
+    <div class="cs-art ${fresh ? 'bounce' : ''}">${art(c.sp,'lg')}${fresh ? '<i class="hearts" aria-hidden="true"><b>♥</b><b>♥</b><b>♥</b></i>' : ''}</div>
+    <div class="grow"><b>${sp.n}</b> · Lv.${c.lv} <span class="chip ${mcls}">${mood}</span><br>
+      <span class="small"><b>${bondTier(c.bond)}</b></span> <span class="tiny muted">친밀도 ${c.bond}/100</span>
+      <div class="bar gold" style="margin-top:4px"><i style="width:${c.bond}%"></i></div>
+      <span class="tiny muted">경험 ${c.xp}/${c.lv*20} · 오늘 교감 ${td}/${TOUCH_DAY}</span></div>
+  </div>
+  ${say ? `<div class="comp-say" role="status"><p style="margin:0">${esc(say.x)}</p><span class="tiny muted">${say.g ? `친밀도 +${say.g}` : '오늘은 교감으로 친밀도가 더 오르지 않는다 (먹이는 괜찮다)'}${say.gift ? ` · <b style="color:var(--moss)">${esc(itemName(say.gift))}${pp(itemName(say.gift),'을','를')} 물어 왔다!</b>` : ''}${say.up ? ` · <b style="color:var(--seal)">관계가 「${say.up}」${pp(say.up,'이','가')} 되었다!</b>` : ''}</span></div>` : mood === '외로움' || mood === '심심함' ? `<p class="small muted" style="margin:10px 0 0">${esc(c.name)}${pp(c.name,'이','가')} ${mood === '외로움' ? '오래 기다렸다. 쓸쓸해 보인다.' : '심심한지 자꾸 이쪽을 쳐다본다.'}</p>` : ''}
+  <div class="touch-grid">${tb('pat','🤚')}${tb('talk','💬')}${tb('play','🎾')}${tb('praise','✨')}</div>
+  ${UI.compTalk === c.id ? `<div class="talk-list"><span class="tiny muted">무슨 말을 걸까?</span>${TALK.map((t, i) => `<button class="btn sm ghost" data-act="talkTo" data-id="${c.id}" data-i="${i}">${t.t}</button>`).join('')}</div>` : ''}
+  <p class="tiny muted" style="margin:6px 0 0">친밀도가 오를수록 반응이 달라지고 동료 효과가 커진다 (지금 ×${bm.toFixed(2)}, 최대 ×1.5). 친한 동료는 가끔 선물을 물어 온다.</p>
+  <hr class="rule">
+  <div class="small muted">${sp.k==='pet' ? `펫 — 탐사 체력 소모 ${((5+c.lv*.5)*bm).toFixed(1)}% 감소, 보상 +${(5*bm).toFixed(1)}%` : `소환수 — 전투마다 함께 공격 (약 ${Math.round((3+c.lv*1.5)*(S.job==='onmyoji'?1.5:1)*bm)} 피해)`}</div>
+  <div class="row" style="margin-top:12px"><input id="cname" type="text" maxlength="10" value="${esc(c.name)}" aria-label="이름"><button class="btn sm" data-act="renameComp" data-id="${c.id}">이름 짓기</button></div>
+  <h3 style="margin-top:14px">먹이 주기</h3>
+  ${foods.length ? `<div class="row wrapf">${foods.map(k => `<button class="btn sm ghost" data-act="feed" data-id="${c.id}" data-k="${k}">${esc(itemName(k))} (${cnt(k)})</button>`).join('')}</div>` : '<p class="small muted">줄 수 있는 먹이(요리·생선·산열매)가 없다.</p>'}
+  <hr class="rule"><div class="row wrapf"><button class="btn sm ${c.out !== false ? 'ghost' : 'seal'}" data-act="compOut" data-id="${c.id}">${c.out !== false ? '둥지에서 쉬게 하기' : '데리고 다니기'}</button><button class="btn ghost sm" data-act="release" data-id="${c.id}">작별하기</button></div><p class="tiny muted">${c.out !== false ? '지금 함께 다니는 중이다. 탐사 효과와 경험치는 함께 다니는 동료만 받는다. 탐사 기록에 동료의 모습도 남는다.' : `둥지에서 쉬는 중이다. 함께 다닐 수 있는 동료는 ${COMP_OUT}마리까지.`}</p>`;
 };
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
@@ -3931,7 +4643,7 @@ const ACT = {
   askYes: () => askDone(true), askNo: () => askDone(false),
   closeSheet: () => closeSheet(),
   sheet: d => { if (BASE_SHEETS.includes(d.s) && baseLocked()) return lockToast(); openSheet(d.s, d.a); },
-  tab: d => { UI.tab = d.t; closeSheet(); render(); window.scrollTo(0,0); sfx('click'); },
+  tab: d => { if (d.t === 'explore' && S && S.hard) UI.exTab = 'hard'; UI.tab = d.t; closeSheet(); render(); window.scrollTo(0,0); sfx('click'); },
   authTab: d => { AUTHTAB = d.t; render(); },
   doSignup: async () => { const e = await doSignup($('#a_id').value, $('#a_pw').value, $('#a_pw2').value, $('#a_auto').checked); if (e) return $('#a_err').textContent = e; afterLogin(); },
   doLogin: async () => { const e = await doLogin($('#a_id').value, $('#a_pw').value, $('#a_auto').checked); if (e) return $('#a_err').textContent = e; afterLogin(); },
@@ -3954,6 +4666,11 @@ const ACT = {
   buyAnimal: d => buyAnimal(d.k), feedAnimal: d => feedAnimal(d.id), collectAnimal: d => collectAnimal(d.id), releaseAnimal: d => releaseAnimal(d.id),
   setTitle: d => { S.title = d.k; save(); pubDirty(); renderSheet(); render(); toast(`칭호 「${curTitle()}」를 달았다.`, 'good'); },
   fav: d => toggleFav(d.u),
+  exTab: d => { UI.exTab = d.t; render(); window.scrollTo(0, 0); },
+  hdStart: async d => { const m = +d.m; if (!await ask(`고난도 탐사 ${m === 60 ? '1시간' : m + '분'}`, '사건이 나타나면 1분 안에 골라야 합니다. 고르지 않으면 자동으로 진행되며, 자동 진행은 위험이 1.5배라 빈사 확률이 크게 높아집니다. 떠날까요?', '떠나기', true)) return; hardStart(m); },
+  hdPick: d => hardChoose(+d.i, false), hdDrink: () => hardDrink(), hdQuit: () => hardQuit(),
+  hdPot: d => { const k = d.k, key = 'h' + k.slice(-1); UI[key] = clamp(Math.min(UI[key] ?? (k === 'pot1' ? 2 : 0), cnt(k)) + (+d.d), 0, Math.min(5, cnt(k))); render(); },
+  travelYes: () => answerTravel(true), travelNo: () => answerTravel(false),
   rest: d => startRest(+d.m), restEnd: () => { endRest(); renderSheet(); render(); },
   compOut: d => compOut(d.id),
   helpTab: d => { UI.helpTab = d.t; renderSheet(); },
@@ -3975,6 +4692,9 @@ const ACT = {
   goRegion: d => { closeSheet(); UI.tab = 'explore'; UI.region = +d.r; render(); window.scrollTo(0,0); },
   cook: d => cook(d.r), plant: d => plant(+d.i, d.k), water: d => water(+d.i), harvest: d => harvest(+d.i),
   placeEgg: d => placeEgg(d.id), hatch: () => hatch(),
+  touch: d => { if (d.k === 'talk'){ UI.compTalk = UI.compTalk === d.id ? null : d.id; renderSheet(true); } else compTouch(d.id, d.k); },
+  talkTo: d => compTouch(d.id, 'talk', +d.i),
+  partyLead: async d => { if (await ask('대장 넘기기', `${nameOf(d.u)}님에게 조사대장을 넘길까요? 이동과 조사대 탐사는 새 대장이 정하게 됩니다.`, '넘기기')) partyHandover(d.u); },
   renameComp: d => renameComp(d.id, $('#cname').value), feed: d => feedComp(d.id, d.k), release: d => releaseComp(d.id),
   craftTab: d => { UI.craft = d.s; SHEET.a = d.s; renderSheet(); }, craft: d => craft(d.s, +d.i),
   task: d => { startTask(d.k, +d.m); renderSheet(); }, collectTask: () => { collectTask(); renderSheet(); },
@@ -4099,7 +4819,7 @@ function tick(){
   S.farm.forEach((f, i) => { if (f && now() >= f.at + f.dur) notify('harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
   if (S.nest && now() >= S.nest.at + S.nest.dur) notify('hatch', '부화', '둥지의 알이 움직이기 시작했습니다!', 'nest' + S.nest.at);
   checkTitles();
-  presenceTick(); chatSync(); battleTick(); restTick();
+  presenceTick(); chatSync(); battleTick(); restTick(); travelAskTick(); hardTick();
   if (window.FB_MODE && now() % 5000 < 1000) pushSync();
   if (S.settings.infGold && isOp() && S.gold < 99999999){ S.gold = 99999999; }
   S.pen.forEach(a => { if (a.fed && now() >= a.readyAt) notify('harvest', '축사', `${a.name}에게서 ${IT[ANIMALS[a.kind].out[0]].n}${pp(IT[ANIMALS[a.kind].out[0]].n,'을','를')} 거둘 수 있습니다.`, 'pen' + a.id + a.readyAt); });
