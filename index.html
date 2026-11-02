@@ -528,6 +528,33 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .hall-mat{ position:relative; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:.72rem; } .hall-mat .iic.lg{ width:46px; height:46px; } .hall-mat .bc-n{ right:6px; top:30px; bottom:auto; }
 .hall-mat .btn.sm{ padding:2px 6px; font-size:.68rem; min-height:0; }
 .li.done{ opacity:.55; }
+/* 아바타 · 내 집 */
+.av-top{ display:flex; gap:12px; align-items:flex-start; }
+.av-big{ width:9.5rem; flex:none; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; line-height:0; }
+.av-mini{ width:5.5rem; flex:none; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; line-height:0; }
+.av-opts{ display:grid; grid-template-columns:repeat(auto-fill, minmax(4.4rem, 1fr)); gap:6px; }
+.av-o{ position:relative; display:grid; gap:2px; padding:3px; border:1.5px solid var(--line); border-radius:6px; background:var(--paper-2); text-align:center; line-height:1.2; }
+.av-o svg{ display:block; border-radius:4px; }
+.av-o[aria-pressed="true"], .h-skin[aria-pressed="true"]{ border-color:var(--seal); box-shadow:0 0 0 1px var(--seal); }
+.av-p{ color:var(--gold); font-weight:700; } .av-p.lk{ color:var(--seal); }
+.av-sw{ display:flex; flex-wrap:wrap; gap:6px; }
+.av-c{ width:2.2rem; height:2.2rem; border-radius:50%; border:1.5px solid var(--line); }
+.av-c[aria-pressed="true"]{ border-color:var(--ink); box-shadow:0 0 0 2px var(--seal); }
+.h-frame{ border:1px solid var(--line); border-radius:var(--r); overflow:hidden; line-height:0; }
+.h-svg{ display:block; width:100%; height:auto; user-select:none; -webkit-user-select:none; }
+.h-svg.edit .h-it{ cursor:grab; touch-action:none; }
+.h-sel{ fill:none; stroke:var(--seal); stroke-width:1.5; stroke-dasharray:4 3; }
+@media (prefers-reduced-motion:no-preference){ .h-svg:not(.edit) .h-bob{ animation:hBob 2.8s ease-in-out infinite; } .h-svg:not(.edit) .h-bob.b2{ animation-duration:2.1s; } }
+@keyframes hBob{ 50%{ transform:translateY(-2px); } }
+.h-tools{ margin-top:8px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-2); display:grid; gap:6px; }
+.h-b{ min-height:38px; padding:0 10px; } .h-nw{ flex:none; white-space:nowrap; }
+.h-tray{ display:grid; grid-template-columns:repeat(auto-fill, minmax(4.6rem, 1fr)); gap:6px; max-height:15rem; overflow:auto; }
+.h-th{ display:grid; justify-items:center; gap:2px; padding:4px; border:1px solid var(--line); border-radius:6px; background:var(--paper-2); line-height:1.2; text-align:center; }
+.h-th > svg, .h-th > span:first-child{ height:2.8rem; width:100%; }
+.h-ic{ width:3rem; height:3rem; flex:none; display:block; }
+.h-skins{ display:grid; grid-template-columns:repeat(auto-fill, minmax(5rem, 1fr)); gap:6px; }
+.h-skin{ min-height:44px; border:1.5px solid var(--line); border-radius:6px; padding:2px; }
+.h-skin span{ background:rgba(255,255,255,.82); color:#2b241b; border-radius:3px; padding:0 3px; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -6948,6 +6975,633 @@ async function boot(){
 
 window.onPwaUpdate = () => { if (SCREEN === 'game') render(); };
 window.onPwaPrompt = () => { if (SHEET && SHEET.k === 'settings') renderSheet(); };
+// ===================== 아바타: 얼굴·머리·옷·장식을 골라 꾸민다. 프로필 사진으로도, 집 안 캐릭터로도 쓴다 =====================
+// 저장은 숫자 묶음('av:1.2.3…')이라 공개 프로필에 그대로 실려도 안전하다. 다른 사람 값은 avParse가 범위 안으로 깎는다.
+const AV_K = '#7a5a48';
+const AV_SKIN = ['#fbe6d4','#f6dcc8','#efcba8','#e0b088','#c99468','#9c6c48','#e8e4f0','#d8ecd8'];
+const AV_HAIR = ['#2a2230','#3a2a2a','#5a3a22','#8a5a2a','#c89a4a','#e8d8a8','#e8e8ec','#8a8a94','#b03e2a','#d870a0','#3a6aa8','#3a8a6a','#7a4aa8'];
+const AV_EYE = ['#4a3026','#5a3a22','#3a6aa8','#3a8a5a','#a03030','#c89a2a','#7a4aa8'];
+const AV_CLOTH = ['#b03e2a','#d8603a','#e8a83a','#55743a','#3a8a7a','#2d4a6d','#4a6ab0','#7a4a8a','#c86a90','#f4efe2','#8a7a64','#5a4632','#2b2b33','#e8c8c8','#a8c8d8','#c8d8a8'];
+const AV_BG = ['#f3e6d2','#e8d4c0','#d8e4d0','#d0dce8','#e8d0d8','#e4dcf0','#f4e0a8','#c8a890','#5a6a80','#3a3448'];
+
+const avRobe = (c, a) => `<path d="M42 80L24 112l11 8 12-24zM78 80l18 32-11 8-12-24z" fill="${c}" stroke="${AV_K}"/><path d="M40 78q20-8 40 0l6 72q-26 8-52 0z" fill="${c}" stroke="${AV_K}"/><path d="M49 76l11 22 11-22q-11-4-22 0z" fill="#f8f4ea" stroke="${AV_K}" stroke-width=".8"/>`;
+const avObi = (a, h = 12) => `<rect x="37" y="102" width="46" height="${h}" fill="${a}" stroke="${AV_K}" stroke-width=".8"/>`;
+const avFeet = (`<path d="M42 150h14v8H40zM64 150h14l2 8H64z" fill="#f4efe2" stroke="${AV_K}" stroke-width=".8"/>`);
+const avLegs = (s = '#f6dcc8') => `<path d="M44 128h12v24H44zM64 128h12v24H64z" fill="${s}" stroke="${AV_K}" stroke-width=".8"/>${avFeet}`;
+const avShort = (c, a) => `<path d="M42 80L24 110l10 8 12-22zM78 80l18 30-10 8-12-22z" fill="${c}" stroke="${AV_K}"/><path d="M40 78q20-8 40 0l3 54q-23 5-46 0z" fill="${c}" stroke="${AV_K}"/>`;
+
+// 옷: 값(p)이 0이면 처음부터 입을 수 있다. req가 있으면 조건을 채워야 입는다
+const AV_OUTFIT = [
+  {n:'평상복', p:0, d:(c, a) => avRobe(c, a) + avObi(a) + avFeet},
+  {n:'유카타', p:0, d:(c, a) => avRobe(c, a) + `<g fill="#fff" opacity=".75"><circle cx="48" cy="124" r="2.4"/><circle cx="72" cy="130" r="2.4"/><circle cx="60" cy="140" r="2.4"/><circle cx="46" cy="90" r="2"/><circle cx="74" cy="92" r="2"/></g>` + avObi(a, 9) + avFeet},
+  {n:'작업복', p:0, d:(c, a, s) => avLegs(s) + avShort(c, a) + `<path d="M50 78l10 14 10-14" fill="none" stroke="${AV_K}"/><rect x="38" y="108" width="44" height="6" fill="${a}" stroke="${AV_K}" stroke-width=".7"/>`},
+  {n:'하카마', p:120, d:(c, a) => `<path d="M38 106h44l6 44H62l-2-30-2 30H32z" fill="${a}" stroke="${AV_K}"/>` + `<path d="M42 80L24 112l11 8 12-24zM78 80l18 32-11 8-12-24z" fill="${c}" stroke="${AV_K}"/><path d="M40 78q20-8 40 0l2 30H38z" fill="${c}" stroke="${AV_K}"/><path d="M50 76l10 20 10-20" fill="none" stroke="${AV_K}"/>` + avFeet},
+  {n:'무녀복', p:300, d:(c, a) => `<path d="M38 106h44l6 44H62l-2-30-2 30H32z" fill="${c}" stroke="${AV_K}"/><path d="M42 80L20 116l16 8 12-26zM78 80l22 36-16 8-12-26z" fill="#fbf8f0" stroke="${AV_K}"/><path d="M40 78q20-8 40 0l2 30H38z" fill="#fbf8f0" stroke="${AV_K}"/><path d="M50 76l10 20 10-20" fill="none" stroke="${AV_K}"/><path d="M44 106h32" stroke="${AV_K}"/>` + avFeet},
+  {n:'닌자복', p:400, d:(c, a) => `<path d="M44 124h13v28H44zM63 124h13v28H63z" fill="${c}" stroke="${AV_K}"/>` + avFeet + avShort(c, a) + `<path d="M40 74q20 10 40 0l1 8q-21 10-42 0z" fill="${a}" stroke="${AV_K}" stroke-width=".8"/><path d="M42 86l36 26M78 86l-36 26" stroke="${AV_K}" stroke-width=".8"/><rect x="38" y="110" width="44" height="6" fill="${a}" stroke="${AV_K}" stroke-width=".7"/>`},
+  {n:'승복', p:300, d:(c, a) => avRobe(c, a) + `<path d="M42 82l40 36-3 12-40-38z" fill="${a}" stroke="${AV_K}" stroke-width=".8"/><circle cx="60" cy="98" r="2" fill="#e8c858"/>` + avFeet},
+  {n:'어부 옷', p:250, d:(c, a, s) => avLegs(s) + avShort(c, a) + `<path d="M40 104h40l2 12H38z" fill="${a}" stroke="${AV_K}" stroke-width=".8"/><path d="M42 88h36M42 96h36" stroke="${AV_K}" stroke-width=".5" opacity=".5"/><path d="M50 78l10 12 10-12" fill="none" stroke="${AV_K}"/>`},
+  {n:'요리사 앞치마', p:300, d:(c, a) => avRobe(c, a) + `<path d="M46 88h28l6 58q-20 6-40 0z" fill="#fbf8f0" stroke="${AV_K}" stroke-width=".8"/><path d="M46 88l-4-10M74 88l4-10" stroke="#fbf8f0" stroke-width="2"/>` + `<rect x="52" y="116" width="16" height="12" rx="1" fill="${a}" stroke="${AV_K}" stroke-width=".6"/>` + avFeet},
+  {n:'대장장이 옷', p:300, d:(c, a, s) => avLegs(c) + `<path d="M42 80L26 110l10 7 11-22zM78 80l16 30-10 7-11-22z" fill="${s}" stroke="${AV_K}"/><path d="M40 78q20-8 40 0l3 54q-23 5-46 0z" fill="${c}" stroke="${AV_K}"/><path d="M46 84h28l6 52q-20 5-40 0z" fill="${a}" stroke="${AV_K}" stroke-width=".8"/>`},
+  {n:'농부 옷', p:200, d:(c, a, s) => avLegs(a) + avShort(c, a) + `<path d="M50 78l10 18 10-18" fill="none" stroke="${AV_K}"/><path d="M38 110q22 8 44 0" fill="none" stroke="#c8a858" stroke-width="3"/>`},
+  {n:'축제 핫피', p:600, d:(c, a, s) => avLegs(s) + avShort(c, a) + `<path d="M50 78l-2 54M70 78l2 54" stroke="${a}" stroke-width="4"/><circle cx="60" cy="102" r="7" fill="#fbf8f0" stroke="${AV_K}" stroke-width=".7"/><path d="M60 97v10M56 102h8" stroke="${AV_K}"/>`},
+  {n:'하오리', p:800, d:(c, a) => `<path d="M44 80l-2 70q18 6 36 0l-2-70z" fill="${a}" stroke="${AV_K}"/><path d="M42 80L22 114l12 8 12-26zM78 80l20 34-12 8-12-26z" fill="${c}" stroke="${AV_K}"/><path d="M40 78l8-2 2 74-16 0zM80 78l-8-2-2 74 16 0z" fill="${c}" stroke="${AV_K}"/><path d="M50 76l10 22 10-22" fill="#f8f4ea" stroke="${AV_K}" stroke-width=".8"/><path d="M53 90l7 4 7-4" stroke="#f4efe2" stroke-width="1.4" fill="none"/>` + avFeet},
+  {n:'갑옷', p:1500, req:{d:'우두머리 3곳 토벌', c:S => Object.keys(S.bosses).length >= 3}, d:(c, a) => `<path d="M44 124h13v28H44zM63 124h13v28H63z" fill="#4a4a54" stroke="${AV_K}"/>` + avFeet + `<path d="M42 78L24 104l10 12 12-22zM78 78l18 26-10 12-12-22z" fill="${c}" stroke="${AV_K}"/><path d="M40 76q20-8 40 0l4 52q-24 6-48 0z" fill="${c}" stroke="${AV_K}"/>${[88,98,108,118].map(y => `<path d="M38 ${y}q22 6 44 0" fill="none" stroke="${a}" stroke-width="2"/>`).join('')}<path d="M26 96l14-14 3 12-10 12zM94 96L80 82l-3 12 10 12z" fill="${a}" stroke="${AV_K}" stroke-width=".8"/>`},
+  {n:'여행 망토', p:900, d:(c, a) => avRobe(a, c) + `<path d="M38 74q22-8 44 0l8 66q-30 10-60 0z" fill="${c}" stroke="${AV_K}"/><path d="M52 76l8 10 8-10" fill="${a}" stroke="${AV_K}" stroke-width=".8"/>` + avFeet},
+  {n:'열두 겹 옷', p:3000, req:{d:'마을회관 3단계', c:() => typeof hallLv === 'function' && hallLv() >= 3}, d:(c, a) => `<path d="M42 80L14 124l22 8 12-30zM78 80l28 44-22 8-12-30z" fill="${c}" stroke="${AV_K}"/><path d="M38 78q22-8 44 0l14 72q-36 10-72 0z" fill="${c}" stroke="${AV_K}"/><path d="M44 78l14 72M76 78L62 150" stroke="${a}" stroke-width="5"/><path d="M47 78l13 72M73 78L60 150" stroke="#f4efe2" stroke-width="2"/><path d="M50 76l10 22 10-22q-10-4-20 0z" fill="${a}" stroke="${AV_K}" stroke-width=".7"/>`},
+  {n:'귀족 옷', p:2500, req:{d:'경험레벨 30', c:S => S.lv >= 30}, d:(c, a) => `<path d="M42 80L16 112q6 14 22 10l10-24zM78 80l26 32q-6 14-22 10L72 98z" fill="${c}" stroke="${AV_K}"/><path d="M40 78q20-8 40 0l6 72q-26 8-52 0z" fill="${c}" stroke="${AV_K}"/><circle cx="60" cy="80" r="11" fill="${a}" stroke="${AV_K}" stroke-width=".8"/><circle cx="60" cy="80" r="6" fill="#f8f4ea"/><g fill="#fff" opacity=".5"><circle cx="46" cy="118" r="3"/><circle cx="74" cy="118" r="3"/><circle cx="60" cy="134" r="3"/></g>` + avFeet},
+];
+
+// 머리: b = 얼굴 뒤, f = 얼굴 앞
+const AV_HAIRS = [
+  {n:'단발', p:0, b:h => `<path d="M33 48c0-18 12-28 27-28s27 10 27 28l1 22q-6 5-11 0V50H44v20q-5 5-11 0z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c3-16 14-22 26-22s23 6 26 22q-13-11-26-11t-26 11z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'짧은 머리', p:0, gone:1, b:() => '', f:() => ''},
+  {n:'긴 생머리', p:0, b:h => `<path d="M32 48c0-18 12-28 28-28s28 10 28 28l4 60q-8 6-16 2V50H44v60q-8 4-16-2z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c2-15 13-22 26-22s24 7 26 22q-6-8-14-10-5 6-12 6t-12-6q-8 2-14 10z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'말총머리', p:100, b:h => `<path d="M84 34q18 8 14 44-8-14-14-20z" fill="${h}" stroke="${AV_K}"/><path d="M34 48c0-18 12-27 26-27s26 9 26 27z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c3-15 14-21 26-21s23 6 26 21q-10-10-22-11-2 6-6 8 0-5-2-8-12 1-22 11z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'양 갈래', p:100, b:h => `<path d="M34 34Q14 48 22 84q8-8 14-30zM86 34q20 14 12 50-8-8-14-30z" fill="${h}" stroke="${AV_K}"/><path d="M34 48c0-18 12-27 26-27s26 9 26 27z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c2-15 13-22 26-22s24 7 26 22q-12-12-26-12t-26 12z" fill="${h}" stroke="${AV_K}"/><circle cx="34" cy="34" r="3" fill="#b03e2a"/><circle cx="86" cy="34" r="3" fill="#b03e2a"/>`},
+  {n:'상투', p:150, b:h => `<path d="M60 8q5 0 5 8t-5 10q-5-2-5-10t5-8z" fill="${h}" stroke="${AV_K}"/><path d="M34 48c0-18 12-27 26-27s26 9 26 27z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 42c4-14 14-19 26-19s22 5 26 19q-12-6-26-6t-26 6z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'올림머리', p:150, b:h => `<circle cx="60" cy="16" r="11" fill="${h}" stroke="${AV_K}"/><path d="M34 48c0-18 12-27 26-27s26 9 26 27z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c3-15 14-21 26-21s23 6 26 21q-11-13-26-13T34 46z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'양쪽 경단', p:200, b:h => `<circle cx="36" cy="22" r="10" fill="${h}" stroke="${AV_K}"/><circle cx="84" cy="22" r="10" fill="${h}" stroke="${AV_K}"/><path d="M34 48c0-18 12-27 26-27s26 9 26 27z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c2-15 13-22 26-22s24 7 26 22q-6-8-13-10l-13 6-13-6q-7 2-13 10z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'히메 컷', p:300, b:h => `<path d="M31 48c0-18 13-28 29-28s29 10 29 28l3 66H76V50H44v64H28z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 44c2-14 13-21 26-21s24 7 26 21v4H34z" fill="${h}" stroke="${AV_K}"/><path d="M34 44h6v28h-6zM80 44h6v28h-6z" fill="${h}" stroke="${AV_K}" stroke-width=".7"/>`},
+  {n:'물결 머리', p:250, b:h => `<path d="M32 48c0-18 12-28 28-28s28 10 28 28q6 10 2 20t2 22q-8 8-16 2V50H44v42q-8 6-16-2-2-10 2-20t2-22z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c3-15 14-22 26-22s23 7 26 22q-8-4-14-12-12 10-26 8-6 0-12 4z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'땋은 머리', p:200, b:h => `<path d="M34 48c0-18 12-27 26-27s26 9 26 27z" fill="${h}" stroke="${AV_K}"/><g fill="${h}" stroke="${AV_K}" stroke-width=".8"><ellipse cx="84" cy="62" rx="6" ry="7"/><ellipse cx="86" cy="74" rx="5.5" ry="7"/><ellipse cx="87" cy="86" rx="5" ry="7"/></g>`, f:h => `<path d="M34 46c3-15 14-22 26-22s23 7 26 22q-14-14-30-10-14 2-22 10z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'뻗친 머리', p:250, gone:1, b:() => '', f:() => ''},
+  {n:'옆으로 넘긴 머리', p:200, b:h => `<path d="M34 48c0-18 12-27 26-27s26 9 26 27v12q-4 3-6 0V48H40v12q-2 3-6 0z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 50c0-16 12-26 26-26s26 10 26 26q-4-12-14-16-16 12-38 16z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'둥근 머리', p:150, b:h => `<circle cx="60" cy="42" r="31" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 42c3-13 14-18 26-18s23 5 26 18q-13-6-26-6t-26 6z" fill="${h}" stroke="${AV_K}"/>`},
+  {n:'꽁지머리', p:200, gone:1, b:() => '', f:() => ''},
+  {n:'민머리', p:100, b:() => '', f:() => ''},
+  {n:'포니테일', p:0, b:h => `<path d="M62 22q6-16 22-14 20 4 20 34 0 22-12 40-2-22-8-36-4-12-22-24z" fill="${h}" stroke="${AV_K}"/><path d="M34 48c0-18 12-27 26-27s26 9 26 27z" fill="${h}" stroke="${AV_K}"/>`, f:h => `<path d="M34 46c3-15 14-22 26-22s23 7 26 22q-10-10-20-11-8 6-18 5-8 1-14 6z" fill="${h}" stroke="${AV_K}"/><circle cx="68" cy="22" r="3.500" fill="#b03e2a" stroke="${AV_K}" stroke-width=".7"/>`},
+];
+
+// 눈
+// 눈동자를 크고 세로로 길게, 반짝임 두 개: 작은 점눈은 멍하고 무서워 보인다
+const avE = (x, y, r, c) => { r = Math.max(r, 4.6); return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*1.18}" fill="${c}"/><ellipse cx="${x}" cy="${y + r*.2}" rx="${r*.55}" ry="${r*.72}" fill="#2a1d17" opacity=".55"/><circle cx="${x + r*.32}" cy="${y - r*.48}" r="${r*.4}" fill="#fff"/><circle cx="${x - r*.36}" cy="${y + r*.52}" r="${r*.2}" fill="#fff"/>`; };
+const avLine = d => `<path d="${d}" fill="none" stroke="${AV_K}" stroke-width="1.7" stroke-linecap="round"/>`;
+const AV_EYES = [
+  {n:'동글동글', p:0, d:c => avE(49, 51, 3.6, c) + avE(71, 51, 3.6, c)},
+  {n:'초롱초롱', p:0, d:c => avE(49, 50, 5, c) + avE(71, 50, 5, c) + `<circle cx="47.5" cy="52" r=".9" fill="#fff"/><circle cx="69.5" cy="52" r=".9" fill="#fff"/>` + avLine('M43 46q6-4 11 0M66 46q5-4 11 0')},
+  {n:'웃는 눈', p:0, d:() => avLine('M44 52q5-6 10 0M66 52q5-6 10 0')},
+  {n:'날카로운 눈', p:80, d:c => `<path d="M43 47l12 4q-2 5-7 4t-5-8zM77 47l-12 4q2 5 7 4t5-8z" fill="${c}" stroke="${AV_K}" stroke-width=".8"/>` + avLine('M42 44l13 4M78 44l-13 4')},
+  {n:'졸린 눈', p:80, d:c => `<path d="M44 50h10q0 6-5 6t-5-6zM66 50h10q0 6-5 6t-5-6z" fill="${c}"/>` + avLine('M43 50h12M65 50h12')},
+  {n:'감은 눈', p:50, d:() => avLine('M44 51q5 4 10 0M66 51q5 4 10 0')},
+  {n:'윙크', p:100, d:c => avE(49, 51, 3.8, c) + avLine('M66 50l10 2-10 3')},
+  {n:'고양이 눈', p:150, d:c => avE(49, 51, 4.6, c) + avE(71, 51, 4.6, c) + avLine('M42 47q4-3 7-3M78 47q-4-3-7-3')},
+  {n:'처진 눈', p:80, d:c => avE(49, 52, 3.4, c) + avE(71, 52, 3.4, c) + avLine('M43 47q6-1 10 3M77 47q-6-1-10 3')},
+  {n:'점 눈', p:50, d:() => `<circle cx="49" cy="51" r="1.8" fill="${AV_K}"/><circle cx="71" cy="51" r="1.8" fill="${AV_K}"/>`},
+  {n:'단호한 눈', p:100, d:c => avE(49, 52, 3.4, c) + avE(71, 52, 3.4, c) + `<path d="M42 45l13 3M78 45l-13 3" stroke="${AV_K}" stroke-width="3" stroke-linecap="round"/>`},
+];
+const AV_MOUTHS = [
+  {n:'미소', p:0, d:() => avLine('M55 62q5 4 10 0')},
+  {n:'활짝', p:0, d:() => `<path d="M54 60q6 2 12 0-1 8-6 8t-6-8z" fill="#b03e2a" stroke="${AV_K}"/>`},
+  {n:'무표정', p:0, d:() => avLine('M56 63h8')},
+  {n:'고양이 입', p:80, d:() => avLine('M54 61q3 4 6 0 3 4 6 0')},
+  {n:'삐죽', p:80, d:() => avLine('M56 64q4-4 8 0')},
+  {n:'덧니', p:120, d:() => avLine('M54 61q6 4 12 0') + `<path d="M62 62l2 4 2-4" fill="#fff" stroke="${AV_K}" stroke-width=".7"/>`},
+  {n:'놀란 입', p:80, d:() => `<ellipse cx="60" cy="63" rx="3" ry="4" fill="#b03e2a" stroke="${AV_K}"/>`},
+  {n:'연지 입술', p:120, d:() => `<path d="M56 62q2-2 4-.5 2-1.500 4 .5-4 4-8 0z" fill="#c8322a" stroke="${AV_K}" stroke-width=".6"/>`},
+];
+const AV_CHEEKS = [
+  {n:'없음', p:0, d:() => ''},
+  {n:'발그레', p:0, d:() => `<ellipse cx="41" cy="61" rx="5.5" ry="3.2" fill="#f4a0a8" opacity=".6"/><ellipse cx="79" cy="61" rx="5.5" ry="3.2" fill="#f4a0a8" opacity=".6"/>`},
+  {n:'주근깨', p:50, d:() => `<g fill="#a07050"><circle cx="42" cy="58" r=".8"/><circle cx="45" cy="60" r=".8"/><circle cx="40" cy="60" r=".8"/><circle cx="78" cy="58" r=".8"/><circle cx="75" cy="60" r=".8"/><circle cx="80" cy="60" r=".8"/></g>`},
+  {n:'수염 무늬', p:150, d:() => `<path d="M36 56l8 2M36 61l8-1M84 56l-8 2M84 61l-8-1" stroke="${AV_K}" stroke-width="1" stroke-linecap="round"/>`},
+  {n:'흉터', p:150, d:() => `<path d="M74 44l6 14M73 49l6-1M75 54l6-1" stroke="#a84a3a" stroke-width="1.2" stroke-linecap="round" fill="none"/>`},
+  {n:'무사 칠', p:200, d:() => `<path d="M38 56h9M73 56h9" stroke="#b03e2a" stroke-width="2.4" stroke-linecap="round"/>`},
+];
+// 머리 장식: f = 앞머리 위에 그린다
+const AV_HATS = [
+  {n:'없음', p:0, f:() => ''},
+  {n:'머리띠', p:0, f:c => `<path d="M33 37q27-9 54 0v6q-27-9-54 0z" fill="${c}" stroke="${AV_K}"/><path d="M88 40l10 6-9 2z" fill="${c}" stroke="${AV_K}"/>`},
+  {n:'꽃 장식', p:100, f:c => `<g transform="translate(82 28)"><circle r="3" fill="#f4e0a8"/>${[0,72,144,216,288].map(a => `<ellipse cy="-5.500" rx="3.200" ry="4" fill="${c}" stroke="${AV_K}" stroke-width=".5" transform="rotate(${a})"/>`).join('')}</g>`},
+  {n:'리본', p:100, f:c => `<path d="M60 20l-14-7v14zM60 20l14-7v14z" fill="${c}" stroke="${AV_K}"/><circle cx="60" cy="20" r="3" fill="${c}" stroke="${AV_K}"/>`},
+  {n:'비녀', p:150, f:c => `<path d="M34 14l50 14" stroke="${c}" stroke-width="2.4" stroke-linecap="round"/><circle cx="34" cy="14" r="4" fill="${c}" stroke="${AV_K}"/>`},
+  {n:'두건', p:150, f:c => `<path d="M32 44c0-20 13-29 28-29s28 9 28 29q-28-12-56 0z" fill="${c}" stroke="${AV_K}"/><path d="M60 15q0 10 0 20" stroke="${AV_K}" stroke-width=".7"/>`},
+  {n:'밀짚모자', p:200, f:() => `<ellipse cx="60" cy="34" rx="42" ry="8" fill="#e0c47a" stroke="${AV_K}"/><path d="M38 33c0-14 10-20 22-20s22 6 22 20q-22 5-44 0z" fill="#e8d08a" stroke="${AV_K}"/><path d="M38 30q22 6 44 0" stroke="#b03e2a" stroke-width="3" fill="none"/>`},
+  {n:'삿갓', p:250, f:() => `<path d="M60 4L14 38q46 10 92 0z" fill="#d8bc78" stroke="${AV_K}"/><path d="M60 4L36 36M60 4L48 39M60 4v36M60 4L72 39M60 4l24 32" stroke="${AV_K}" stroke-width=".5" opacity=".6"/>`},
+  {n:'요리사 모자', p:250, f:() => `<path d="M40 34c-10-2-8-16 2-14 2-10 34-10 36 0 10-2 12 12 2 14v6H40z" fill="#fbf8f0" stroke="${AV_K}"/>`},
+  {n:'고양이 귀', p:300, f:c => `<path d="M34 34l-2-20 16 10zM86 34l2-20-16 10z" fill="${c}" stroke="${AV_K}"/><path d="M36 28l-1-9 7 5zM84 28l1-9-7 5z" fill="#f0a0a0"/>`},
+  {n:'여우 귀', p:400, f:c => `<path d="M36 32L24 6l22 16zM84 32L96 6 74 22z" fill="${c}" stroke="${AV_K}"/><path d="M32 18l-2-5 5 3zM88 18l2-5-5 3z" fill="#2a1d17"/>`},
+  {n:'토끼 귀', p:300, f:c => `<path d="M44 26q-8-22 0-26 8 4 6 26zM76 26q8-22 0-26-8 4-6 26z" fill="${c}" stroke="${AV_K}"/><path d="M45 22q-3-12 0-17 3 5 2 17zM75 22q3-12 0-17-3 5-2 17z" fill="#f0a0a0"/>`},
+  {n:'도깨비 뿔', p:500, req:{d:'요괴 100마리 처치', c:S => st_(S,'yokai') >= 100}, f:c => `<path d="M42 26l-4-20 13 15zM78 26l4-20-13 15z" fill="${c}" stroke="${AV_K}"/>`},
+  {n:'여우 가면', p:600, f:() => `<g transform="translate(84 36) rotate(18)"><path d="M-11-10l4 4h14l4-4 1 14Q8 16 0 18q-8-2-12-14z" fill="#fbf8f0" stroke="${AV_K}"/><path d="M-8 0l5 1M8 0l-5 1" stroke="#b03e2a" stroke-width="1.6"/><circle cy="12" r="1.500" fill="#b03e2a"/></g>`},
+  {n:'투구', p:1200, req:{d:'우두머리 5곳 토벌', c:S => Object.keys(S.bosses).length >= 5}, f:c => `<path d="M30 42c0-22 14-30 30-30s30 8 30 30l6 8-14-4q-22-10-44 0l-14 4z" fill="#4a4a54" stroke="${AV_K}"/><path d="M60 14L44 0l10 16zM60 14L76 0 66 16z" fill="${c}" stroke="${AV_K}"/>`},
+  {n:'왕관 꽃', p:2000, req:{d:'칭호 20개', c:S => (S.titlesGot || []).length >= 20}, f:() => `<path d="M38 28l-2-14 10 7 6-11 8 10 8-10 6 11 10-7-2 14q-22-7-44 0z" fill="#e8c858" stroke="${AV_K}"/><circle cx="60" cy="19" r="2.400" fill="#b03e2a"/>`},
+];
+// 손에 드는 것
+const AV_HELD = [
+  {n:'없음', p:0, d:() => ''},
+  {n:'부채', p:80, d:c => `<path d="M92 118L72 92q20-12 38 2z" fill="${c}" stroke="${AV_K}"/><path d="M92 118L80 90M92 118v-28M92 118l10-24" stroke="${AV_K}" stroke-width=".5"/>`},
+  {n:'꽃 한 송이', p:80, d:c => `<path d="M92 118V82" stroke="#55743a" stroke-width="2"/><circle cx="92" cy="78" r="5" fill="${c}" stroke="${AV_K}"/><circle cx="92" cy="78" r="2" fill="#f4e0a8"/>`},
+  {n:'국자', p:120, d:() => `<path d="M92 120V86" stroke="#8a6a3a" stroke-width="3"/><path d="M84 84q8 10 16 0z" fill="#8a6a3a" stroke="${AV_K}"/>`},
+  {n:'낚싯대', p:150, d:() => `<path d="M92 122L112 50" stroke="#8a6a3a" stroke-width="2"/><path d="M112 50q6 20 2 40" stroke="${AV_K}" stroke-width=".6" fill="none"/>`},
+  {n:'괭이', p:120, d:() => `<path d="M92 122V76" stroke="#8a6a3a" stroke-width="3"/><path d="M84 72h14l4 8H90z" fill="#8a8a94" stroke="${AV_K}"/>`},
+  {n:'등롱', p:200, d:c => `<path d="M92 118V100" stroke="${AV_K}"/><ellipse cx="92" cy="110" rx="9" ry="11" fill="${c}" stroke="${AV_K}"/><path d="M84 106h16M84 114h16" stroke="${AV_K}" stroke-width=".5"/>`},
+  {n:'종이 우산', p:300, d:c => `<path d="M92 122V70" stroke="#8a6a3a" stroke-width="2"/><path d="M62 72q30-30 60 0-15-5-30-5t-30 5z" fill="${c}" stroke="${AV_K}"/><path d="M92 42L77 68M92 42v25M92 42l15 26" stroke="${AV_K}" stroke-width=".5"/>`},
+  {n:'칼', p:300, d:() => `<path d="M92 124l20-66" stroke="#c8c8d0" stroke-width="3"/><path d="M92 124l4-14" stroke="#3a2a22" stroke-width="4"/><path d="M90 112l9 3" stroke="#e8c858" stroke-width="2.400"/>`},
+  {n:'경단 꼬치', p:150, d:() => `<path d="M92 120V78" stroke="#c8a858" stroke-width="1.600"/><circle cx="92" cy="84" r="5" fill="#f4c8d8" stroke="${AV_K}"/><circle cx="92" cy="94" r="5" fill="#fbf8f0" stroke="${AV_K}"/><circle cx="92" cy="104" r="5" fill="#a8c878" stroke="${AV_K}"/>`},
+  {n:'대어', p:800, req:{d:'대어 낚시꾼 칭호', c:S => st_(S,'bigfish') >= 1}, d:() => `<path d="M88 112q14-40 24-22-6 24-24 22z" fill="#7a9ab8" stroke="${AV_K}"/><path d="M90 112l-4 8 8-3z" fill="#7a9ab8" stroke="${AV_K}"/><circle cx="106" cy="90" r="1.300" fill="${AV_K}"/>`},
+  {n:'명장의 망치', p:1000, req:{d:'장비 +5 강화', c:S => Object.values(S.enh || {}).some(v => v >= 5)}, d:() => `<path d="M92 122V84" stroke="#8a6a3a" stroke-width="3"/><rect x="80" y="72" width="24" height="13" rx="2" fill="#6a6a74" stroke="${AV_K}"/>`},
+];
+
+// 값 하나하나: 저장 순서가 곧 코드 순서다. 뒤에만 덧붙일 것
+const AV_FIELDS = [
+  {k:'sk', n:'피부', list:AV_SKIN},
+  {k:'hs', n:'머리 모양', list:AV_HAIRS},
+  {k:'hc', n:'머리 색', list:AV_HAIR},
+  {k:'ey', n:'눈', list:AV_EYES},
+  {k:'ec', n:'눈동자 색', list:AV_EYE},
+  {k:'mo', n:'입', list:AV_MOUTHS},
+  {k:'ch', n:'볼', list:AV_CHEEKS},
+  {k:'ow', n:'옷', list:AV_OUTFIT},
+  {k:'oc', n:'옷 색', list:AV_CLOTH},
+  {k:'oa', n:'띠·덧댐 색', list:AV_CLOTH},
+  {k:'ha', n:'머리 장식', list:AV_HATS},
+  {k:'hk', n:'장식 색', list:AV_CLOTH},
+  {k:'he', n:'소품', list:AV_HELD},
+  {k:'bg', n:'배경', list:AV_BG},
+];
+const AV_DEF = {sk:1, hs:0, hc:1, ey:0, ec:0, mo:0, ch:1, ow:0, oc:5, oa:0, ha:0, hk:0, he:0, bg:0};
+const avParse = code => { const v = String(code || '').replace(/^av:/, '').split('.'), o = {}; AV_FIELDS.forEach((f, i) => { const n = parseInt(v[i], 10); o[f.k] = Number.isInteger(n) ? clamp(n, 0, f.list.length - 1) : AV_DEF[f.k]; }); return o; };
+const avCode = a => 'av:' + AV_FIELDS.map(f => a[f.k] ?? AV_DEF[f.k]).join('.');
+const AV_EYE_FIXED = 5; // 감은 눈 하나로 고정
+const avMine = () => { if (!S.avatar) S.avatar = {...AV_DEF};
+  if (AV_HAIRS[S.avatar.hs]?.gone) S.avatar.hs = 0;
+  // 없어진 머리·눈을 이미 샀다면 값을 돌려준다
+  if (S.avOwn) for (const k of Object.keys(S.avOwn)){ const m = /^(hs|ey)(\d+)$/.exec(k); if (!m) continue; const it = (m[1] === 'hs' ? AV_HAIRS : AV_EYES)[+m[2]]; if (it && (m[1] === 'ey' || it.gone)){ S.gold += it.p || 0; delete S.avOwn[k]; } }
+  return S.avatar; };
+
+// 몸 전체 그림(배경 없음). 원점은 viewBox 0 0 120 170 기준
+function avatarG(a){
+  const skin = AV_SKIN[a.sk], hair = AV_HAIR[a.hc], eye = AV_EYE[a.ec], c = AV_CLOTH[a.oc], c2 = AV_CLOTH[a.oa], hk = AV_CLOTH[a.hk];
+  const H = AV_HAIRS[a.hs].gone ? AV_HAIRS[0] : AV_HAIRS[a.hs], O = AV_OUTFIT[a.ow], hand = `<circle cx="29" cy="116" r="5" fill="${skin}" stroke="${AV_K}"/><circle cx="91" cy="116" r="5" fill="${skin}" stroke="${AV_K}"/>`;
+  // 머리는 크게, 몸은 작게(2등신). 눈은 얼굴 아래쪽에 넓게, 입은 작게 놓아야 순해 보인다
+  const body = `<g transform="translate(60 72) scale(.8 .78) translate(-60 -72)">${O.d(c, c2, skin)}${AV_HELD[a.he].d(hk)}${hand}</g>`;
+  const eyes = `<g transform="translate(60 54) scale(1.16 1.1) translate(-60 -51)">${AV_EYES[AV_EYE_FIXED].d(eye)}</g>`;
+  const mouth = `<g transform="translate(60 65) scale(.72) translate(-60 -62)">${AV_MOUTHS[a.mo].d()}</g>`;
+  return `<ellipse cx="60" cy="160" rx="26" ry="5" fill="#000" opacity=".12"/><g transform="translate(0 20)" stroke-linejoin="round" stroke-linecap="round">${H.b(hair)}${body}<rect x="54" y="68" width="12" height="8" fill="${skin}"/><ellipse cx="60" cy="48" rx="27" ry="25.500" fill="${skin}" stroke="${AV_K}"/>${AV_CHEEKS[a.ch].d()}${eyes}${mouth}${H.f(hair)}${AV_HATS[a.ha].f(hk)}</g>`;
+}
+// bust: 프로필용 상반신. 소품은 잘린다
+function avatarSVG(a, bust){
+  const bg = `<rect x="-20" y="-20" width="160" height="210" fill="${AV_BG[a.bg]}"/>`;
+  return `<svg viewBox="${bust ? '14 14 92 92' : '0 8 120 160'}" width="100%" aria-hidden="true">${bg}${avatarG(a)}</svg>`;
+}
+const _PHOTO_NPC = PHOTO;
+PHOTO = (p, cls = '') => typeof p === 'string' && p.startsWith('av:') ? `<span class="avatar npc ${cls}">${avatarSVG(avParse(p), true)}</span>` : _PHOTO_NPC(p, cls);
+
+// 잠금: 값 / 조건
+const avOwned = (k, i) => { const it = AV_FIELDS.find(f => f.k === k).list[i]; if (!it || typeof it === 'string' || !it.p) return true; return !!(S.avOwn && S.avOwn[k + i]); };
+const avCan = it => !it.req || (() => { try { return it.req.c(S); } catch(e){ return false; } })();
+function avBill(d){ let gold = 0; const locked = [], buy = []; for (const f of AV_FIELDS){ if (f.k === 'ey') continue; const it = f.list[d[f.k]]; if (typeof it === 'string' || avOwned(f.k, d[f.k])) continue; if (!avCan(it)) locked.push(`${it.n}: ${it.req.d}`); gold += it.p; buy.push(f.k + d[f.k]); } return {gold, locked, buy}; }
+
+// 옷장 화면
+const AV_TABS = {face:{n:'얼굴', f:['sk','mo','ch']}, hair:{n:'머리', f:['hs','hc']}, wear:{n:'옷', f:['ow','oc','oa']}, deco:{n:'장식', f:['ha','hk','he']}, bg:{n:'배경', f:['bg']}};
+SHEETS.wardrobe = () => {
+  const d = UI.avDraft = UI.avDraft || {...avMine()}, tab = AV_TABS[UI.avTab] ? UI.avTab : 'face', bill = avBill(d);
+  const same = AV_FIELDS.every(f => d[f.k] === avMine()[f.k]), rich = (S.settings.infGold && isOp()) || S.gold >= bill.gold;
+  const opt = f => { const cur = d[f.k];
+    if (typeof f.list[0] === 'string') return `<div class="av-sw">${f.list.map((col, i) => `<button class="av-c" style="background:${col}" data-act="avSet" data-k="${f.k}" data-v="${i}" aria-pressed="${i === cur}" aria-label="${f.n} ${i + 1}"></button>`).join('')}</div>`;
+    const whole = ['ow','he'].includes(f.k);
+    return `<div class="av-opts">${f.list.map((it, i) => { if (it.gone) return ''; const own = avOwned(f.k, i), can = avCan(it); return `<button class="av-o" data-act="avSet" data-k="${f.k}" data-v="${i}" aria-pressed="${i === cur}">${avatarSVG({...d, [f.k]:i}, !whole)}<span class="tiny">${it.n}</span>${own ? '' : `<span class="tiny av-p ${can ? '' : 'lk'}">${can ? `${it.p}${CUR}` : '🔒'}</span>`}</button>`; }).join('')}</div>`; };
+  return sheetHead('옷장', `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`) + `
+  <div class="av-top"><div class="av-big">${avatarSVG(d)}</div><div class="stack grow" style="gap:6px">
+    <button class="btn sm ghost" data-act="avRand">무작위로 입어 보기</button>
+    <button class="btn sm ghost" data-act="avReset" ${same ? 'disabled' : ''}>원래대로</button>
+    <button class="btn sm seal" data-act="avSave" ${same || bill.locked.length || !rich ? 'disabled' : ''}>${bill.gold ? `사서 입기 · ${bill.gold.toLocaleString()}${CUR}` : '이 모습으로 저장'}</button>
+    ${bill.locked.length ? `<span class="tiny" style="color:var(--seal)">🔒 ${esc(bill.locked.join(' · '))}</span>` : !rich ? '<span class="tiny" style="color:var(--seal)">엽전이 모자라요.</span>' : '<span class="tiny muted">입어 보는 건 무료예요. 저장할 때만 값을 치릅니다.</span>'}
+  </div></div>
+  <div class="row small" style="margin:10px 0"><span class="grow">${avUsing() ? '프로필 사진으로 쓰는 중' : '프로필 사진으로 쓰면 담소와 교류 화면에도 이 얼굴이 나옵니다.'}</span><button class="btn sm ghost" data-act="avUse">${avUsing() ? '사진으로 되돌리기' : '프로필로 쓰기'}</button></div>
+  <div class="seg" style="margin-bottom:10px">${Object.keys(AV_TABS).map(t => `<button data-act="avTab" data-t="${t}" aria-pressed="${t === tab}">${AV_TABS[t].n}</button>`).join('')}</div>
+  ${AV_TABS[tab].f.map(k => { const f = AV_FIELDS.find(x => x.k === k); return `<h3 class="small" style="margin:10px 0 6px">${f.n}</h3>${opt(f)}`; }).join('')}`;
+};
+const avUsing = () => String(S.char.photo || '').startsWith('av:');
+function avSave(){
+  const d = UI.avDraft; if (!d) return;
+  const bill = avBill(d); if (bill.locked.length) return toast('아직 조건을 채우지 못한 것이 있어요.', 'warn');
+  if (!(S.settings.infGold && isOp())){ if (S.gold < bill.gold) return toast('엽전이 모자라요.', 'warn'); S.gold -= bill.gold; }
+  S.avOwn = S.avOwn || {}; bill.buy.forEach(k => { S.avOwn[k] = 1; }); stat('avBuy', bill.buy.length);
+  S.avatar = {...d}; stat('avSave');
+  if (!S.char.photo || avUsing()) S.char.photo = avCode(S.avatar);
+  sfx(bill.gold ? 'coin' : 'page'); save(); pubDirty(); toast(bill.gold ? '새 차림을 샀습니다. 잘 어울려요!' : '차림을 저장했습니다.', 'good'); renderSheet(true); render();
+}
+function avUse(){
+  if (avUsing()){ S.char.photo = S.avPhoto0 || ''; delete S.avPhoto0; toast('프로필 사진을 되돌렸습니다.'); }
+  else { if (S.char.photo) S.avPhoto0 = S.char.photo; S.char.photo = avCode(avMine()); toast('아바타를 프로필 사진으로 씁니다.', 'good'); }
+  save(); pubDirty(); renderSheet(true); render();
+}
+Object.assign(ACT, {
+  avSet: d => { UI.avDraft[d.k] = +d.v; renderSheet(true); },
+  avTab: d => { UI.avTab = d.t; renderSheet(true); },
+  avRand: () => { const x = {...UI.avDraft}; for (const f of AV_FIELDS){ if (['bg','ey','ec'].includes(f.k)) continue; const pool = f.list.map((it, i) => i).filter(i => !f.list[i].gone).filter(i => avOwned(f.k, i) || (Math.random() < 0.25 && avCan(f.list[i]))); x[f.k] = pick(Math.random, pool); } UI.avDraft = x; sfx('page'); renderSheet(true); },
+  avReset: () => { UI.avDraft = {...avMine()}; renderSheet(true); },
+  avSave, avUse,
+  wardrobe: () => { UI.avDraft = {...avMine()}; openSheet('wardrobe'); },
+});
+
+// '나' 화면에 아바타 칸
+const avCard = () => `<div class="card" style="margin-top:10px"><div class="row" style="gap:12px"><div class="av-mini">${avatarSVG(avMine())}</div><div class="grow"><b>내 아바타</b><p class="tiny muted" style="margin:2px 0 8px">얼굴·머리·옷·장식을 골라 꾸며요. 내 집에도 이 모습으로 나옵니다.</p><button class="btn sm seal" data-act="wardrobe">옷장 열기</button></div></div></div>`;
+const _me_av = TABS.me;
+TABS.me = () => { const h = _me_av(), mark = '<div class="card" style="margin-top:10px"><div class="row"><span class="stamp">'; return h.includes(mark) ? h.replace(mark, avCard() + mark) : h + avCard(); };
+
+// 공개 프로필에 함께 싣는다
+const _pubObj_av = pubObj;
+pubObj = () => { const o = _pubObj_av(); if (o && S.avatar) o.avatar = avCode(S.avatar); return o; };
+
+TITLES.push(
+  {id:'av1', n:'새 옷 입은 날', d:'옷장에서 차림을 처음 저장했다.', c:S => st_(S,'avSave') >= 1},
+  {id:'av10', n:'멋쟁이', d:'옷과 장식을 10가지 넘게 샀다.', c:S => st_(S,'avBuy') >= 10},
+);
+// ===================== 내 집: 가구를 사서 마음대로 놓고, 이웃 집에 놀러 간다 =====================
+// 집 배치는 공개 프로필(players)에 실린다. 새 Firestore 규칙이 필요 없다. 마음·방명록은 events로 주고받는다.
+// 다른 사람 데이터로 그릴 때는 homeClean이 가구 이름·좌표·색 번호를 모두 걸러 낸다.
+const HK = '#2a1d17';
+const hS = `stroke="${HK}" stroke-width="1"`;
+const WD = '#a8784a', WD2 = '#7a5230', WD3 = '#c89a68', PA = '#f4ecd8', ST_ = '#9a9aa0', GR = '#5a8a4a';
+const TINT = ['#b03e2a','#d8603a','#e8a83a','#55743a','#3a8a7a','#2d4a6d','#7a4a8a','#c86a90','#f4efe2','#2b2b33'];
+const HCAT = {room:'방 가구', soft:'깔개·침구', light:'조명', wall:'벽 장식', deco:'소품', kitchen:'부엌', yard:'마당', special:'특별'};
+
+// 그림은 가운데 아래(0,0)를 기준으로 그린다. w,h는 잡는 영역, l: 0 바닥에 깔림 1 벽에 걸림 2 일반
+const FURN = {
+  // ---- 깔개·침구 ----
+  tatami:{n:'다다미 깔개', cat:'soft', p:60, need:[['wood',2]], c:2, w:110, h:40, l:0, d:() => `<path d="M-48-38h96l8 38h-112z" fill="#c8c088" ${hS}/><path d="M-48-38h-0l-8 38M0-38V0M-24-38l-3 38M24-38l3 38" stroke="#8a8450" stroke-width=".7"/><path d="M-48-38h96l1 4h-98zM-56-4h112l0 4h-112z" fill="#3a5a3a"/>`},
+  rug:{n:'둥근 깔개', cat:'soft', p:90, need:[['silk',1]], c:3, w:100, h:44, l:0, tint:1, d:c => `<ellipse cy="-20" rx="48" ry="20" fill="${c}" ${hS}/><ellipse cy="-20" rx="36" ry="14" fill="none" stroke="#fff" opacity=".6"/><ellipse cy="-20" rx="20" ry="8" fill="#fff" opacity=".25"/>`},
+  zabuton:{n:'방석', cat:'soft', p:30, c:1, w:44, h:18, l:0, tint:1, d:c => `<path d="M-20-14h40l3 12q-23 4-46 0z" fill="${c}" ${hS}/><circle cy="-8" r="1.800" fill="#e8c858"/>`},
+  futon:{n:'이부자리', cat:'soft', p:150, need:[['silk',2]], c:5, w:100, h:44, l:0, tint:1, nap:1, d:c => `<path d="M-46-34h92l4 34h-100z" fill="#f4efe2" ${hS}/><path d="M-46-34h26l-1 34h-29z" fill="#fff" ${hS}/><path d="M-20-36h66l5 32h-72z" fill="${c}" ${hS}/><path d="M-10-20h48M-8-12h52" stroke="#fff" stroke-width=".7" opacity=".5"/>`},
+  petbed:{n:'동료 방석', cat:'soft', p:120, need:[['feather',4]], c:3, w:56, h:24, l:0, tint:1, d:c => `<ellipse cy="-10" rx="26" ry="11" fill="${c}" ${hS}/><ellipse cy="-12" rx="17" ry="6" fill="#fff" opacity=".35"/>`},
+  // ---- 방 가구 ----
+  chabudai:{n:'둥근 밥상', cat:'room', p:120, need:[['wood',5]], c:3, w:70, h:26, d:() => `<path d="M-22-10v10M22-10V0M-10-10v6M10-10v6" stroke="${WD2}" stroke-width="3"/><ellipse cy="-16" rx="32" ry="9" fill="${WD}" ${hS}/><ellipse cy="-17" rx="24" ry="5.500" fill="${WD3}" opacity=".5"/>`},
+  kotatsu:{n:'고타쓰', cat:'room', p:400, need:[['wood',6],['silk',3]], c:7, w:84, h:40, tint:1, d:c => `<path d="M-36-22h72l6 22q-42 5-84 0z" fill="${c}" ${hS}/><path d="M-38-24h76l2 5h-80z" fill="${WD}" ${hS}/><path d="M-16-16q0 6-4 14M16-16q0 6 4 14" stroke="#fff" opacity=".3" fill="none"/>`},
+  tansu:{n:'옷장 서랍', cat:'room', p:300, need:[['wood',12]], c:4, w:60, h:66, d:() => `<rect x="-28" y="-64" width="56" height="64" fill="${WD}" ${hS}/>${[-60,-44,-28,-12].map(y => `<rect x="-24" y="${y}" width="48" height="13" fill="${WD3}" ${hS}/><circle cx="-12" cy="${y + 6.500}" r="1.600" fill="${HK}"/><circle cx="12" cy="${y + 6.500}" r="1.600" fill="${HK}"/>`).join('')}`},
+  shelf:{n:'책장', cat:'room', p:280, need:[['wood',10]], c:4, w:64, h:76, d:() => `<rect x="-30" y="-74" width="60" height="74" fill="${WD2}" ${hS}/>${[-68,-44,-20].map((y, r) => `<rect x="-26" y="${y}" width="52" height="19" fill="#3a2a1c"/>${[0,1,2,3,4,5].map(i => `<rect x="${-24 + i*8}" y="${y + 3 + (i + r)%3}" width="6" height="${16 - (i + r)%3}" fill="${TINT[(i*3 + r) % 8]}"/>`).join('')}`).join('')}`},
+  byobu:{n:'병풍', cat:'room', p:500, need:[['wood',6],['silk',4]], c:6, w:110, h:80, d:() => `<path d="M-52-76h34v76h-34zM-18-72h36v72h-36zM18-76h34v76H18z" fill="#f0e4c0" ${hS}/><path d="M-46-22q14-22 28-6M-16-20q16-28 32-8M22-18q14-20 26-4" fill="none" stroke="#5a6a5a" stroke-width="2"/><circle cx="26" cy="-54" r="7" fill="#c8483a"/>`},
+  goldbyobu:{n:'금박 병풍', cat:'room', p:6000, need:[['ingot',4],['silk',8]], c:18, w:124, h:88, d:() => `<path d="M-60-84h40v84h-40zM-20-80h40v80h-40zM20-84h40v84H20z" fill="#e8c858" ${hS}/><path d="M-60-84h40M-20-80h40M20-84h40" stroke="#a87a1a" stroke-width="3"/><path d="M-50-20q10-30 22-8l14-20q18 30 30 10l16-26q10 26 18 34" fill="none" stroke="#7a5a1a" stroke-width="2"/><circle cx="34" cy="-60" r="8" fill="#c8483a"/>`},
+  rack:{n:'옷걸이', cat:'room', p:220, need:[['wood',6],['silk',2]], c:4, w:76, h:76, tint:1, d:c => `<path d="M-34 0v-70M34 0v-70M-38-68h76M-38 0h14M24 0h14" stroke="${WD2}" stroke-width="3"/><path d="M-28-66h56l4 44-12 4-4 16H-16l-4-16-12-4z" fill="${c}" ${hS}/><path d="M0-66v62" stroke="${HK}" stroke-width=".6"/>`},
+  mirror:{n:'경대', cat:'room', p:320, need:[['wood',5],['silver',2]], c:5, w:50, h:66, d:() => `<rect x="-22" y="-22" width="44" height="22" fill="${WD}" ${hS}/><rect x="-16" y="-14" width="32" height="6" fill="${WD3}" ${hS}/><ellipse cy="-44" rx="16" ry="20" fill="#d8e4e8" stroke="${WD2}" stroke-width="3"/><path d="M-8-52l10 16M-2-56l8 12" stroke="#fff" stroke-width="2"/>`},
+  stool:{n:'나무 걸상', cat:'room', p:60, need:[['wood',3]], c:1, w:40, h:26, d:() => `<path d="M-14-16L-16 0M14-16L16 0" stroke="${WD2}" stroke-width="3"/><rect x="-18" y="-22" width="36" height="7" rx="2" fill="${WD}" ${hS}/>`},
+  shamisen:{n:'샤미센', cat:'room', p:700, need:[['wood',4],['hide',4]], c:7, w:34, h:84, d:() => `<rect x="-2" y="-80" width="4" height="56" fill="${WD2}"/><path d="M-3-80h6l4-4h-14z" fill="${WD2}"/><rect x="-14" y="-28" width="28" height="28" rx="4" fill="#f4ecd8" stroke="${WD2}" stroke-width="3"/><path d="M-1-78V-6M1-78V-6" stroke="#fff" stroke-width=".5"/>`},
+  koto:{n:'고토', cat:'room', p:1200, need:[['wood',10],['silk',4]], c:9, w:120, h:28, d:() => `<path d="M-56-20h112l2 14q-58 8-116 0z" fill="${WD}" ${hS}/>${[-14,-11,-8].map(y => `<path d="M-52 ${y}h104" stroke="#fff" stroke-width=".5"/>`).join('')}${[-30,-8,14,36].map(x => `<path d="M${x - 3}-7l3-8 3 8z" fill="#f4ecd8" ${hS}/>`).join('')}`},
+  chest:{n:'궤짝', cat:'room', p:200, need:[['wood',8],['ore',2]], c:3, w:60, h:40, d:() => `<rect x="-27" y="-34" width="54" height="34" fill="${WD}" ${hS}/><path d="M-27-22h54" stroke="${HK}"/><path d="M-20-34v34M20-34V0" stroke="#4a4a54" stroke-width="3"/><rect x="-5" y="-27" width="10" height="9" fill="#e8c858" ${hS}/>`},
+  // ---- 조명 ----
+  andon:{n:'행등', cat:'light', p:100, need:[['wood',3]], c:3, w:34, h:52, glow:44, d:() => `<rect x="-13" y="-46" width="26" height="36" fill="#f8e8b0" ${hS}/><path d="M-13-34h26M-13-22h26M0-46v36" stroke="${WD2}" stroke-width="1"/><path d="M-15-48h30M-13-10L-15 0M13-10L15 0" stroke="${WD2}" stroke-width="3"/>`},
+  chochin:{n:'종이 등', cat:'light', p:80, need:[['wood',1]], c:2, w:34, h:46, l:1, tint:1, glow:40, d:c => `<path d="M0-44v6" stroke="${HK}"/><ellipse cy="-22" rx="14" ry="17" fill="${c}" ${hS}/><path d="M-13-28h26M-14-22h28M-13-16h26" stroke="${HK}" stroke-width=".5" opacity=".6"/><rect x="-6" y="-40" width="12" height="3" fill="${HK}"/><rect x="-6" y="-7" width="12" height="3" fill="${HK}"/>`},
+  candle:{n:'촛대', cat:'light', p:70, need:[['ore',2]], c:2, w:24, h:44, glow:30, d:() => `<path d="M-9 0h18M0 0v-22M-6-22h12" stroke="#5a5a64" stroke-width="2.500"/><rect x="-3" y="-34" width="6" height="12" fill="#fbf8f0" ${hS}/><path d="M0-42q5 4 0 8-5-4 0-8z" fill="#f0a030"/>`},
+  // ---- 벽 장식 ----
+  window:{n:'둥근 창', cat:'wall', p:180, need:[['wood',4]], c:4, w:70, h:70, l:1, d:(c, ctx) => `<circle cy="-34" r="32" fill="${ctx && ctx.night ? '#2a3050' : '#b8d8e8'}" stroke="${WD2}" stroke-width="4"/>${ctx && ctx.night ? '<circle cx="10" cy="-44" r="6" fill="#f4e8b0"/>' : '<path d="M-28-22q14-14 28 0t28 0v10H-28z" fill="#7aa86a"/>'}<path d="M0-66v64M-32-34h64M-22-58v48M22-58v48" stroke="${WD2}" stroke-width="1.500"/>`},
+  shoji:{n:'미닫이 문', cat:'wall', p:240, need:[['wood',6]], c:3, w:86, h:96, l:1, d:() => `<rect x="-40" y="-94" width="80" height="94" fill="#f8f2e0" stroke="${WD2}" stroke-width="3"/><path d="M0-94V0M-20-94V0M20-94V0M-40-70h80M-40-46h80M-40-22h80" stroke="${WD2}" stroke-width="1"/>`},
+  kakejiku:{n:'족자', cat:'wall', p:160, need:[['silk',1]], c:3, w:42, h:86, l:1, tint:1, d:c => `<path d="M-20-84h40M-20-2h40" stroke="${WD2}" stroke-width="3"/><rect x="-17" y="-82" width="34" height="78" fill="${c}"/><rect x="-13" y="-72" width="26" height="58" fill="#f8f2e0"/><path d="M-6-62q10 8 2 18 8 2 8 14-8-4-14 4" fill="none" stroke="${HK}" stroke-width="2.200"/>`},
+  noren:{n:'노렌', cat:'wall', p:140, need:[['silk',2]], c:3, w:80, h:50, l:1, tint:1, d:c => `<path d="M-38-48h76" stroke="${WD2}" stroke-width="3"/><path d="M-36-46h23v44h-23zM-11-46h22v44h-22zM13-46h23v44H13z" fill="${c}" ${hS}/><circle cy="-26" r="7" fill="#fff" opacity=".8"/>`},
+  kamidana:{n:'가미다나', cat:'wall', p:600, need:[['wood',8],['talisman',1]], c:6, w:76, h:52, l:1, d:() => `<rect x="-36" y="-6" width="72" height="6" fill="${WD}" ${hS}/><path d="M-22-6v-28h44v28z" fill="${WD3}" ${hS}/><path d="M-28-32L0-48l28 16z" fill="${WD2}" ${hS}/><rect x="-6" y="-24" width="12" height="18" fill="#3a2a1c"/><path d="M-14-34q14 8 28 0" stroke="#f4efe2" stroke-width="2.500" fill="none"/>`},
+  fanwall:{n:'벽 부채', cat:'wall', p:90, need:[['wood',1]], c:2, w:66, h:40, l:1, tint:1, d:c => `<path d="M0-2L-30-22Q0-48 30-22z" fill="${c}" ${hS}/><path d="M0-2L-18-32M0-2L-8-37M0-2L8-37M0-2L18-32" stroke="#fff" stroke-width=".6" opacity=".6"/>`},
+  chime:{n:'풍경', cat:'wall', p:110, need:[['ore',2]], c:3, w:24, h:50, l:1, tint:1, d:c => `<path d="M0-48v22" stroke="${HK}"/><path d="M-9-28q9-14 18 0v4H-9z" fill="#d8e8f0" ${hS}/><path d="M0-24v14" stroke="${HK}"/><rect x="-4" y="-10" width="8" height="10" fill="${c}" ${hS}/>`},
+  mask:{n:'여우 가면', cat:'wall', p:260, need:[['wood',2],['sap',2]], c:3, w:42, h:46, l:1, d:() => `<path d="M-16-40l6 8h20l6-8 2 18Q10-4 0-2q-10-2-18-20z" fill="#fbf8f0" ${hS}/><path d="M-12-22l7 2M12-22l-7 2" stroke="#b03e2a" stroke-width="2"/><circle cy="-8" r="2" fill="#b03e2a"/>`},
+  onimask:{n:'도깨비 가면', cat:'wall', p:300, need:[['wood',2],['bone',4]], c:3, w:48, h:50, l:1, d:() => `<path d="M-20-32q20-14 40 0v14Q14-2 0 0q-14-2-20-18z" fill="#c8483a" ${hS}/><path d="M-14-36l-4-12 10 8zM14-36l4-12-10 8z" fill="#f4ecd8" ${hS}/><circle cx="-8" cy="-20" r="3" fill="#fff"/><circle cx="8" cy="-20" r="3" fill="#fff"/><path d="M-10-9h20l-4 3-3-3-3 3-3-3-3 3z" fill="#fff" ${hS}/>`},
+  // ---- 소품 ----
+  bonsai:{n:'분재', cat:'deco', p:180, need:[['compost',2]], c:4, w:44, h:48, d:() => `<path d="M-14-10h28l-3 10h-22z" fill="#6a5a7a" ${hS}/><path d="M0-10q-3-14 5-22" stroke="${WD2}" stroke-width="4" fill="none"/><ellipse cx="6" cy="-36" rx="15" ry="8" fill="${GR}" ${hS}/><ellipse cx="-8" cy="-26" rx="10" ry="6" fill="${GR}" ${hS}/>`},
+  ikebana:{n:'꽃꽂이', cat:'deco', p:120, need:[['sansai',2]], c:3, w:40, h:48, tint:1, d:c => `<path d="M-8-14h16l-3 14h-10z" fill="#3a4a6a" ${hS}/><path d="M0-14q-8-14-12-24M0-14V-40M0-14q8-10 12-20" stroke="${GR}" stroke-width="1.600" fill="none"/><circle cx="-12" cy="-38" r="4.500" fill="${c}" ${hS}/><circle cy="-42" r="4.500" fill="${c}" ${hS}/><circle cx="12" cy="-34" r="4" fill="${c}" ${hS}/>`},
+  vase:{n:'청자 항아리', cat:'deco', p:220, need:[['ore',1],['sap',2]], c:3, w:34, h:46, tint:1, d:c => `<path d="M-6-44h12l-2 7q14 8 8 26Q16 0 0 0t-14-11q-6-18 8-26z" fill="${c}" ${hS}/><path d="M-11-22q11 7 22 0" stroke="#fff" opacity=".6" fill="none"/>`},
+  maneki:{n:'복고양이', cat:'deco', p:500, need:[['gem',1]], c:6, w:38, h:46, d:() => `<ellipse cy="-14" rx="14" ry="14" fill="#fbf8f0" ${hS}/><circle cy="-30" r="12" fill="#fbf8f0" ${hS}/><path d="M-10-38l-2-8 8 4zM10-38l2-8-8 4z" fill="#fbf8f0" ${hS}/><path d="M12-22q6-8 2-16" stroke="#fbf8f0" stroke-width="6" stroke-linecap="round"/><circle cx="-4" cy="-31" r="1.200" fill="${HK}"/><circle cx="4" cy="-31" r="1.200" fill="${HK}"/><path d="M-7-21h14" stroke="#c8322a" stroke-width="2.500"/><circle cy="-13" r="6" fill="#e8c858" ${hS}/>`},
+  daruma:{n:'달마', cat:'deco', p:150, need:[['sap',1]], c:3, w:34, h:38, tint:1, d:c => `<ellipse cy="-17" rx="15" ry="17" fill="${c}" ${hS}/><ellipse cy="-21" rx="8" ry="9" fill="#fbf0dc" ${hS}/><circle cx="-3" cy="-22" r="1.500" fill="${HK}"/><circle cx="3" cy="-22" r="1.500" fill="${HK}"/><path d="M-3-16q3 2 6 0" stroke="${HK}" fill="none"/>`},
+  kokeshi:{n:'목각 인형', cat:'deco', p:80, need:[['wood',2]], c:2, w:22, h:44, tint:1, d:c => `<rect x="-7" y="-26" width="14" height="26" rx="4" fill="${c}" ${hS}/><circle cy="-32" r="9" fill="#fbf0dc" ${hS}/><path d="M-9-34q9-10 18 0-9-3-18 0z" fill="${HK}"/><circle cx="-3" cy="-31" r=".9" fill="${HK}"/><circle cx="3" cy="-31" r=".9" fill="${HK}"/>`},
+  bookpile:{n:'책 더미', cat:'deco', p:60, c:2, w:36, h:22, d:() => `<rect x="-16" y="-7" width="32" height="7" fill="#2d4a6d" ${hS}/><rect x="-13" y="-14" width="28" height="7" fill="#b03e2a" ${hS}/><rect x="-14" y="-20" width="24" height="6" fill="#55743a" ${hS}/>`},
+  basket:{n:'대바구니', cat:'deco', p:50, need:[['wood',2]], c:1, w:38, h:30, d:() => `<path d="M-16-18h32l-3 18h-26z" fill="#c8a868" ${hS}/><path d="M-14-11h28M-13-5h26M-8-18L-6 0M0-18V0M8-18L6 0" stroke="${WD2}" stroke-width=".7"/><path d="M-13-18q13-12 26 0" fill="none" stroke="${WD2}" stroke-width="2"/>`},
+  goldfish:{n:'금붕어 어항', cat:'deco', p:300, need:[['ore',1]], c:4, w:42, h:36, d:() => `<circle cy="-16" r="16" fill="#cfe6ee" opacity=".85" ${hS}/><path d="M-13-22q13 4 26 0" stroke="#7aa0b8" fill="none"/><path d="M-6-13q6-6 10 0-4 6-10 0zM-6-13l-5-3v6z" fill="#e8603a"/><path d="M8-8q3-3 6 0-3 3-6 0z" fill="#e8a83a"/>`},
+  umbrella:{n:'우산꽂이', cat:'deco', p:90, need:[['wood',2]], c:1, w:26, h:54, tint:1, d:c => `<path d="M-9-20h18l-2 20H-7z" fill="${WD}" ${hS}/><path d="M-4-52q-6 16-1 32h7q5-16 0-32z" fill="${c}" ${hS}/>`},
+  // ---- 부엌 ----
+  kamado:{n:'부뚜막', cat:'kitchen', p:600, need:[['ore',6],['wood',4]], c:6, w:80, h:50, d:() => `<rect x="-36" y="-34" width="72" height="34" rx="3" fill="#b8a890" ${hS}/><path d="M-22 0v-14q6-8 12 0V0zM10 0v-14q6-8 12 0V0z" fill="#3a2a1c"/><ellipse cx="-16" cy="-37" rx="13" ry="5" fill="#3a3a44" ${hS}/><ellipse cx="16" cy="-37" rx="13" ry="5" fill="#3a3a44" ${hS}/><path d="M-16-42v-2M16-42v-2" stroke="${HK}" stroke-width="2"/>`},
+  cupboard:{n:'찬장', cat:'kitchen', p:320, need:[['wood',10]], c:4, w:64, h:76, d:() => `<rect x="-30" y="-74" width="60" height="74" fill="${WD}" ${hS}/><rect x="-25" y="-68" width="50" height="28" fill="#3a2a1c"/><circle cx="-14" cy="-46" r="6" fill="#f4ecd8" ${hS}/><circle cx="0" cy="-46" r="6" fill="#d8e4e8" ${hS}/><circle cx="14" cy="-46" r="6" fill="#e8c8a8" ${hS}/><rect x="-25" y="-34" width="24" height="30" fill="${WD3}" ${hS}/><rect x="1" y="-34" width="24" height="30" fill="${WD3}" ${hS}/>`},
+  ricebag:{n:'쌀가마니', cat:'kitchen', p:100, need:[['rice',5]], c:2, w:50, h:36, d:() => `<ellipse cy="-16" rx="23" ry="16" fill="#d8c080" ${hS}/><path d="M-20-22q20 6 40 0M-20-10q20 6 40 0M0-32v32" fill="none" stroke="${WD2}" stroke-width=".7"/>`},
+  barrel:{n:'술통', cat:'kitchen', p:260, need:[['wood',6],['rice',4]], c:3, w:44, h:48, d:() => `<rect x="-18" y="-44" width="36" height="44" fill="#d8c8a0" ${hS}/><path d="M-18-34h36M-18-10h36" stroke="${WD2}" stroke-width="3"/><circle cy="-22" r="9" fill="#fbf8f0" ${hS}/><path d="M-3-26h6M0-26v8" stroke="#b03e2a" stroke-width="1.500"/>`},
+  feast:{n:'잔치 상차림', cat:'kitchen', p:1500, need:[['wood',6]], c:10, w:100, h:40, req:{d:'요리 숙련도 30', c:S => (S.prof.cook || 0) >= 30}, d:() => `<rect x="-46" y="-20" width="92" height="7" fill="#b03e2a" ${hS}/><path d="M-40-13V0M40-13V0" stroke="${WD2}" stroke-width="4"/><ellipse cx="-24" cy="-23" rx="13" ry="4" fill="#fbf8f0" ${hS}/><path d="M-30-26q6-6 12 0z" fill="#e8a83a"/><ellipse cx="4" cy="-23" rx="11" ry="4" fill="#fbf8f0" ${hS}/><path d="M-3-25h14l-2-4H-1z" fill="#e8603a"/><circle cx="28" cy="-27" r="6" fill="#55743a" ${hS}/>`},
+  // ---- 마당 ----
+  sakura:{n:'벚나무', cat:'yard', p:1000, need:[['wood',6],['compost',6]], c:8, w:120, h:130, d:() => `<path d="M-5 0q2-40-3-60M5 0q0-36 4-56M0-50l-22-22M4-56l22-18" stroke="${WD2}" stroke-width="7" fill="none"/><g fill="#f4b8c8" ${hS}><circle cx="-34" cy="-84" r="22"/><circle cx="32" cy="-86" r="22"/><circle cy="-104" r="24"/><circle cx="-14" cy="-76" r="18"/><circle cx="14" cy="-74" r="18"/></g><g fill="#fbd8e0"><circle cx="-30" cy="-92" r="6"/><circle cx="24" cy="-96" r="7"/><circle cx="-2" cy="-112" r="7"/></g>`},
+  pine:{n:'소나무', cat:'yard', p:800, need:[['wood',6],['compost',4]], c:6, w:100, h:120, d:() => `<path d="M0 0q-10-40 6-70t-6-40" stroke="${WD2}" stroke-width="8" fill="none"/><g fill="#3a6a4a" ${hS}><ellipse cx="-28" cy="-54" rx="24" ry="9"/><ellipse cx="28" cy="-72" rx="24" ry="9"/><ellipse cx="-16" cy="-90" rx="24" ry="9"/><ellipse cx="8" cy="-108" rx="20" ry="8"/></g>`},
+  momiji:{n:'단풍나무', cat:'yard', p:900, need:[['wood',6],['compost',5]], c:7, w:104, h:110, d:() => `<path d="M0 0q2-30-2-50M-1-40l-18-16M0-44l18-14" stroke="${WD2}" stroke-width="6" fill="none"/><g fill="#d8483a" ${hS}><circle cx="-28" cy="-68" r="18"/><circle cx="28" cy="-70" r="18"/><circle cy="-84" r="20"/></g><g fill="#e8a83a"><circle cx="-22" cy="-74" r="6"/><circle cx="20" cy="-78" r="5"/><circle cx="4" cy="-92" r="6"/></g>`},
+  bamboo:{n:'대나무', cat:'yard', p:200, need:[['wood',4]], c:3, w:50, h:110, d:() => `${[-12,2,14].map((x, i) => `<path d="M${x} 0V${-108 + i*14}" stroke="#6a9a5a" stroke-width="5"/>${[-30,-58,-86].map(y => y > -108 + i*14 ? `<path d="M${x - 3} ${y}h6" stroke="#3a6a3a" stroke-width="1.500"/>` : '').join('')}<path d="M${x} ${-70 + i*10}q12-8 20-2M${x} ${-88 + i*10}q-12-8-18-2" stroke="#4a8a4a" stroke-width="2.500" fill="none"/>`).join('')}`},
+  lantern:{n:'석등', cat:'yard', p:500, need:[['ore',8]], c:5, w:44, h:70, glow:46, d:() => `<rect x="-5" y="-30" width="10" height="30" fill="${ST_}" ${hS}/><rect x="-15" y="-6" width="30" height="6" fill="#8a8a90" ${hS}/><rect x="-12" y="-34" width="24" height="5" fill="#8a8a90" ${hS}/><rect x="-10" y="-50" width="20" height="16" fill="#f8e8a0" ${hS}/><path d="M-20-50L0-66l20 16z" fill="#7a7a80" ${hS}/><circle cy="-68" r="3" fill="#7a7a80" ${hS}/>`},
+  pond:{n:'비단잉어 연못', cat:'yard', p:1800, need:[['ore',6],['gem',1]], c:12, w:150, h:60, l:0, d:() => `<ellipse cy="-27" rx="72" ry="27" fill="#6a9ab0" stroke="#8a8a90" stroke-width="6"/><ellipse cx="-20" cy="-30" rx="28" ry="9" fill="#8ab8c8" opacity=".6"/><path d="M-30-26q7-5 12 0-5 5-12 0zM-30-26l-5-3v6z" fill="#e8703a"/><path d="M14-22q7-5 12 0-5 5-12 0zM26-22l5-3v6z" fill="#fbf8f0"/><ellipse cx="38" cy="-36" rx="9" ry="3.500" fill="${GR}"/>`},
+  stones:{n:'징검돌', cat:'yard', p:80, need:[['ore',2]], c:1, w:90, h:24, l:0, d:() => `<g fill="${ST_}" ${hS}><ellipse cx="-30" cy="-6" rx="13" ry="5"/><ellipse cy="-14" rx="12" ry="5"/><ellipse cx="30" cy="-7" rx="13" ry="5"/></g>`},
+  torii:{n:'작은 도리이', cat:'yard', p:1500, need:[['wood',12],['sap',6]], c:8, w:90, h:90, d:() => `<path d="M-26 0V-74M26 0V-74" stroke="#c8402a" stroke-width="7"/><path d="M-42-80q42 8 84 0l-3 8q-39 6-78 0z" fill="#c8402a" ${hS}/><rect x="-34" y="-62" width="68" height="6" fill="#c8402a" ${hS}/>`},
+  well:{n:'우물', cat:'yard', p:600, need:[['ore',8],['wood',4]], c:5, w:70, h:80, d:() => `<ellipse cy="-6" rx="26" ry="8" fill="#6a6a70" ${hS}/><path d="M-26-6v-22q26-10 52 0v22q-26 10-52 0z" fill="${ST_}" ${hS}/><ellipse cy="-28" rx="26" ry="8" fill="#2a3a4a" ${hS}/><path d="M-22-28v-40M22-28v-40" stroke="${WD2}" stroke-width="4"/><path d="M-30-66L0-80l30 14z" fill="${WD}" ${hS}/><path d="M0-68v22" stroke="${HK}"/><rect x="-5" y="-46" width="10" height="8" fill="${WD3}" ${hS}/>`},
+  bench:{n:'찻집 평상', cat:'yard', p:450, need:[['wood',8],['silk',2]], c:5, w:110, h:90, tint:1, d:c => `<path d="M-40-16v16M40-16V0" stroke="${WD2}" stroke-width="4"/><rect x="-46" y="-22" width="92" height="7" fill="${c}" ${hS}/><path d="M28-20v-54" stroke="${WD2}" stroke-width="2.500"/><path d="M-6-66q34-24 68 0-34-6-68 0z" fill="${c}" ${hS}/>`},
+  shishi:{n:'시시오도시', cat:'yard', p:350, need:[['wood',4]], c:4, w:70, h:44, d:() => `<ellipse cy="-5" rx="30" ry="6" fill="#6a9ab0" stroke="#8a8a90" stroke-width="3"/><path d="M-26-30l34 14" stroke="#7aa85a" stroke-width="6" stroke-linecap="round"/><path d="M-6-8v-16M2-8v-16" stroke="${WD2}" stroke-width="2.500"/>`},
+  fence:{n:'대나무 울타리', cat:'yard', p:70, need:[['wood',2]], c:1, w:80, h:44, d:() => `${[-32,-20,-8,4,16,28].map(x => `<rect x="${x}" y="-40" width="8" height="40" fill="#b8c078" ${hS}/>`).join('')}<path d="M-38-30h76M-38-12h76" stroke="${HK}" stroke-width="2.500"/>`},
+  flowers:{n:'꽃밭', cat:'yard', p:90, need:[['compost',1]], c:2, w:80, h:28, l:0, tint:1, d:c => `<ellipse cy="-9" rx="36" ry="9" fill="#6a5a3a" ${hS}/>${[-24,-12,0,12,24,-18,6,18].map((x, i) => `<g transform="translate(${x} ${i < 5 ? -8 : -13})"><path d="M0 0v-5" stroke="${GR}" stroke-width="1.500"/><circle cy="-7" r="3.400" fill="${i % 3 === 2 ? '#fbf8f0' : c}" ${hS}/></g>`).join('')}`},
+  rock:{n:'정원석', cat:'yard', p:60, need:[['ore',2]], c:1, w:60, h:34, d:() => `<path d="M-26 0q-4-18 8-26 12-6 22 0 18 6 22 26z" fill="#8a8a90" ${hS}/><path d="M-10-20q6 4 8 14M12-22q2 8-2 14" stroke="#6a6a70" fill="none"/>`},
+  scarecrow:{n:'허수아비', cat:'yard', p:120, need:[['wood',3]], c:2, w:60, h:76, tint:1, d:c => `<path d="M0 0v-62M-26-42h52" stroke="${WD2}" stroke-width="3"/><path d="M-14-50h28v22h-28z" fill="${c}" ${hS}/><circle cy="-62" r="10" fill="#e8d8a8" ${hS}/><path d="M-16-66h32L0-82z" fill="#c8a858" ${hS}/><circle cx="-3" cy="-62" r="1" fill="${HK}"/><circle cx="3" cy="-62" r="1" fill="${HK}"/>`},
+  logs:{n:'장작더미', cat:'yard', p:50, need:[['wood',6]], c:1, w:60, h:32, d:() => `${[[-16,-7],[0,-7],[16,-7],[-8,-19],[8,-19]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="${WD3}" ${hS}/><circle cx="${p[0]}" cy="${p[1]}" r="3" fill="none" stroke="${WD2}"/>`).join('')}`},
+  mailbox:{n:'우편함', cat:'yard', p:130, need:[['wood',4]], c:1, w:30, h:54, d:() => `<path d="M0 0v-30" stroke="${WD2}" stroke-width="4"/><path d="M-12-30v-14q12-10 24 0v14z" fill="#b03e2a" ${hS}/><rect x="-7" y="-40" width="14" height="3" fill="${HK}"/>`},
+  doghouse:{n:'동료 집', cat:'yard', p:350, need:[['wood',10]], c:4, w:60, h:50, tint:1, d:c => `<rect x="-22" y="-26" width="44" height="26" fill="${WD}" ${hS}/><path d="M-28-24L0-46l28 22z" fill="${c}" ${hS}/><path d="M-9 0v-14q9-8 18 0V0z" fill="#3a2a1c"/>`},
+  bridge:{n:'붉은 다리', cat:'yard', p:1400, need:[['wood',14],['sap',6]], c:7, w:130, h:50, d:() => `<path d="M-60 0q60-42 120 0v-6Q0-48-60-6z" fill="#c8402a" ${hS}/><path d="M-44-24q44-26 88 0M-44-24v18M-16-36v22M16-36v22M44-24v18" stroke="#c8402a" stroke-width="3" fill="none"/>`},
+  shrine:{n:'작은 사당', cat:'yard', p:2200, need:[['wood',16],['talisman',2]], c:10, w:90, h:80, d:() => `<rect x="-30" y="-12" width="60" height="12" fill="${ST_}" ${hS}/><rect x="-20" y="-44" width="40" height="32" fill="${WD}" ${hS}/><rect x="-8" y="-38" width="16" height="26" fill="#3a2a1c"/><path d="M-34-42L0-72l34 30z" fill="${WD2}" ${hS}/><path d="M-30-42h60" stroke="#e8c858" stroke-width="2"/>`},
+  // ---- 특별: 조건을 채우면 살 수 있다 ----
+  armor:{n:'갑옷 장식', cat:'special', p:2000, need:[['ore',12],['hide',6]], c:10, w:60, h:90, req:{d:'우두머리 3곳 토벌', c:S => Object.keys(S.bosses).length >= 3}, d:() => `<rect x="-20" y="-6" width="40" height="6" fill="${WD2}" ${hS}/><path d="M-16-6l-4-48h40l-4 48z" fill="#3a3a54" ${hS}/>${[-46,-36,-26,-16].map(y => `<path d="M-18 ${y}h36" stroke="#c8483a" stroke-width="2"/>`).join('')}<path d="M-20-54L-30-40l6 8 6-16zM20-54l10 14-6 8-6-16z" fill="#b03e2a" ${hS}/><path d="M-14-58q14-24 28 0z" fill="#2b2b33" ${hS}/><path d="M0-72l-10-14 8 8zM0-72l10-14-8 8z" fill="#e8c858"/>`},
+  katana:{n:'칼걸이', cat:'special', p:900, need:[['wood',4],['silver',3]], c:6, w:76, h:44, req:{d:'대장간에서 장비 강화', c:S => st_(S,'enh') >= 1}, d:() => `<rect x="-34" y="-6" width="68" height="6" fill="${WD2}" ${hS}/><path d="M-26-6v-34M26-6v-34" stroke="${WD2}" stroke-width="4"/><path d="M-36-30q36-8 72 0M-36-18q36-8 72 0" stroke="#2b2b33" stroke-width="3" fill="none"/><path d="M26-33l10 2M26-21l10 2" stroke="#b03e2a" stroke-width="3"/>`},
+  gyotaku:{n:'대어 어탁', cat:'special', p:600, need:[['silk',1]], c:5, w:84, h:50, l:1, req:{d:'대어를 낚기', c:S => st_(S,'bigfish') >= 1}, d:() => `<rect x="-40" y="-46" width="80" height="46" fill="#f8f2e0" stroke="${WD2}" stroke-width="3"/><path d="M-28-22q24-22 46-2l10-8v18l-10-6q-22 18-46-2z" fill="#2a2a34"/><circle cx="-20" cy="-23" r="2" fill="#f8f2e0"/><rect x="24" y="-14" width="8" height="8" fill="#b03e2a"/>`},
+  horn:{n:'우두머리 뿔', cat:'special', p:1500, need:[['bone',20]], c:7, w:60, h:60, l:1, req:{d:'우두머리 5곳 토벌', c:S => Object.keys(S.bosses).length >= 5}, d:() => `<path d="M-8-14Q-30-30-24-56q6 20 18 28zM8-14Q30-30 24-56q-6 20-18 28z" fill="#f4ecd8" ${hS}/><rect x="-14" y="-16" width="28" height="16" fill="${WD2}" ${hS}/>`},
+  treasure:{n:'보물 상자', cat:'special', p:3000, need:[['gem',3],['ingot',2]], c:12, w:66, h:50, req:{d:'칭호 15개', c:S => (S.titlesGot || []).length >= 15}, d:() => `<rect x="-29" y="-26" width="58" height="26" fill="#a0402a" ${hS}/><path d="M-29-26q29-26 58 0z" fill="#b84a30" ${hS}/><path d="M-22-26V0M22-26V0M-22-34v8M22-34v8" stroke="#e8c858" stroke-width="3"/><rect x="-6" y="-30" width="12" height="11" fill="#e8c858" ${hS}/><circle cy="-40" r="2" fill="#fff"/>`},
+  snowman:{n:'눈사람', cat:'special', p:400, need:[['wood',1]], c:4, w:44, h:60, req:{d:'백설 평원 탐사', c:S => !!(S.stats.regs && S.stats.regs[9])}, d:() => `<circle cy="-16" r="16" fill="#fbfbff" ${hS}/><circle cy="-40" r="11" fill="#fbfbff" ${hS}/><path d="M-3-38h6l-3 6z" fill="#e8703a"/><circle cx="-4" cy="-43" r="1.200" fill="${HK}"/><circle cx="4" cy="-43" r="1.200" fill="${HK}"/><path d="M-9-50h18l-2-6h-14z" fill="#5a4632"/>`},
+  sacred:{n:'영험한 거울', cat:'special', p:5000, need:[['soul',2],['silver',8]], c:15, w:50, h:80, req:{d:'우두머리 8곳 토벌', c:S => Object.keys(S.bosses).length >= 8}, glow:50, d:() => `<rect x="-18" y="-8" width="36" height="8" fill="${WD2}" ${hS}/><path d="M0-8v-14" stroke="${WD2}" stroke-width="5"/><circle cy="-48" r="22" fill="#e8e4c8" stroke="#a87a1a" stroke-width="4"/><circle cy="-48" r="14" fill="#fbf8e8"/><path d="M-8-56l14 16" stroke="#fff" stroke-width="2.500"/>`},
+};
+
+// 벽지 · 바닥 · 마당 흙: 값 0이면 처음부터 쓸 수 있다
+const WALLS = [
+  {n:'흙벽', p:0, bg:'#e8dcc0', pat:'<path d="M4 8h6M20 24h7M14 34h4" stroke="#c8b898" stroke-width="1"/>'},
+  {n:'나무 벽', p:300, bg:'#b8895a', pat:'<path d="M0 0v40M20 0v40" stroke="#8a6238" stroke-width="1.500"/><path d="M8 12q2 4 0 8" stroke="#8a6238" fill="none"/>'},
+  {n:'대나무 벽', p:500, bg:'#c8c888', pat:'<path d="M0 0v40M10 0v40M20 0v40M30 0v40" stroke="#8a9858" stroke-width="2"/><path d="M2 14h6M12 30h6M22 8h6M32 22h6" stroke="#8a9858"/>'},
+  {n:'창호지', p:500, bg:'#f8f2e0', pat:'<path d="M0 0h40M0 20h40M0 0v40M20 0v40" stroke="#a8784a" stroke-width="1"/>'},
+  {n:'물결 무늬', p:800, bg:'#3a5a7a', pat:'<path d="M0 20a10 10 0 0 1 20 0a10 10 0 0 1 20 0M-10 40a10 10 0 0 1 20 0a10 10 0 0 1 20 0a10 10 0 0 1 20 0" fill="none" stroke="#7a9ab8" stroke-width="1.200"/>'},
+  {n:'벚꽃 무늬', p:800, bg:'#f4dce0', pat:'<g fill="#e8a8b8"><circle cx="8" cy="8" r="3"/><circle cx="28" cy="26" r="3"/><circle cx="30" cy="6" r="1.500"/><circle cx="10" cy="30" r="1.500"/></g>'},
+  {n:'먹빛 벽', p:1200, bg:'#3a3640', pat:'<path d="M6 10h8M24 30h8" stroke="#5a5660"/>'},
+  {n:'금박 벽', p:5000, bg:'#e0c060', pat:'<g fill="#f0d880"><rect x="2" y="4" width="14" height="14"/><rect x="22" y="22" width="14" height="14"/></g>'},
+];
+const FLOORS = [
+  {n:'흙바닥', p:0, bg:'#b8a07a', pat:'<circle cx="8" cy="10" r="1" fill="#98805a"/><circle cx="28" cy="30" r="1.400" fill="#98805a"/>'},
+  {n:'다다미', p:300, bg:'#c8c088', pat:'<path d="M0 0h40M0 20h40M20 0v20M0 20v20" stroke="#98905a" stroke-width="1.200"/>'},
+  {n:'마루', p:400, bg:'#b8844e', pat:'<path d="M0 0h40M0 13h40M0 26h40M12 0v13M30 13v13M6 26v14" stroke="#8a5e30" stroke-width="1.200"/>'},
+  {n:'어두운 마루', p:800, bg:'#5a3e2a', pat:'<path d="M0 0h40M0 13h40M0 26h40M12 0v13M30 13v13M6 26v14" stroke="#3a2618" stroke-width="1.200"/>'},
+  {n:'돌바닥', p:800, bg:'#a8a8a8', pat:'<path d="M0 0h20v18H0zM20 8h20v20H20zM0 18h14v22H0z" fill="none" stroke="#7a7a7a"/>'},
+  {n:'붉은 융단', p:2500, bg:'#a03a30', pat:'<path d="M20 4l8 16-8 16-8-16z" fill="none" stroke="#d8a050"/>'},
+];
+const GROUNDS = [
+  {n:'잔디', p:0, bg:'#8ab060', pat:'<path d="M6 12l2-5 2 5M26 30l2-5 2 5" stroke="#6a9048" fill="none"/>'},
+  {n:'흙길', p:150, bg:'#c0a478', pat:'<circle cx="10" cy="10" r="1.200" fill="#a08458"/><circle cx="30" cy="28" r="1.600" fill="#a08458"/>'},
+  {n:'이끼', p:500, bg:'#5f8a50', pat:'<circle cx="10" cy="12" r="7" fill="#6e9a5c"/><circle cx="30" cy="30" r="8" fill="#527a44"/>'},
+  {n:'흰 자갈', p:800, bg:'#dcd8cc', pat:'<path d="M0 10q10-6 20 0t20 0M0 30q10-6 20 0t20 0" stroke="#b0ac9c" fill="none"/>'},
+  {n:'눈밭', p:1000, bg:'#eef2f8', pat:'<circle cx="8" cy="8" r="1.200" fill="#c8d4e4"/><circle cx="28" cy="24" r="1.500" fill="#c8d4e4"/>'},
+  {n:'꽃잎 길', p:1500, bg:'#d8c8a8', pat:'<g fill="#f0b0c0"><ellipse cx="10" cy="10" rx="3" ry="1.600"/><ellipse cx="30" cy="26" rx="3" ry="1.600"/><ellipse cx="24" cy="6" rx="2" ry="1.200"/></g>'},
+];
+// 집 등급: 커질수록 놓을 수 있는 가구가 늘고 마당 그림이 바뀐다
+const HOUSE = [
+  {n:'초가 오두막', max:14},
+  {n:'초가집', max:24, gold:1500, need:[['wood',30]], yard:1},
+  {n:'기와집', max:36, gold:8000, need:[['wood',80],['ore',30]], yard:1},
+  {n:'큰 기와집', max:50, gold:30000, need:[['wood',150],['silver',30],['sap',20]], yard:1},
+  {n:'저택', max:70, gold:100000, need:[['wood',300],['ingot',15],['gem',5]], yard:1},
+];
+const COZY = [[0,'썰렁한 집'],[10,'사람 사는 집'],[30,'아늑한 집'],[60,'포근한 집'],[100,'정겨운 집'],[160,'꿈같은 집']];
+const SIZES = [75, 100, 125, 150];
+
+// ---------- 저장 데이터 ----------
+function homeMine(){
+  if (S.home) return S.home;
+  // 처음 들어오면 살림 몇 개를 놓아 준다
+  S.home = {g:0, w:0, f:0, y:0, n:'', room:[{k:'futon', x:88, y:252, t:5}, {k:'chabudai', x:230, y:238}, {k:'zabuton', x:190, y:256, t:0}, {k:'andon', x:320, y:204}, {k:'window', x:90, y:112}], yard:[], act:{}, inv:{}, wallOwn:{}, likes:0, book:[], open:true};
+  return S.home;
+}
+const placedOf = (H, k) => H.room.concat(H.yard).filter(i => i.k === k).length;
+const placedAll = H => H.room.length + H.yard.length;
+function cozyOf(H){ const seen = {}; let t = 0; for (const it of [...(H.room || []), ...(H.yard || [])]){ const F = FURN[it.k]; if (!F) continue; seen[it.k] = (seen[it.k] || 0) + 1; t += (F.c || 1) * Math.pow(0.5, seen[it.k] - 1); } t = Math.round(t); let lv = 0; COZY.forEach((c, i) => { if (t >= c[0]) lv = i; }); return {pts:t, lv, name:COZY[lv][1], next:COZY[lv + 1]}; }
+
+// 다른 사람 값도 안전하게: 아는 가구만, 좌표·번호는 범위 안으로
+const hNum = (v, a, b, d = 0) => { const n = Math.round(+v); return Number.isFinite(n) ? clamp(n, a, b) : d; };
+function cleanItem(i){ if (!i || !FURN[i.k]) return null; return {k:i.k, x:hNum(i.x, 0, 360), y:hNum(i.y, 0, 270), f:i.f ? 1 : 0, s:SIZES.includes(+i.s) ? +i.s : 100, z:hNum(i.z, -9, 9), t:hNum(i.t, 0, TINT.length - 1)}; }
+const cleanActs = a => { const o = {}; for (const k of ['me','c0','c1']){ const v = a && a[k]; if (v) o[k] = {x:hNum(v.x, 0, 360), y:hNum(v.y, 0, 270), f:v.f ? 1 : 0}; } return o; };
+function homeClean(h){ h = h || {}; const list = v => (Array.isArray(v) ? v : []).slice(0, 90).map(cleanItem).filter(Boolean);
+  return {n:String(h.n || '').slice(0, 14), g:hNum(h.g, 0, HOUSE.length - 1), w:hNum(h.w, 0, WALLS.length - 1), f:hNum(h.f, 0, FLOORS.length - 1), y:hNum(h.y, 0, GROUNDS.length - 1), room:list(h.room), yard:list(h.yard), act:{room:cleanActs(h.act && h.act.room), yard:cleanActs(h.act && h.act.yard)}, likes:hNum(h.likes, 0, 9999999), book:(Array.isArray(h.book) ? h.book : []).slice(0, 12).map(b => ({n:String((b && b.n) || '누군가').slice(0, 16), t:String((b && b.t) || '').slice(0, 60), ts:+(b && b.ts) || 0}))}; }
+
+// ---------- 집 그림 ----------
+function furnG(i, ctx){ const F = FURN[i.k]; return F.d(TINT[i.t || 0], ctx); }
+function furnThumb(k, t = 0){ const F = FURN[k], m = 3; return `<svg viewBox="${-F.w/2 - m} ${-F.h - m} ${F.w + m*2} ${F.h + m*2}" width="100%" height="100%" aria-hidden="true">${F.d(TINT[t], {})}</svg>`; }
+// 동료 그림을 집 안에 작게 끼워 넣는다
+const compG = sp => { const s = art(sp); return s.replace(/^<svg[^>]*viewBox="0 0 100 100"[^>]*>/, '<svg x="-20" y="-40" width="40" height="40" viewBox="0 0 100 100">'); };
+const DEF_ACT = {room:{me:{x:140, y:236}, c0:{x:100, y:258}, c1:{x:280, y:260}}, yard:{me:{x:200, y:220}, c0:{x:150, y:240}, c1:{x:250, y:244}}};
+const hPat = (id, L) => `<pattern id="${id}" width="40" height="40" patternUnits="userSpaceOnUse">${L.pat}</pattern>`;
+function houseFront(g){
+  const wall = g >= 2 ? '#efe6d2' : '#d8c8a0', roof = g >= 2 ? '#3f4a5a' : '#b89a58', w = 110 + g*22, l = 180 - w/2;
+  return `<g><rect x="${l}" y="58" width="${w}" height="66" fill="${wall}" ${hS}/><path d="M${l - 18} 60L${l + 28} 16h${w - 56}L${l + w + 18} 60z" fill="${roof}" ${hS}/>${g >= 2 ? `<path d="M${l - 18} 60h${w + 36}" stroke="${HK}" stroke-width="3"/>${[0,1,2,3,4,5].map(i => `<path d="M${l + 24 + i*(w - 48)/5} 22L${l + 4 + i*(w - 8)/5} 58" stroke="#2a3440"/>`).join('')}` : `<path d="M${l + 10} 40h${w - 20}M${l + 24} 28h${w - 48}" stroke="#8a7238"/>`}${g >= 4 ? `<path d="M${l + 36} 16L${l + 60} -6h${w - 120}L${l + w - 36} 16z" fill="${roof}" ${hS}/>` : ''}<rect x="${180 - 18}" y="84" width="36" height="40" fill="#5a3e2a" ${hS}/><path d="M180 84v40" stroke="${HK}"/>${[l + 16, l + w - 44].map(x => `<rect x="${x}" y="74" width="28" height="24" fill="#f8f2e0" ${hS}/><path d="M${x + 14} 74v24M${x} 86h28" stroke="${WD2}"/>`).join('')}</g>`;
+}
+function homeBack(H, scene, night){
+  if (scene === 'yard'){ const G = GROUNDS[H.y];
+    return `<defs>${hPat('hg' + H.y, G)}</defs><rect width="360" height="270" fill="${night ? '#27305a' : '#bcdcec'}"/>${night ? '<circle cx="306" cy="34" r="13" fill="#f4e8b0"/><g fill="#fff"><circle cx="40" cy="26" r="1.200"/><circle cx="110" cy="48" r="1"/><circle cx="240" cy="20" r="1.200"/></g>' : '<g fill="#fff" opacity=".85"><ellipse cx="60" cy="34" rx="28" ry="9"/><ellipse cx="300" cy="24" rx="24" ry="7"/></g>'}<path d="M0 104q70-40 150-8t210-16v44H0z" fill="${night ? '#2c4048' : '#88ac88'}"/>${houseFront(H.g)}<rect y="122" width="360" height="148" fill="${G.bg}"/><rect y="122" width="360" height="148" fill="url(#hg${H.y})"/><path d="M0 122h360" stroke="${HK}" opacity=".3"/>`; }
+  const W = WALLS[H.w], Fl = FLOORS[H.f];
+  return `<defs>${hPat('hw' + H.w, W)}${hPat('hf' + H.f, Fl)}</defs><rect width="360" height="156" fill="${W.bg}"/><rect width="360" height="156" fill="url(#hw${H.w})"/>${H.g >= 2 ? `<path d="M0 14h360" stroke="${WD2}" stroke-width="7"/>${H.g >= 3 ? `<path d="M90 14v142M270 14v142" stroke="${WD2}" stroke-width="5"/>` : ''}` : ''}<rect y="150" width="360" height="120" fill="${Fl.bg}"/><rect y="150" width="360" height="120" fill="url(#hf${H.f})"/><rect y="146" width="360" height="7" fill="${WD2}"/>`;
+}
+// H: homeClean을 거친 값. o: {scene, edit, sel, av, comps, guest}
+function homeSVG(H, o){
+  const scene = o.scene === 'yard' ? 'yard' : 'room', night = (() => { const h = seoul().h; return h >= 19 || h < 5; })(), ctx = {night};
+  const items = (H[scene] || []).map((it, i) => { const c = cleanItem(it); return c && {...c, i}; }).filter(Boolean);
+  const rank = it => { const l = FURN[it.k].l ?? 2; return (l === 0 ? 0 : 1)*100000 + (it.z || 0)*1000 + it.y; };
+  const sorted = items.slice().sort((a, b) => rank(a) - rank(b));
+  const pos = {...DEF_ACT[scene], ...((H.act && H.act[scene]) || {})};
+  const actors = [];
+  if (o.av) actors.push({key:'me', y:pos.me.y, draw:`<g class="h-bob"><g transform="scale(.55) translate(-60 -165)">${avatarG(o.av)}</g></g>`, w:60, h:90});
+  (o.comps || []).slice(0, 2).forEach((c, i) => actors.push({key:'c' + i, y:pos['c' + i].y, draw:`<g class="h-bob b2">${compG(c.sp)}</g>`, w:40, h:40}));
+  if (o.guest) actors.push({key:'guest', y:232, x:262, draw:`<g class="h-bob b2"><g transform="scale(.55) translate(-60 -165)">${avatarG(avParse(NPC_AV[o.guest] || ''))}</g></g>`, w:60, h:90, fixed:1});
+  const drawItem = it => { const F = FURN[it.k], sel = o.edit && o.sel === it.i; return `<g class="h-it" data-hi="${it.i}" transform="translate(${it.x} ${it.y})${it.f ? ' scale(-1 1)' : ''}${it.s !== 100 ? ` scale(${it.s/100})` : ''}">${o.edit ? `<rect x="${-F.w/2}" y="${-F.h}" width="${F.w}" height="${F.h}" fill="transparent"/>` : ''}${furnG(it, ctx)}${sel ? `<rect class="h-sel" x="${-F.w/2 - 2}" y="${-F.h - 2}" width="${F.w + 4}" height="${F.h + 4}"/>` : ''}</g>`; };
+  const drawActor = a => { const p = a.fixed ? {x:a.x, y:a.y} : pos[a.key], sel = o.edit && o.sel === a.key; return `<g class="${a.fixed ? 'h-gs' : 'h-it'}" ${a.fixed ? '' : `data-hi="${a.key}"`} transform="translate(${p.x} ${p.y})${p.f ? ' scale(-1 1)' : ''}">${o.edit && !a.fixed ? `<rect x="${-a.w/2}" y="${-a.h}" width="${a.w}" height="${a.h}" fill="transparent"/>` : ''}${a.draw}${sel ? `<rect class="h-sel" x="${-a.w/2 - 2}" y="${-a.h - 2}" width="${a.w + 4}" height="${a.h + 4}"/>` : ''}</g>`; };
+  const seq = [...sorted.map(it => ({r:(o.edit && o.sel === it.i ? 1e7 : 0) + rank(it), h:drawItem(it)})), ...actors.map(a => { const y = a.fixed ? a.y : pos[a.key].y; return {r:100000 + y, h:drawActor(a)}; })].sort((a, b) => a.r - b.r).map(x => x.h).join('');
+  const glow = night ? items.filter(it => FURN[it.k].glow).map(it => { const r = FURN[it.k].glow * it.s/100, cy = it.y - FURN[it.k].h*it.s/200; return `<circle cx="${it.x}" cy="${cy}" r="${r*1.5}" fill="#ffd890" opacity=".14"/><circle cx="${it.x}" cy="${cy}" r="${r*.8}" fill="#ffd890" opacity=".2"/>`; }).join('') : '';
+  return `<svg id="${o.edit ? 'homeEdit' : 'homeView'}" class="h-svg ${o.edit ? 'edit' : ''}" viewBox="0 0 360 270" role="img" aria-label="${scene === 'yard' ? '마당' : '방'} 모습">${homeBack(H, scene, night)}${seq}${night ? '<rect width="360" height="270" fill="#141a48" opacity=".26" pointer-events="none"/>' : ''}<g pointer-events="none">${glow}</g></svg>`;
+}
+
+// ---------- 주민의 집과 얼굴 ----------
+const NPC_AV = {npc_suzune:'av:1.4.0.1.1.1.1.4.0.0.2.8.9.0', npc_genzo:'av:2.15.6.2.0.2.0.7.5.10.7.0.4.3', npc_otsuru:'av:3.6.0.0.0.7.1.8.7.0.4.2.3.6', npc_rentaro:'av:2.5.0.0.0.0.1.3.13.5.1.0.8.7', npc_mio:'av:0.7.3.1.2.5.2.2.2.3.3.8.2.1'};
+const nI = (k, x, y, t, s) => ({k, x, y, t:t || 0, s:s || 100});
+const NPC_HOME = {
+  npc_suzune:{n:'경단 가게 안채', g:2, w:5, f:1, y:5, room:[nI('window',60,104),nI('kakejiku',300,110,7),nI('noren',180,70,7),nI('rug',170,250,7),nI('chabudai',170,238),nI('zabuton',118,254,7),nI('zabuton',226,254,7),nI('cupboard',310,180),nI('ricebag',48,196),nI('ikebana',170,222,7),nI('daruma',44,250,0),nI('chochin',120,62,0),nI('chochin',240,62,0)], yard:[nI('sakura',80,200),nI('bench',260,206,0),nI('flowers',170,246,7),nI('stones',170,264)], act:{}},
+  npc_genzo:{n:'강가 움막', g:1, w:1, f:2, y:2, room:[nI('gyotaku',180,110),nI('fanwall',70,92,5),nI('tatami',180,258),nI('stool',96,226),nI('goldfish',286,216),nI('basket',310,256),nI('bookpile',60,256),nI('candle',250,198),nI('barrel',40,190)], yard:[nI('pond',180,254),nI('pine',60,190),nI('rock',290,196),nI('logs',316,246),nI('shishi',104,212)]},
+  npc_otsuru:{n:'오츠루네 대장간 집', g:2, w:1, f:0, y:1, room:[nI('katana',180,100),nI('armor',60,206),nI('kamado',260,196),nI('chest',320,250),nI('onimask',60,76),nI('stool',170,240),nI('tansu',120,196),nI('candle',216,226)], yard:[nI('well',70,190),nI('logs',270,214),nI('rock',170,250),nI('doghouse',300,180,1)]},
+  npc_rentaro:{n:'수련 도장', g:2, w:3, f:3, y:3, room:[nI('kakejiku',180,108,9),nI('katana',80,112),nI('armor',300,206),nI('tatami',180,256),nI('zabuton',180,226,9),nI('candle',90,210),nI('candle',270,210),nI('bonsai',50,258)], yard:[nI('bamboo',50,190),nI('bamboo',310,190),nI('stones',180,260),nI('fence',110,180),nI('fence',250,180),nI('lantern',180,196)]},
+  npc_mio:{n:'미오의 다락방', g:1, w:5, f:2, y:0, room:[nI('window',280,108),nI('chochin',60,60,2),nI('rug',170,256,2),nI('kokeshi',64,250,1),nI('kokeshi',98,256,7),nI('daruma',130,250,0),nI('bookpile',226,252),nI('shelf',50,192),nI('petbed',280,256,2),nI('maneki',230,206)], yard:[nI('flowers',90,244,2),nI('flowers',270,244,7),nI('scarecrow',60,184,3),nI('mailbox',316,190),nI('momiji',200,180)]},
+};
+
+// ---------- 내 집 화면 ----------
+const hGold = n => (S.settings.infGold && isOp()) || S.gold >= n;
+const hPay = n => { if (!(S.settings.infGold && isOp())) S.gold -= n; };
+const hasNap = H => H.room.concat(H.yard).some(i => FURN[i.k]?.nap);
+function homeGuestId(){ const ids = Object.keys(NPCS), H = homeMine(); if (cozyOf(H).lv < 1) return null; return ids[hashStr(dayKey() + ST.uid) % ids.length]; }
+const homeLabel = H => H.n || `${S.char.name}의 ${HOUSE[H.g].n}`;
+function homeNameView(H){ return `<div class="row" style="gap:6px;margin-top:8px"><input type="text" id="homeName" maxlength="14" placeholder="집 이름 (비우면 기본 이름)" value="${esc(H.n || '')}"><button class="btn sm ghost h-nw" data-act="homeName">저장</button></div>`; }
+function homeTrayView(H){
+  const keys = Object.keys(H.inv).filter(k => FURN[k] && H.inv[k] - placedOf(H, k) > 0);
+  return `<h3 class="small" style="margin:12px 0 6px">보관함 <span class="tiny muted">누르면 지금 화면에 놓입니다 · ${placedAll(H)}/${HOUSE[H.g].max}칸</span></h3>${keys.length ? `<div class="h-tray">${keys.map(k => `<button class="h-th" data-act="hsPlace" data-k="${k}">${furnThumb(k)}<span class="tiny">${esc(FURN[k].n)} ×${H.inv[k] - placedOf(H, k)}</span></button>`).join('')}</div>` : '<p class="tiny muted" style="margin:0">보관 중인 가구가 없습니다. 가구점에서 살 수 있어요.</p>'}`;
+}
+function homeSelView(H, scene){
+  const s = UI.hSel; if (s == null) return '<p class="tiny muted" style="margin:8px 0 0">가구나 캐릭터를 눌러 고르고, 끌어서 옮기세요.</p>';
+  const isActor = typeof s === 'string', it = isActor ? null : H[scene][s]; if (!isActor && !it) return '';
+  const nm = isActor ? (s === 'me' ? '내 아바타' : '동료') : FURN[it.k].n, btn = (a, t, x = '') => `<button class="btn sm ghost h-b" data-act="${a}" ${x}>${t}</button>`;
+  return `<div class="h-tools"><b class="small">${esc(nm)}</b><div class="row wrapf" style="gap:4px">${btn('hsNudge','◀','data-x="-6" data-y="0" aria-label="왼쪽으로"')}${btn('hsNudge','▲','data-x="0" data-y="-6" aria-label="위로"')}${btn('hsNudge','▼','data-x="0" data-y="6" aria-label="아래로"')}${btn('hsNudge','▶','data-x="6" data-y="0" aria-label="오른쪽으로"')}${btn('hsFlip','좌우 뒤집기')}${isActor ? '' : btn('hsSize','크게','data-v="1"') + btn('hsSize','작게','data-v="-1"') + btn('hsZ','앞으로','data-v="1"') + btn('hsZ','뒤로','data-v="-1"') + (FURN[it.k].tint ? btn('hsTint','색 바꾸기') : '') + btn('hsStore','보관')}</div></div>`;
+}
+function homeSkinView(H, scene){
+  const row = (title, list, cur, act, own) => `<h3 class="small" style="margin:12px 0 6px">${title}</h3><div class="h-skins">${list.map((L, i) => { const has = !L.p || own[act + i]; return `<button class="h-skin" style="background:${L.bg}" data-act="hsSkin" data-t="${act}" data-v="${i}" aria-pressed="${i === cur}"><span class="tiny">${esc(L.n)}${has ? '' : ` · ${L.p}${CUR}`}</span></button>`; }).join('')}</div>`;
+  return scene === 'yard' ? row('마당 바닥', GROUNDS, H.y, 'y', H.wallOwn) : row('벽지', WALLS, H.w, 'w', H.wallOwn) + row('바닥', FLOORS, H.f, 'f', H.wallOwn);
+}
+function homeShopView(H){
+  const cat = HCAT[UI.hCat] ? UI.hCat : 'room';
+  const list = Object.keys(FURN).filter(k => FURN[k].cat === cat);
+  return `<div class="seg" style="margin-bottom:10px">${Object.keys(HCAT).map(c => `<button data-act="hsCat" data-c="${c}" aria-pressed="${c === cat}">${HCAT[c]}</button>`).join('')}</div>
+  <div class="list">${list.map(k => { const F = FURN[k], need = F.need || [], locked = F.req && !(() => { try { return F.req.c(S); } catch(e){ return false; } })(), ok = !locked && hGold(F.p) && needOk(need);
+    return `<div class="li"><span class="h-ic">${furnThumb(k)}</span><div class="t"><b>${esc(F.n)}${H.inv[k] ? ` <span class="cntx">×${H.inv[k]}</span>` : ''}</b><span class="tiny">아늑함 +${F.c || 1}${F.nap ? ' · 낮잠을 잘 수 있다' : ''}${F.tint ? ' · 색 변경' : ''}${F.glow ? ' · 밤에 빛남' : ''}</span>
+      ${locked ? `<span class="tiny" style="color:var(--seal)">🔒 ${esc(F.req.d)}</span>` : `<span class="tiny">${needHave(need).map(h => `<span style="${h.ok ? '' : 'color:var(--seal)'}">${h.txt}</span>`).join(' · ')}${need.length ? ' · ' : ''}${F.p.toLocaleString()}${CUR}</span>`}</div>
+      <button class="btn sm ${ok ? 'seal' : 'ghost'}" data-act="homeBuy" data-k="${k}" ${ok ? '' : 'disabled'}>사기</button></div>`; }).join('')}</div>`;
+}
+function homeUpView(H){
+  const nx = HOUSE[H.g + 1];
+  return `<div class="card" style="margin-top:10px"><div class="row"><b class="grow">${HOUSE[H.g].n}</b><span class="small muted">가구 ${placedAll(H)}/${HOUSE[H.g].max}칸</span></div>
+    ${nx ? `<p class="tiny muted" style="margin:4px 0 8px">다음: <b>${nx.n}</b> · 가구 ${nx.max}칸${nx.yard && !HOUSE[H.g].yard ? ' · 마당이 열린다' : ''}<br>${needHave(nx.need).map(h => `<span style="${h.ok ? '' : 'color:var(--seal)'}">${h.txt}</span>`).join(' · ')} · ${nx.gold.toLocaleString()}${CUR}</p><button class="btn sm seal" data-act="homeUp" ${hGold(nx.gold) && needOk(nx.need) ? '' : 'disabled'}>넓히기</button>` : '<p class="tiny muted" style="margin:4px 0 0">이 마을에서 가장 큰 집입니다.</p>'}</div>`;
+}
+function homeNeighbors(){
+  const npc = Object.keys(NPC_HOME).filter(id => NPCS[id]).map(id => `<button class="li click" data-act="homeVisit" data-u="${id}"><span class="av-wrap">${PHOTO('npc:' + id)}</span><div class="t"><b>${esc(NPC_HOME[id].n)}</b><span class="tiny">${esc(NPCS[id].name)} <span class="chip npc-chip">주민</span></span></div></button>`).join('');
+  const ps = typeof PL === 'object' ? Object.values(PL).filter(p => p && p.uid !== ST.uid && p.home && !hideOp(p) && !blocked(p.uid)).sort((a, b) => (+b.home.likes || 0) - (+a.home.likes || 0)).slice(0, 30) : [];
+  const pl = ps.map(p => { const h = homeClean(p.home); return `<button class="li click" data-act="homeVisit" data-u="${esc(p.uid)}"><span class="av-wrap">${PHOTO(p.photo)}</span><div class="t"><b>${esc(h.n || p.name + '의 ' + HOUSE[h.g].n)}</b><span class="tiny">${esc(p.name)} · ${HOUSE[h.g].n} · ♥ ${h.likes}</span></div></button>`; }).join('');
+  return `<h3 class="small" style="margin:6px 0">마을 주민의 집</h3><div class="list">${npc}</div><h3 class="small" style="margin:14px 0 6px">개척자의 집</h3>${pl ? `<div class="list">${pl}</div>` : '<p class="small muted" style="margin:0">아직 집을 공개한 이웃이 없습니다.</p>'}`;
+}
+SHEETS.home = () => {
+  const H = homeMine(), tab = ['house','shop','town'].includes(UI.hTab) ? UI.hTab : 'house', C = cozyOf(H), canYard = !!HOUSE[H.g].yard;
+  const scene = canYard && UI.hScene === 'yard' ? 'yard' : 'room', edit = !!UI.hEdit && tab === 'house';
+  const guest = scene === 'room' ? homeGuestId() : null, guestDone = H.guest === dayKey();
+  const napDone = H.nap === dayKey(), giftDone = H.daily === dayKey();
+  const seg = `<div class="seg" style="margin-bottom:10px">${[['house','내 집'],['shop','가구점'],['town','이웃 집']].map(([t, n]) => `<button data-act="hsTab" data-t="${t}" aria-pressed="${t === tab}">${n}</button>`).join('')}</div>`;
+  const head = sheetHead(`<span style="font-size:.62em">${esc(homeLabel(H))}</span>`, `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`);
+  if (tab === 'shop') return head + seg + homeShopView(H);
+  if (tab === 'town') return head + seg + homeNeighbors();
+  const scBtns = `<div class="row" style="gap:6px;margin-bottom:6px"><div class="seg grow"><button data-act="hsScene" data-s="room" aria-pressed="${scene === 'room'}">방</button><button data-act="hsScene" data-s="yard" aria-pressed="${scene === 'yard'}" ${canYard ? '' : 'disabled'}>마당${canYard ? '' : ' 🔒'}</button></div><button class="btn sm ${edit ? 'seal' : ''}" data-act="hsEdit">${edit ? '꾸미기 끝' : '꾸미기'}</button></div>`;
+  const view = homeSVG({...H, ...{act:H.act || {}}}, {scene, edit, sel:UI.hSel, av:avMine(), comps:activeComps(), guest:!edit && guest ? guest : null});
+  if (edit) return head + seg + scBtns + `<div class="h-frame">${view}</div>` + homeSelView(H, scene) + homeTrayView(H) + homeSkinView(H, scene) + `<button class="btn sm ghost" style="margin-top:12px" data-act="hsClear">이 화면의 가구 모두 보관</button>`;
+  const lock = baseLocked();
+  return head + seg + scBtns + `<div class="h-frame">${view}</div>
+  <div class="card" style="margin-top:10px"><div class="row"><b class="grow">아늑함 ${C.pts} · ${C.name}</b><span class="small muted">♥ ${H.likes || 0}</span></div><div class="bar gold" style="margin-top:6px"><i style="width:${C.next ? Math.min(100, (C.pts - COZY[C.lv][0])/(C.next[0] - COZY[C.lv][0])*100) : 100}%"></i></div>
+    <p class="tiny muted" style="margin:6px 0 0">${C.next ? `${C.next[0]}점이 되면 「${C.next[1]}」. ` : ''}체력 자연 회복 +${C.lv*10}%. 같은 가구는 하나 더 놓을 때마다 아늑함이 절반씩 줄어든다.</p>
+    <div class="row wrapf" style="gap:6px;margin-top:8px"><button class="btn sm" data-act="homeNap" ${napDone || lock || !hasNap(H) ? 'disabled' : ''}>${napDone ? '오늘 낮잠 잠' : '낮잠 자기'}</button><button class="btn sm" data-act="homeDaily" ${giftDone || C.lv < 1 ? 'disabled' : ''}>${giftDone ? '오늘 집안일 끝' : `집안일 · ${homeDailyGold(C)}${CUR}`}</button><button class="btn sm ghost" data-act="wardrobe">옷장</button></div>
+    ${hasNap(H) ? '' : '<p class="tiny muted" style="margin:6px 0 0">이부자리를 놓으면 낮잠을 잘 수 있다.</p>'}</div>
+  ${guest ? guestCard(guest, guestDone, H) : '<p class="tiny muted" style="margin:10px 2px 0">아늑함이 10점을 넘으면 마을 주민이 놀러 옵니다.</p>'}
+  ${homeUpView(H)}
+  <div class="card" style="margin-top:10px"><b class="small">문패와 공개</b>${homeNameView(H)}
+    <label class="check" style="margin-top:8px"><input type="checkbox" data-act-change="homeOpen" ${H.open !== false ? 'checked' : ''}> 이웃에게 집 보여 주기 <span class="tiny muted">(방명록도 함께)</span></label></div>
+  ${(H.book || []).length ? `<h3 class="small" style="margin:14px 0 6px">방명록</h3>${homeBookView(H.book, true)}` : ''}`;
+};
+const homeDailyGold = C => 20 + C.lv*40;
+const homeBookView = (book, mine) => `<div class="list">${book.map((b, i) => `<div class="li"><div class="t"><b class="small">${esc(b.n)}</b><span>${esc(b.t)}</span></div>${mine ? `<button class="btn sm ghost" data-act="homeNoteDel" data-i="${i}" aria-label="지우기">지우기</button>` : ''}</div>`).join('')}</div>`;
+function guestCard(id, done, H){
+  const N = NPCS[id];
+  if (done) return `<div class="card" style="margin-top:10px"><div class="row" style="gap:10px">${PHOTO('npc:' + id)}<div class="grow small"><b>${esc(N.name)}</b> <span class="chip npc-chip">주민</span><br><span class="muted">잘 먹었다며 웃고 돌아갔다. 내일 또 누가 올까?</span></div></div></div>`;
+  const foods = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')]?.t === 'food' && !k.startsWith('c_')).sort((a, b) => (N.love.includes(b.replace('*','')) - N.love.includes(a.replace('*',''))) || (N.like.includes(b.replace('*','')) - N.like.includes(a.replace('*','')))).slice(0, 12);
+  return `<div class="card" style="margin-top:10px"><div class="row" style="gap:10px">${PHOTO('npc:' + id)}<div class="grow small"><b>오늘의 손님 · ${esc(N.name)}</b> <span class="chip npc-chip">주민</span><br><span class="muted">요리를 대접하면 호감도가 오르고 답례를 받습니다.</span></div></div>
+    ${foods.length ? `<div class="h-tray" style="margin-top:8px">${foods.map(k => `<button class="h-th" data-act="homeTreat" data-k="${esc(k)}" data-u="${id}">${itemIcon(k)}<span class="tiny">${esc(itemName(k))}</span></button>`).join('')}</div>` : '<p class="tiny muted" style="margin:6px 0 0">대접할 요리가 없다. 부엌에서 만들어 보자.</p>'}</div>`;
+}
+
+// ---------- 이웃 집 구경 ----------
+function homeVisitData(o){
+  if (isNpc(o)){ const N = NPC_HOME[o]; return N ? {h:homeClean({...N, act:{}, book:[], likes:0}), av:avParse(NPC_AV[o]), comps:[], name:NPCS[o].name, npc:true} : null; }
+  const p = typeof PL === 'object' ? PL[o] : null; if (!p || !p.home) return null;
+  return {h:homeClean(p.home), av:p.avatar ? avParse(p.avatar) : null, comps:(p.comps || []).filter(c => c && SPEC[c.sp]), name:p.name};
+}
+SHEETS.homeVisit = o => {
+  const D = homeVisitData(o); if (!D) return sheetHead('이웃 집') + '<p class="small muted">문이 닫혀 있습니다. 집을 공개하지 않았거나 아직 꾸미지 않았습니다.</p>';
+  const H = homeMine(), scene = UI.hvScene === 'yard' ? 'yard' : 'room', day = dayKey(), V = H.vis && H.vis.d === day ? H.vis : {d:day, ids:{}}, liked = !!V.ids[o + '_l'], wrote = !!V.ids[o + '_n'], canYard = !!HOUSE[D.h.g].yard;
+  return sheetHead(`<span style="font-size:.62em">${esc(D.h.n || D.name + '의 ' + HOUSE[D.h.g].n)}</span>`, D.npc ? '<span class="chip npc-chip">주민</span>' : '') + `
+  <div class="seg" style="margin-bottom:6px"><button data-act="hvScene" data-s="room" aria-pressed="${scene === 'room'}">방</button><button data-act="hvScene" data-s="yard" aria-pressed="${scene === 'yard'}" ${canYard ? '' : 'disabled'}>마당</button></div>
+  <div class="h-frame">${homeSVG(D.h, {scene: canYard ? scene : 'room', av:D.av, comps:D.comps})}</div>
+  <div class="row" style="margin-top:8px;gap:8px"><span class="small grow">${esc(D.name)} · ${HOUSE[D.h.g].n} · 아늑함 ${cozyOf(D.h).pts}${D.npc ? '' : ` · ♥ ${D.h.likes}`}</span><button class="btn sm ${liked ? 'ghost' : 'seal'}" data-act="homeLike" data-u="${esc(o)}" ${liked ? 'disabled' : ''}>${liked ? '♥ 남겼어요' : '♥ 마음 남기기'}</button></div>
+  ${D.npc ? '<p class="tiny muted" style="margin:6px 0 0">주민의 집에 마음을 남기면 그 주민과 조금 가까워집니다.</p>' : `<div class="row" style="gap:6px;margin-top:10px"><input type="text" id="homeNote" maxlength="60" placeholder="방명록에 한마디 (60자)" ${wrote ? 'disabled' : ''}><button class="btn sm h-nw" data-act="homeNote" data-u="${esc(o)}" ${wrote ? 'disabled' : ''}>${wrote ? '남겼어요' : '남기기'}</button></div>
+  ${D.h.book.length ? `<h3 class="small" style="margin:12px 0 6px">방명록</h3>${homeBookView(D.h.book, false)}` : ''}`}`;
+};
+
+// ---------- 동작 ----------
+const homeDone = () => { save(); pubDirty(); renderSheet(true); render(); };
+function homeSel(){ const H = homeMine(), scene = HOUSE[H.g].yard && UI.hScene === 'yard' ? 'yard' : 'room'; return {H, scene, list:H[scene]}; }
+function actorPos(H, scene, key){ H.act = H.act || {}; H.act[scene] = H.act[scene] || {}; return H.act[scene][key] = H.act[scene][key] || {...DEF_ACT[scene][key]}; }
+function homeNudge(dx, dy){ const {H, scene, list} = homeSel(), s = UI.hSel; const p = typeof s === 'string' ? actorPos(H, scene, s) : list[s]; if (!p) return; p.x = clamp(p.x + dx, 0, 360); p.y = clamp(p.y + dy, 0, 270); homeDone(); }
+Object.assign(ACT, {
+  homeOpen: () => openSheet('home'),
+  hsTab: d => { UI.hTab = d.t; UI.hEdit = false; UI.hSel = null; renderSheet(true); },
+  hsCat: d => { UI.hCat = d.c; renderSheet(true); },
+  hsScene: d => { UI.hScene = d.s; UI.hSel = null; renderSheet(true); },
+  hsEdit: () => { UI.hEdit = !UI.hEdit; UI.hSel = null; if (!UI.hEdit){ save(); pubDirty(); } renderSheet(true); },
+  hsNudge: d => homeNudge(+d.x, +d.y),
+  hsFlip: () => { const {H, scene, list} = homeSel(), s = UI.hSel; const p = typeof s === 'string' ? actorPos(H, scene, s) : list[s]; if (!p) return; p.f = p.f ? 0 : 1; homeDone(); },
+  hsSize: d => { const {list} = homeSel(), it = list[UI.hSel]; if (!it) return; const i = SIZES.indexOf(it.s || 100); it.s = SIZES[clamp((i < 0 ? 1 : i) + +d.v, 0, SIZES.length - 1)]; homeDone(); },
+  hsZ: d => { const {list} = homeSel(), it = list[UI.hSel]; if (!it) return; it.z = clamp((it.z || 0) + +d.v, -9, 9); homeDone(); },
+  hsTint: () => { const {list} = homeSel(), it = list[UI.hSel]; if (!it) return; it.t = ((it.t || 0) + 1) % TINT.length; homeDone(); },
+  hsStore: () => { const {list} = homeSel(); if (list[UI.hSel]){ list.splice(UI.hSel, 1); UI.hSel = null; sfx('soft'); homeDone(); } },
+  hsPlace: d => { const {H, list} = homeSel(); if (placedAll(H) >= HOUSE[H.g].max) return toast('더 놓을 자리가 없어요. 집을 넓혀 보세요.', 'warn'); if (!FURN[d.k] || H.inv[d.k] - placedOf(H, d.k) <= 0) return; list.push({k:d.k, x:180, y:FURN[d.k].l === 1 ? 110 : 220, f:0, s:100, z:0, t:0}); UI.hSel = list.length - 1; stat('homePlace'); sfx('page'); homeDone(); },
+  hsClear: async () => { if (!await ask('모두 보관', '이 화면의 가구를 모두 보관함으로 옮깁니다.', '옮기기')) return; const {H, scene} = homeSel(); H[scene] = []; UI.hSel = null; homeDone(); },
+  hsSkin: d => { const H = homeMine(), L = {w:WALLS, f:FLOORS, y:GROUNDS}[d.t], it = L && L[+d.v]; if (!it) return; if (it.p && !H.wallOwn[d.t + d.v]){ if (!hGold(it.p)) return toast('엽전이 모자라요.', 'warn'); hPay(it.p); H.wallOwn[d.t + d.v] = 1; sfx('coin'); toast(`${it.n}${pp(it.n,'을','를')} 샀습니다.`, 'good'); } H[d.t] = +d.v; homeDone(); },
+  homeBuy: d => { const H = homeMine(), F = FURN[d.k]; if (!F) return; if (F.req){ let ok = false; try { ok = F.req.c(S); } catch(e){} if (!ok) return; } if (!hGold(F.p)) return toast('엽전이 모자라요.', 'warn'); if (!needOk(F.need || [])) return toast('재료가 모자라요.', 'warn'); needTake(F.need || []); hPay(F.p); H.inv[d.k] = (H.inv[d.k] || 0) + 1; stat('furn'); sfx('coin'); toast(`${F.n}${pp(F.n,'을','를')} 샀습니다. 꾸미기에서 놓아 보세요.`, 'good'); homeDone(); },
+  homeUp: () => { const H = homeMine(), nx = HOUSE[H.g + 1]; if (!nx || !hGold(nx.gold) || !needOk(nx.need)) return; needTake(nx.need); hPay(nx.gold); H.g++; sfx('rare'); toast(`${nx.n}${pp(nx.n,'으로','로')} 넓혔습니다!`, 'good'); postNews(`${S.char.name}님이 ${nx.n}${pp(nx.n,'으로','로')} 집을 넓혔습니다.`); homeDone(); },
+  homeNap: () => { const H = homeMine(); if (H.nap === dayKey() || baseLocked() || !hasNap(H)) return; const C = cozyOf(H); H.nap = dayKey(); setHP(curHP() + maxHP()*(0.3 + C.lv*0.1)); let extra = ''; if (tiredActive() && C.lv >= 2){ S.tired.until -= C.lv*30*MIN/SPD(); extra = ` 지친 몸 -${C.lv*30}분.`; } sfx('soft'); toast(`푹 자고 일어났다. 체력 ${Math.floor(curHP())}/${maxHP()}.${extra}`, 'good'); stat('homeNap'); homeDone(); },
+  homeDaily: () => { const H = homeMine(), C = cozyOf(H); if (H.daily === dayKey() || C.lv < 1) return; H.daily = dayKey(); const g = homeDailyGold(C); S.gold += g; sfx('coin'); toast(`집을 쓸고 닦다 장롱 뒤에서 ${g}${CUR}을 찾았다!`, 'good'); stat('homeDaily'); homeDone(); },
+  homeTreat: d => { const H = homeMine(), N = NPCS[d.u], k = d.k; if (!N || H.guest === dayKey() || cnt(k) - equippedN(k) <= 0 || homeGuestId() !== d.u) return; H.guest = dayKey(); const g = 30 + cozyOf(H).lv*20; S.gold += g; stat('homeTreat'); npcGift(d.u, k); toast(`${N.name}에게 ${itemName(k)}${pp(itemName(k),'을','를')} 대접했다. 답례로 ${g}${CUR}을 받았다.`, 'good'); homeDone(); },
+  homeName: () => { const el = $('#homeName'); if (!el) return; homeMine().n = el.value.trim().slice(0, 14); el.blur(); toast('문패를 달았습니다.', 'good'); homeDone(); },
+  homeNoteDel: d => { const H = homeMine(); H.book.splice(+d.i, 1); homeDone(); },
+  homeVisit: d => { const H = homeMine(), day = dayKey(); if (!H.vis || H.vis.d !== day) H.vis = {d:day, ids:{}}; UI.hvScene = 'room';
+    if (!H.vis.ids[d.u] && homeVisitData(d.u)){ H.vis.ids[d.u] = 1; stat('homeVisit'); if (isNpc(d.u)) npcAff(d.u, 1); else addAff(d.u, 1, true); save(); }
+    openSheet('homeVisit', d.u); },
+  hvScene: d => { UI.hvScene = d.s; renderSheet(true); },
+  homeLike: d => { const H = homeMine(), day = dayKey(); if (!H.vis || H.vis.d !== day) H.vis = {d:day, ids:{}}; if (H.vis.ids[d.u + '_l']) return; H.vis.ids[d.u + '_l'] = 1; stat('homeLike'); sfx('coin');
+    if (isNpc(d.u)){ const g = npcAff(d.u, 1); toast(`${NPCS[d.u].name}의 집에 마음을 남겼다. 호감도 +${g}`, 'good'); } else { sendEv(d.u, 'homeLike'); toast('마음을 남겼습니다.', 'good'); }
+    save(); renderSheet(true); },
+  homeNote: async d => { const el = $('#homeNote'), t = el ? el.value.trim().slice(0, 60) : ''; if (!t) return toast('한마디를 적어 주세요.'); const H = homeMine(), day = dayKey(); if (!H.vis || H.vis.d !== day) H.vis = {d:day, ids:{}}; if (H.vis.ids[d.u + '_n']) return; const id = await sendEv(d.u, 'homeNote', {t, n:S.char.name}); if (!id) return; H.vis.ids[d.u + '_n'] = 1; stat('homeNote'); el.value = ''; el.blur(); save(); toast('방명록에 남겼습니다.', 'good'); renderSheet(true); },
+});
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.actChange === 'homeOpen' && S){ homeMine().open = t.checked; save(); pubDirty(); toast(t.checked ? '이웃에게 집을 보여 줍니다.' : '집 문을 닫았습니다.'); } });
+
+// ---------- 끌어서 옮기기 ----------
+let HDRAG = null;
+function hPoint(svg, e){ const m = svg.getScreenCTM(); if (!m) return null; const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(m.inverse()); }
+function hTarget(key){ const {H, scene, list} = homeSel(); return /^\d+$/.test(key) ? list[+key] : actorPos(H, scene, key); }
+document.addEventListener('pointerdown', e => {
+  if (!UI.hEdit || !SHEET || SHEET.k !== 'home' || !e.target.closest) return;
+  const svg = e.target.closest('#homeEdit'); if (!svg) return;
+  const g = e.target.closest('.h-it');
+  if (!g){ if (UI.hSel != null){ UI.hSel = null; renderSheet(true); } return; }
+  const key = g.dataset.hi, it = hTarget(key), p = hPoint(svg, e); if (!it || !p) return;
+  e.preventDefault();
+  UI.hSel = /^\d+$/.test(key) ? +key : key;
+  HDRAG = {id:e.pointerId, key, dx:it.x - p.x, dy:it.y - p.y, moved:false};
+  // 여기서 다시 그리면 손가락이 닿은 노드가 바뀌어 터치 이벤트가 끊긴다. 고른 표시는 손을 뗄 때 그린다
+});
+document.addEventListener('pointermove', e => {
+  if (!HDRAG || e.pointerId !== HDRAG.id) return;
+  const svg = document.getElementById('homeEdit'); if (!svg) return;
+  const it = hTarget(HDRAG.key), p = hPoint(svg, e); if (!it || !p) return;
+  e.preventDefault(); HDRAG.moved = true;
+  it.x = clamp(Math.round(p.x + HDRAG.dx), 0, 360); it.y = clamp(Math.round(p.y + HDRAG.dy), 0, 270);
+  const g = svg.querySelector(`[data-hi="${HDRAG.key}"]`); if (g) g.setAttribute('transform', g.getAttribute('transform').replace(/translate\([^)]*\)/, `translate(${it.x} ${it.y})`));
+});
+const hDragEnd = e => { if (!HDRAG || (e.pointerId !== undefined && e.pointerId !== HDRAG.id)) return; const mv = HDRAG.moved; HDRAG = null; if (mv){ save(); pubDirty(); } renderSheet(true); };
+const _renderSheet_home = renderSheet;
+renderSheet = soft => { if (HDRAG && soft) return; _renderSheet_home(soft); };
+document.addEventListener('pointerup', hDragEnd);
+document.addEventListener('pointercancel', hDragEnd);
+// iOS: 끄는 동안 화면이 같이 밀리지 않게
+document.addEventListener('touchmove', e => { if (HDRAG) e.preventDefault(); }, {passive:false});
+
+// ---------- 다른 시스템과 잇기 ----------
+// 아늑함 → 체력 자연 회복 (탐사 시뮬레이션과 상관없는 거점 회복만)
+const _regenMult_home = regenMult;
+regenMult = () => _regenMult_home() * (S && S.home ? 1 + cozyOf(S.home).lv*0.1 : 1);
+// 공개 프로필에 집 싣기
+const _pubObj_home = pubObj;
+pubObj = () => { const o = _pubObj_home(); if (!o || !S.home) return o; const H = S.home; if (H.open !== false){ const pick2 = i => ({k:i.k, x:i.x, y:i.y, f:i.f || 0, s:i.s || 100, z:i.z || 0, t:i.t || 0}); o.home = {n:H.n || '', g:H.g, w:H.w, f:H.f, y:H.y, room:H.room.map(pick2), yard:H.yard.map(pick2), act:JSON.parse(JSON.stringify(H.act || {})), likes:H.likes || 0, book:(H.book || []).slice(0, 12)}; } return o; };
+// 마음·방명록 받기
+const _handleEvent_home = handleEvent;
+handleEvent = (id, ev) => {
+  if (!ev || (ev.type !== 'homeLike' && ev.type !== 'homeNote')) return _handleEvent_home(id, ev);
+  if (processed.has(id) || !S || !S.char) return;
+  processed.add(id); ST.db.doc('events/' + id).delete().catch(() => {});
+  const from = ev.from; if (blocked(from)) return;
+  const H = homeMine(), nm = PL[from]?.name || '누군가', day = dayKey();
+  if (ev.type === 'homeLike'){ if (!H.likeD || H.likeD.d !== day) H.likeD = {d:day, ids:{}}; if (H.likeD.ids[from]) return; H.likeD.ids[from] = 1; H.likes = (H.likes || 0) + 1; notify('social', '내 집', `${nm}님이 우리 집에 마음을 남겼습니다.`); }
+  else { const t = String(ev.data?.t || '').slice(0, 60); if (!t) return; H.book = [{n:String(ev.data?.n || nm).slice(0, 16), t, ts:ev.ts || now()}, ...(H.book || [])].slice(0, 12); notify('social', '방명록', `${nm}님이 방명록을 남겼습니다. 「${t}」`); }
+  save(); pubDirty();
+};
+// 거점 칸에 내 집 바로가기
+const _home_tab = TABS.home;
+TABS.home = () => { const h = _home_tab(), mark = '<div class="tiles" style="margin-top:10px">', H = homeMine(), C = cozyOf(H), ready = (H.nap !== dayKey() && hasNap(H)) || (H.daily !== dayKey() && C.lv >= 1) || (homeGuestId() && H.guest !== dayKey());
+  const tile = `<button class="tile" data-act="homeOpen"><span class="ic"><svg viewBox="0 0 28 28" width="100%" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14L14 4l11 10M6 12v12h16V12M11 24v-7h6v7"/></svg></span><b>내 집</b><span class="st ${ready ? 'on' : ''}">${ready ? '오늘 할 일이 있다' : `${esc(C.name)} · 아늑함 ${C.pts}`}</span></button>`;
+  return h.includes(mark) ? h.replace(mark, mark + tile) : h; };
+// 프로필에서 집 구경
+const _profile_home = SHEETS.profile;
+SHEETS.profile = o => { const h = _profile_home(o), has = isNpc(o) ? !!NPC_HOME[o] : !!(typeof PL === 'object' && PL[o] && PL[o].home); if (!has) return h; const b = `<button class="btn sm" data-act="homeVisit" data-u="${esc(o)}">🏠 집 구경</button>`, mark = isNpc(o) ? '<button class="btn sm" data-act="npcTalk"' : '<button class="btn sm" data-act="sheet" data-s="gift"'; return h.includes(mark) ? h.replace(mark, b + mark) : h + b; };
+
+TITLES.push(
+  {id:'home1', n:'내 집 마련', d:'집에 처음으로 새 가구를 들였다.', c:S => st_(S,'furn') >= 1},
+  {id:'home2', n:'기와집 주인', d:'기와집으로 넓혔다.', c:S => (S.home?.g || 0) >= 2},
+  {id:'home4', n:'저택의 주인', d:'저택까지 넓혔다.', c:S => (S.home?.g || 0) >= 4},
+  {id:'cozy3', n:'꾸밈의 손', d:'집을 「포근한 집」으로 꾸몄다.', c:S => S.home && cozyOf(S.home).lv >= 3},
+  {id:'cozy5', n:'꿈같은 집', d:'집을 「꿈같은 집」으로 꾸몄다.', c:S => S.home && cozyOf(S.home).lv >= 5},
+  {id:'visit10', n:'동네 마실꾼', d:'이웃 집을 10번 구경했다.', c:S => st_(S,'homeVisit') >= 10},
+  {id:'liked10', n:'소문난 집', d:'이웃의 마음을 10개 받았다.', c:S => (S.home?.likes || 0) >= 10},
+  {id:'treat10', n:'손님 맞는 집', d:'집에 온 손님에게 요리를 10번 대접했다.', c:S => st_(S,'homeTreat') >= 10},
+);
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
