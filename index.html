@@ -523,6 +523,11 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .ing.on .iic svg{ outline:2.5px solid var(--seal); outline-offset:1px; border-radius:50%; } .like-mark{ position:absolute; top:0; right:6px; color:var(--seal); font-size:.9rem; }
 .tr-side{ margin-top:8px; } .tr-side.ok{ border-color:var(--moss); background:color-mix(in srgb, var(--moss) 8%, var(--card)); }
 .ne-form input, .ne-form select, .ne-form textarea{ box-sizing:border-box; max-width:100%; width:100%; } .ne-form .row > .f{ min-width:0; } .ne-form input[type=color]{ height:36px; padding:2px; }
+.enh-lv{ display:flex; flex-direction:column; align-items:center; gap:4px; } .enh-lv b{ font-size:1.1rem; color:var(--seal); }
+.hall-top{ display:flex; gap:12px; align-items:flex-start; } .hall-art{ width:120px; flex:none; border-radius:10px; border:1px solid var(--line); }
+.hall-mat{ position:relative; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:.72rem; } .hall-mat .iic.lg{ width:46px; height:46px; } .hall-mat .bc-n{ right:6px; top:30px; bottom:auto; }
+.hall-mat .btn.sm{ padding:2px 6px; font-size:.68rem; min-height:0; }
+.li.done{ opacity:.55; }
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -1183,7 +1188,7 @@ const josa = (w, a, b) => { const c = w.charCodeAt(w.length-1); if (c < 0xAC00 |
 const pick = (rng, arr) => arr[Math.floor(rng()*arr.length)];
 function wpick(rng, list){ const tot = list.reduce((a,x)=>a+x[1],0); let r = rng()*tot; for (const x of list){ r -= x[1]; if (r <= 0) return x[0]; } return list[list.length-1][0]; }
 // 무구는 직업마다 이름이 다르다
-const itemName = (k, job) => { const b = k.replace('*',''); let n = IT[b]?.n || k; if (/^w[1-6]$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_N[j]) n = WEAPON_N[j][+b[1]-1]; } else if (/^gw\d+$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_KIND[j]) n = `${REGION_GEAR[+b.slice(2)].p} ${WEAPON_KIND[j]}`; } return n + (k.endsWith('*') ? ' (정성 가득)' : ''); };
+let itemName = (k, job) => { const b = k.replace('*',''); let n = IT[b]?.n || k; if (/^w[1-6]$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_N[j]) n = WEAPON_N[j][+b[1]-1]; } else if (/^gw\d+$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_KIND[j]) n = `${REGION_GEAR[+b.slice(2)].p} ${WEAPON_KIND[j]}`; } return n + (k.endsWith('*') ? ' (정성 가득)' : ''); };
 // 동료는 여러 마리 기를 수 있지만 함께 다니는 건 두 마리까지
 const COMP_MAX = 12, COMP_OUT = 2;
 const activeComps = () => (S.comps || []).filter(c => c.out !== false).slice(0, COMP_OUT);
@@ -1267,9 +1272,13 @@ const cnt = k => S.inv[k] || 0;
 function addItem(k, n=1){ if (n <= 0) return; S.inv[k] = (S.inv[k] || 0) + n; }
 function takeItem(k, n=1){ if (cnt(k) < n) return false; S.inv[k] -= n; if (S.inv[k] <= 0) delete S.inv[k]; return true; }
 function fishKeys(){ return Object.keys(S.inv).filter(k => IT[k.replace('*','')]?.t === 'fish' && k !== 'eel' && cnt(k) > 0); }
+// '#mat' = 흔한 재료 아무거나 (값 40 이하, 많이 가진 것부터 쓴다) — 쌓인 재료를 쓰는 곳
+const MAT_KEEP = ['rareore','dragonore','skyore','gem','soul','rareherb','ingot','compost','silk','honey','talisman'];
+function matKeys(){ return Object.keys(S.inv).filter(k => IT[k]?.t === 'mat' && (IT[k].p || 0) <= 40 && !MAT_KEEP.includes(k) && cnt(k) > 0).sort((a, b) => cnt(b) - cnt(a)); }
 function needOk(need){
   for (const [k, n] of need){
     if (k === '#fish'){ if (fishKeys().reduce((a,x)=>a+cnt(x),0) < n) return false; }
+    else if (k === '#mat'){ if (matKeys().reduce((a,x)=>a+cnt(x),0) < n) return false; }
     else if (Array.isArray(k)){ if (k.reduce((a,x)=>a+cnt(x),0) < n) return false; }
     else if (cnt(k) < n) return false;
   }
@@ -1278,12 +1287,12 @@ function needOk(need){
 function needTake(need){
   for (const [k, n] of need){
     let left = n;
-    const pool = k === '#fish' ? fishKeys() : Array.isArray(k) ? k : [k];
+    const pool = k === '#fish' ? fishKeys() : k === '#mat' ? matKeys() : Array.isArray(k) ? k : [k];
     for (const x of pool){ while (left > 0 && cnt(x) > 0){ takeItem(x); left--; } }
   }
 }
-const needText = need => need.map(([k,n]) => `${k==='#fish' ? '생선 아무거나' : Array.isArray(k) ? k.map(x=>IT[x].n).join('/') : IT[k].n} ${n}`).join(' · ');
-function needHave(need){ return need.map(([k,n]) => { const have = k==='#fish' ? fishKeys().reduce((a,x)=>a+cnt(x),0) : Array.isArray(k) ? k.reduce((a,x)=>a+cnt(x),0) : cnt(k); return {txt:(k==='#fish'?'생선':Array.isArray(k)?k.map(x=>IT[x].n).join('/'):IT[k].n), n, have}; }); }
+const needText = need => need.map(([k,n]) => `${k==='#fish' ? '생선 아무거나' : k==='#mat' ? '흔한 재료 아무거나' : Array.isArray(k) ? k.map(x=>IT[x].n).join('/') : IT[k].n} ${n}`).join(' · ');
+function needHave(need){ return need.map(([k,n]) => { const have = k==='#fish' ? fishKeys().reduce((a,x)=>a+cnt(x),0) : k==='#mat' ? matKeys().reduce((a,x)=>a+cnt(x),0) : Array.isArray(k) ? k.reduce((a,x)=>a+cnt(x),0) : cnt(k); return {txt:(k==='#fish'?'생선':k==='#mat'?'흔한 재료':Array.isArray(k)?k.map(x=>IT[x].n).join('/'):IT[k].n), n, have}; }); }
 
 // ===================== 성장 =====================
 const MAX_LV = 60;
@@ -1428,7 +1437,7 @@ function simulate(E, upto){
 
   for (let i = 1; i <= end; i++){
     hp -= s.max * 0.06 * gh * s.cost;
-    if (rng() < chance(3.4*(1 + 0.2*k), gh)){
+    if (rng() < chance(3.4*(1 + 0.2*k)*(s.enc || 1), gh)){
       const id = pick(rng, R.mons);
       if (fight(i, monStats(id, Math.floor(rng()*2))) === 'down'){ downedAt = i; break; }
       continue;
@@ -1665,6 +1674,7 @@ function startLong(ri, hours, pots){
   list.forEach(k => takeItem(k));
   setHP(curHP());
   const snap = makeSnap(ri); snap.pots = list;
+  const tool = applyTool(snap); if (tool) toast(`${IT[tool].n}${pp(IT[tool].n,'을','를')} 챙겼다. ${IT[tool].d}`);
   let buddy = null;
   if (ST.mode === 'cloud'){
     for (const p of Object.values(PL)){
@@ -2019,7 +2029,7 @@ function startSync(){
   unsubs.push(db.collection('mail').where('to','==',ST.uid).onSnapshot(s => { MAIL_IN = s.docs.map(d => ({...d.data(), id:d.id})); mailNotify(); softRender(); }, err));
   unsubs.push(db.collection('mail').where('from','==',ST.uid).onSnapshot(s => { MAIL_OUT = s.docs.map(d => ({...d.data(), id:d.id})); softRender(); }, err));
   unsubs.push(db.collection('news').orderBy('ts','desc').limit(20).onSnapshot(s => { NEWS = s.docs.map(d => ({...d.data(), id:d.id})); softRender(); }, err));
-  pbListen(); if (typeof tradeListen === 'function') tradeListen();
+  pbListen(); if (typeof tradeListen === 'function') tradeListen(); if (typeof hallListen === 'function') hallListen();
   unsubs.push(db.collection('events').where('to','==',ST.uid).onSnapshot(s => { s.docs.forEach(d => handleEvent(d.id, d.data())); }, err));
 }
 let softT = null;
@@ -3213,6 +3223,7 @@ TABS.explore = () => {
     <div class="seg hours" role="group" aria-label="탐사 시간">${[1,2,3].map(h => { const [a, b] = estRewards(h, ri, makeSnap(ri)); return `<button data-act="hours" data-h="${h}" aria-pressed="${hours===h}">${h}시간<span class="tiny">보상 약 ${a}~${b}개</span></button>`; }).join('')}</div>
     <p class="tiny muted" style="margin:-4px 0 0">보상 개수는 대략적인 예상이며, 짐 무게(힘)와 운에 따라 달라진다.</p>
     <div class="stack" style="gap:6px">${potSel('pot1')}${potSel('pot2')}</div>
+    ${toolSel()}
     <p class="small" style="margin:0">식사 버프: ${fb ? `<b>${foodRec(fb.id).n}</b> (남은 <span class="num" data-cd="${fb.until}"></span>)` : '<span class="muted">없음 — 부엌이나 가방에서 먹고 출발하세요</span>'}</p>
     <p class="small" style="margin:0">동행 동료: ${activeComps().length ? activeComps().map(c => esc(c.name)).join(', ') : '<span class="muted">없음</span>'}${tiredActive()?' · <b style="color:var(--seal)">지친 몸 (소모 증가·보상 감소)</b>':''}</p>
     ${lead && !g ? `<button class="btn seal full" data-act="partyGather">조사대원 모아 ${hours}시간 떠나기</button><button class="btn ghost full" data-act="startLong">혼자 ${hours}시간 떠나기</button>`
@@ -5774,6 +5785,253 @@ async function npcEReset(){
   const all = {...NPC_OV}; delete all[id]; UI.npcDraft = null;
   try { await ST.db.doc('config/npcs').set({list:all, ts:now()}); npcApply(all); toast('처음 값으로 되돌렸습니다.'); } catch(e){ toast('되돌리지 못했습니다.', 'warn'); }
 }
+// ===================== 쌓인 재료 쓰는 곳: 장비 강화 · 탐사 도구 · 납품 의뢰 · 마을회관 · 개척 증표 =====================
+
+// ---------- 1. 장비 강화 (+1 ~ +10) ----------
+// 같은 종류 장비는 강화 단계를 함께 쓴다. 재료는 그 장비를 만든 재료(또는 떨어진 고장의 재료) + 엽전.
+// +6부터는 실패할 수 있다. 실패하면 재료와 엽전만 잃고 단계는 그대로.
+const ENH_MAX = 10;
+const enhLv = k => (S && S.enh && S.enh[String(k).replace('*','')]) || 0;
+const enhBonus = (base, lv) => lv ? Math.ceil(base*0.07*lv) : 0;
+function enhCost(k){
+  const lv = enhLv(k) + 1, it = IT[k];
+  let mats = [];
+  const rec = Object.values(CRAFT).flatMap(c => c.list).find(r => r.out === k && !r.alt);
+  if (rec) mats = rec.need.filter(([x]) => typeof x === 'string' && !x.startsWith('#')).map(([x, n]) => [x, n*Math.ceil(lv/2)]);
+  const rg = /^g[wax](\d+)$/.exec(k);
+  if (rg){ const R = REG[+rg[1]]; mats = R.mats.filter(([x]) => (IT[x].p || 0) <= 40).slice(0, 2).map(([x]) => [x, 3*Math.ceil(lv/2)]); }
+  if (!mats.length) mats = [['ore', 2*lv]];
+  mats.push(['#mat', 2 + lv*2]);
+  return {lv, mats, gold:Math.round((it.p || 50)*0.12*lv + 20*lv), fail:lv >= 6 ? Math.min(0.5, 0.12*(lv - 5)) : 0};
+}
+function enhance(k){
+  if (baseLocked()) return lockToast();
+  if (enhLv(k) >= ENH_MAX) return toast('이미 최고 단계예요.');
+  if (!cnt(k)) return;
+  const c = enhCost(k);
+  if (!needOk(c.mats)) return toast('재료가 모자라요.', 'warn');
+  if (S.gold < c.gold && !(S.settings.infGold && isOp())) return toast('엽전이 모자라요.', 'warn');
+  needTake(c.mats); if (!(S.settings.infGold && isOp())) S.gold -= c.gold;
+  stat('enhTry'); addProf('smith', 1);
+  if (Math.random() < c.fail){ sfx('fail'); save(); toast(`망치질이 빗나갔다… 강화 실패. 재료와 엽전만 잃었다. (+${c.lv - 1} 그대로)`, 'warn'); renderSheet(true); return; }
+  S.enh = S.enh || {}; S.enh[k] = c.lv; stat('enh'); if (c.lv >= 10) stat('enh10');
+  setHP(curHP()); sfx('rare'); save(); pubDirty();
+  toast(`${itemName(k)} 강화 성공! +${c.lv}`, 'good'); renderSheet(true); render();
+}
+// 장비 능력치에 강화 반영
+const _weaponAtk0 = weaponAtk, _armorDef0 = armorDef;
+weaponAtk = () => { const k = S.equip.weapon; return k ? IT[k].atk + enhBonus(IT[k].atk, enhLv(k)) : 0; };
+armorDef = () => { const k = S.equip.armor; return k ? IT[k].def + enhBonus(IT[k].def, enhLv(k)) : 0; };
+const _effStats0 = effStats;
+effStats = () => { const b = _effStats0(); for (const sl of ACC_SLOTS){ const k = S.equip[sl]; if (k && IT[k] && IT[k].st){ const add = Math.floor(enhLv(k)/3); if (add) for (const s in IT[k].st) b[s] += add; } } return b; };
+// 이름에 +N (내 물건일 때만)
+const _itemName0 = itemName;
+itemName = (k, job) => { const n = _itemName0(k, job); if (job || !S || !S.enh) return n; const lv = enhLv(k); return lv && ['weapon','armor','acc'].includes(IT[String(k).replace('*','')]?.t) ? `${n} +${lv}` : n; };
+function enhView(){
+  const gear = Object.keys(S.inv).filter(k => cnt(k) > 0 && ['weapon','armor','acc'].includes(IT[k]?.t)).sort((a, b) => (equippedN(b) > 0) - (equippedN(a) > 0) || IT[b].p - IT[a].p);
+  if (!gear.length) return '<p class="small muted">강화할 장비가 없다.</p>';
+  return `<p class="small muted" style="margin-top:0">장비를 +${ENH_MAX}까지 단련한다. 무기·갑옷은 한 단계마다 공격·방어 +7%, 장신구는 3단계마다 모든 능력치 +1. +6부터는 실패할 수 있다(재료만 잃는다). 강화한 장비가 다음 고장 장비를 기다리는 동안 버팀목이 된다.</p>
+  <div class="list">${gear.map(k => { const it = IT[k], lv = enhLv(k), c = lv < ENH_MAX ? enhCost(k) : null, ok = c && needOk(c.mats) && (S.gold >= c.gold || (S.settings.infGold && isOp()));
+    const cur = it.atk ? `공격 ${it.atk + enhBonus(it.atk, lv)}` : it.def ? `방어 ${it.def + enhBonus(it.def, lv)}` : statTxt(it);
+    const nxt = !c ? '' : it.atk ? ` → ${it.atk + enhBonus(it.atk, lv + 1)}` : it.def ? ` → ${it.def + enhBonus(it.def, lv + 1)}` : ((lv + 1) % 3 === 0 ? ' → 모든 능력치 +1' : '');
+    return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))}${equippedN(k) ? ' <span class="chip" style="border-color:var(--seal);color:var(--seal)">장착중</span>' : ''}</b><span>${cur}${nxt}</span>
+      ${c ? `<span class="tiny">${needHave(c.mats).map(h => `<span style="${h.ok ? '' : 'color:var(--seal)'}">${h.txt}</span>`).join(' · ')} · ${c.gold}${CUR}${c.fail ? ` · <b style="color:var(--seal)">실패 ${Math.round(c.fail*100)}%</b>` : ''}</span>` : '<span class="tiny" style="color:var(--moss)">최고 단계</span>'}</div>
+      <div class="enh-lv"><b class="num">+${lv}</b>${c ? `<button class="btn sm ${ok ? 'seal' : 'ghost'}" data-act="enhance" data-k="${k}" ${ok ? '' : 'disabled'}>강화</button>` : ''}</div></div>`; }).join('')}</div>`;
+}
+const _craft0 = SHEETS.craft;
+SHEETS.craft = st => {
+  st = st || UI.craft || 'smith';
+  const segBtn = `<button data-act="craftTab" data-s="enh" aria-pressed="${st === 'enh'}">강화</button>`;
+  if (st === 'enh'){
+    const h = _craft0('smith'); UI.craft = 'enh';
+    const segEnd = h.indexOf('</div>', h.indexOf('class="seg"'));
+    const head = h.slice(0, segEnd).replace('aria-pressed="true"', 'aria-pressed="false"');
+    return head + segBtn + '</div>' + enhView();
+  }
+  const h = _craft0(st), segEnd = h.indexOf('</div>', h.indexOf('class="seg"'));
+  return h.slice(0, segEnd) + segBtn + h.slice(segEnd);
+};
+
+// ---------- 2. 탐사 도구 (장기 탐사에 하나씩 들고 가는 소모품) ----------
+Object.assign(IT, {
+  t_torch:{n:'횃불', t:'tool', p:30, d:'장기 탐사 동안 몬스터와 마주칠 확률 25% 감소', f:'송진을 먹인 횃불. 짐승들이 불빛을 꺼린다.', tool:{enc:0.75}},
+  t_trap:{n:'사냥 덫', t:'tool', p:30, d:'장기 탐사 보상 +15%', f:'길목마다 놓아 두면 쓸 만한 것이 걸려든다.', tool:{rew:1.15}},
+  t_lantern:{n:'영험한 등롱', t:'tool', p:45, d:'장기 탐사 희귀 발견 +25%', f:'부적을 바른 등롱. 숨은 것을 비춘다고 한다.', tool:{rare:1.25}},
+  t_incense:{n:'향 주머니', t:'tool', p:40, d:'장기 탐사 알 발견 +60%', f:'짐승이 좋아하는 향을 담은 주머니.', tool:{egg:1.6}},
+  t_sack:{n:'큰 보따리', t:'tool', p:35, d:'장기 탐사 짐 무게 +15칸', f:'가죽으로 덧댄 커다란 보따리.', tool:{cap:15}},
+  t_charm:{n:'액막이 주머니', t:'tool', p:40, d:'장기 탐사 체력 소모 15% 감소', f:'부적을 넣고 꿰맨 작은 주머니. 피곤함을 덜어 준다.', tool:{cost:0.85}},
+});
+CRAFT.tool = {n:'도구방', sub:'lumber', list:[
+  {out:'t_torch', need:[['#mat',6],['sap',1]]},
+  {out:'t_trap', need:[['#mat',6],['bone',1]]},
+  {out:'t_sack', need:[['#mat',8],['hide',1]]},
+  {out:'t_charm', need:[['#mat',6],['talisman',1]]},
+  {out:'t_incense', need:[['#mat',6],['herb',2]]},
+  {out:'t_lantern', need:[['#mat',8],['talisman',1],['gem',1]]},
+]};
+Object.assign(ICON, {t_torch:['wand','#f08a3a','#ffd060'], t_trap:['rock','#8a6a4a','#c8c8c8'], t_lantern:['jar','#f6e0a0','#e05a3a'], t_incense:['seedbag','#c08ad0','#7a4a8a'], t_sack:['sack','#b88a5a','#8a5a32'], t_charm:['paper','#f4e8c8','#7a4ab8'], token:['orb','#c89a3a','#fff0b0'], hallmat:['crystal','#c8a060','#fff0c0']});
+function applyTool(snap){
+  const k = UI.tool; if (!k || !IT[k] || IT[k].t !== 'tool' || !cnt(k)) return null;
+  takeItem(k); const t = IT[k].tool;
+  if (t.enc) snap.enc = t.enc; if (t.rew) snap.rew = +(snap.rew*t.rew).toFixed(3); if (t.rare) snap.rare = +(snap.rare*t.rare).toFixed(3);
+  if (t.egg) snap.egg = +(snap.egg*t.egg).toFixed(3); if (t.cap) snap.cap += t.cap; if (t.cost) snap.cost = +(snap.cost*t.cost).toFixed(3);
+  snap.tool = k; stat('tool'); UI.tool = null;
+  return k;
+}
+const toolSel = () => { const ks = Object.keys(IT).filter(k => IT[k].t === 'tool' && cnt(k) > 0); if (UI.tool && !cnt(UI.tool)) UI.tool = null;
+  return `<div><b class="small">탐사 도구</b> <span class="tiny muted">공방 → 도구방에서 흔한 재료로 만든다</span><div class="row wrapf" style="gap:6px;margin-top:4px"><button class="chip ${!UI.tool ? 'gold' : ''}" data-act="toolPick" data-k="">없음</button>${ks.map(k => `<button class="chip ichip ${UI.tool === k ? 'gold' : ''}" data-act="toolPick" data-k="${k}" title="${esc(IT[k].d)}">${itemIcon(k, 'sm')}${esc(IT[k].n)} ×${cnt(k)}</button>`).join('')}</div>${UI.tool ? `<p class="tiny" style="margin:4px 0 0;color:var(--moss)">${esc(IT[UI.tool].d)}</p>` : ''}</div>`; };
+
+// ---------- 3. 마을회관 (모두가 납품해 키우는 건물) ----------
+// hallc/{uid} = {pts, name, ts} — 각자 자기 기여만 쓴다. 전체 = 모두의 합.
+const HALL_LV = [
+  {pts:0, n:'버려진 회관', d:'지붕이 내려앉고 거미줄이 가득하다. 누군가 손을 봐 주기를 기다리는 듯하다.'},
+  {pts:300, n:'지붕을 고친 회관', d:'비가 새지 않게 되었다. 안에 작은 증표 교환소가 열렸다.', perk:'개척 증표 교환소 열림'},
+  {pts:1000, n:'마루를 깐 회관', d:'반들반들한 마루. 게시판 옆에 납품 의뢰가 하나 더 붙는다.', perk:'매일 납품 의뢰 +1개'},
+  {pts:2500, n:'마을회관', d:'번듯한 회관이 되었다. 회의를 하고 정보를 나누며, 탐사 준비가 한결 수월해졌다.', perk:'모두의 장기 탐사 보상 +3%'},
+  {pts:5000, n:'2층 마을회관', d:'2층에 쉼터가 생겼다. 온천 물을 끌어와 피로가 빨리 풀린다.', perk:'온천 휴식 회복 +20%'},
+  {pts:10000, n:'종루가 선 마을회관', d:'꼭대기에 종이 걸렸다. 종소리가 울릴 때마다 마을 사람들의 의욕이 솟는다.', perk:'모두의 경험치 +5%'},
+];
+const HALL = {total:0, mine:0, people:[], loaded:false};
+function hallLv(){ if (ST.mode !== 'cloud' && S){ HALL.total = HALL.mine = S.hallLocal || 0; } let l = 0; HALL_LV.forEach((x, i) => { if (HALL.total >= x.pts) l = i; }); return l; }
+function hallListen(){
+  if (ST.mode !== 'cloud'){ HALL.total = HALL.mine = (S && S.hallLocal) || 0; return; }
+  unsubs.push(ST.db.collection('hallc').limit(300).onSnapshot(s => {
+    const ps = s.docs.map(d => ({uid:d.id, ...d.data()})).filter(p => p && p.pts > 0);
+    HALL.people = ps.sort((a, b) => b.pts - a.pts); HALL.total = ps.reduce((a, p) => a + (+p.pts || 0), 0); HALL.loaded = true;
+    const me = ps.find(p => p.uid === ST.uid); HALL.mine = Math.max(me ? me.pts : 0, S.hallPts || 0);
+    softRender();
+  }, e => console.warn('hall', e)));
+}
+async function hallAdd(pts){
+  S.hallPts = (S.hallPts || 0) + pts; HALL.mine = S.hallPts;
+  if (ST.mode !== 'cloud'){ S.hallLocal = S.hallPts; HALL.total = S.hallPts; save(); return; }
+  const before = hallLv();
+  try { await ST.db.doc('hallc/' + ST.uid).set({pts:S.hallPts, name:S.char.name, ts:now()}); } catch(e){ console.warn('hall', e); }
+  HALL.total += pts; save();
+  if (hallLv() > before){ notify('social', '마을회관', `마을회관이 「${HALL_LV[hallLv()].n}」${pp(HALL_LV[hallLv()].n,'으로','로')} 발전했습니다! ${HALL_LV[hallLv()].perk}`); postNews && postNews(`${S.char.name}님의 납품으로 마을회관이 「${HALL_LV[hallLv()].n}」${pp(HALL_LV[hallLv()].n,'이','가')} 되었습니다!`); }
+}
+// 납품하면 점수와 개척 증표(점수 20마다 1개)
+const hallPtsOf = (k, n) => Math.max(1, Math.round((IT[k].p || 5) * n / 4));
+async function hallDeliver(k, n){
+  if (baseLocked()) return lockToast();
+  n = Math.min(n, cnt(k) - equippedN(k)); if (n <= 0) return;
+  takeItem(k, n); const pts = hallPtsOf(k, n);
+  S.tokFrac = (S.tokFrac || 0) + pts/20; const tok = Math.floor(S.tokFrac); S.tokFrac -= tok; if (tok) addItem('token', tok);
+  stat('hallGive'); await hallAdd(pts); sfx('coin');
+  toast(`${IT[k].n} ${n}개를 납품했다. 마을회관 +${pts}점${tok ? ` · 개척 증표 +${tok}` : ''}`, 'good'); renderSheet(true); render();
+}
+
+// ---------- 4. 납품 의뢰 (매일, 고장 재료) ----------
+function dailyReqs(){
+  const want = 3 + (hallLv() >= 2 ? 1 : 0);
+  if (S.dreq && S.dreq.d === dayKey() && S.dreq.list.length >= want) return S.dreq.list;
+  const rng = mulberry32(hashStr(ST.uid + dayKey() + 'req') >>> 0), list = (S.dreq && S.dreq.d === dayKey()) ? S.dreq.list : [];
+  const regs = REG.map((r, i) => i).filter(i => REG[i].lv <= S.lv + 3);
+  const who = ['오츠루','스즈네','겐조','렌타로','미오','잡화점 할멈','마을회관 일꾼','이웃 마을 상인'];
+  while (list.length < want){
+    const ri = pick(rng, regs), mats = REG[ri].mats.filter(([x]) => (IT[x].p || 0) <= 40 && !list.some(o => o.id === x));
+    if (!mats.length) break;
+    const id = wpick(rng, mats.map(([x, w]) => [x, w])), n = 4 + Math.floor(rng()*8);
+    list.push({id, n, ri, who:pick(rng, who), gold:Math.round(IT[id].p*n*1.6 + 20), xp:6 + n*2 + ri*3, tok:1 + (rng() < 0.4 ? 1 : 0), bonus:rng() < 0.25 ? pick(rng, ['pot2','e_fish','t_trap','t_torch','scroll']) : null, done:false});
+  }
+  S.dreq = {d:dayKey(), list}; save(); return list;
+}
+async function reqDeliver(i){
+  if (baseLocked()) return lockToast();
+  const o = dailyReqs()[i]; if (!o || o.done) return;
+  if (cnt(o.id) < o.n) return toast(`${IT[o.id].n}${pp(IT[o.id].n,'이','가')} ${o.n - cnt(o.id)}개 모자라요.`);
+  takeItem(o.id, o.n); o.done = true;
+  S.gold += o.gold; const xp = addXP(o.xp); addItem('token', o.tok); if (o.bonus) addItem(o.bonus);
+  stat('dreq'); const pts = Math.round(hallPtsOf(o.id, o.n)*1.5); await hallAdd(pts); sfx('coin'); save();
+  if (o.who && NPCS) { const id = Object.keys(NPCS).find(x => NPCS[x].name === o.who); if (id) npcAff(id, 2); }
+  toast(`${o.who}에게 ${IT[o.id].n} ${o.n}개를 건넸다. 엽전 +${o.gold} · 경험치 +${xp} · 증표 +${o.tok}${o.bonus ? ` · 덤 ${itemName(o.bonus)}` : ''} · 회관 +${pts}점`, 'good');
+  renderSheet(true); render();
+}
+
+// ---------- 5. 개척 증표 교환소 (회관 1단계부터) ----------
+IT.token = {n:'개척 증표', t:'sp', p:0, d:'마을회관에 납품하거나 납품 의뢰를 마치면 받는다. 회관의 교환소에서 쓴다.', f:'마을회관 도장이 찍힌 나무패. 개척자의 땀이 배어 있다.'};
+const TOKEN_SHOP = [
+  ['pot2', 2], ['e_str', 4], ['e_agi', 4], ['e_vit', 4], ['e_luk', 5], ['t_lantern', 3], ['rareherb', 4], ['scroll', 8],
+  ['egg_pet', 25], ['egg_summon', 30], ['reset', 40], ['ticket', 60],
+];
+const tokenName = k => k === 'egg_pet' ? '야생동물의 알' : k === 'egg_summon' ? '요괴의 알' : itemName(k);
+function tokenBuy(i){
+  if (hallLv() < 1) return toast('마을회관 지붕을 고쳐야 교환소가 열려요.');
+  const [k, c] = TOKEN_SHOP[i]; if (cnt('token') < c) return toast('개척 증표가 모자라요.');
+  takeItem('token', c);
+  if (k.startsWith('egg_')){ const kind = k.slice(4); S.eggs.push({kind, sp:pick(Math.random, kind === 'pet' ? PET_SP : SUM_SP), id:uid36()}); }
+  else addItem(k);
+  stat('tokenBuy'); sfx('coin'); save(); toast(`${tokenName(k)}${pp(tokenName(k),'을','를')} 받았다. (증표 −${c})`, 'good'); renderSheet(true);
+}
+
+// ---------- 마을회관 화면 ----------
+function hallArt(lv, big){
+  const W = big ? 'class="hall-art"' : '';
+  const K = '#2a1d17';
+  const ruin = `<path d="M-26 6h52v14h-52z" fill="#a89070" stroke="${K}" stroke-width="1.2"/><path d="M-30 6L-4 -14L4 -8L30 6" fill="#7a6a5a" stroke="${K}" stroke-width="1.2"/><path d="M-6 -12l6 10l8-8" fill="none" stroke="${K}" stroke-width="1"/><path d="M-18 10v10M-8 12v8M12 9l4 11" stroke="#5a4a3a" stroke-width="1.2"/><path d="M-22 20l6-6M18 20l-4-8" stroke="#6a8a4a" stroke-width="1.4"/>`;
+  const body = (w, h) => `<path d="M${-w} ${20-h}h${w*2}v${h}h${-w*2}z" fill="#e8d8b8" stroke="${K}" stroke-width="1.2"/><path d="M${-w+4} ${20-h+3}h${w*2-8}" stroke="#8a6a4a" stroke-width="1"/>`;
+  const roof = (w, y, c = '#5a6a7a') => `<path d="M${-w-6} ${y}L0 ${y-16}L${w+6} ${y}z" fill="${c}" stroke="${K}" stroke-width="1.2"/><path d="M${-w-6} ${y}q${w+6} 5 ${w*2+12} 0" fill="none" stroke="${K}" stroke-width="1"/>`;
+  const door = `<path d="M-5 20v-10h10v10" fill="#7a4a2a" stroke="${K}" stroke-width="1"/>`;
+  let g = '';
+  if (lv === 0) g = ruin;
+  else if (lv === 1) g = body(24, 14) + roof(24, 6, '#8a7a6a') + door + `<path d="M-14 -2h10M4 -4h8" stroke="#c8a060" stroke-width="2"/>`;
+  else if (lv === 2) g = `<path d="M-30 20h60v3h-60z" fill="#a8784a" stroke="${K}" stroke-width="1"/>` + body(26, 16) + roof(26, 4) + door + `<path d="M-20 10h8v6h-8zM12 10h8v6h-8z" fill="#f6eed8" stroke="${K}" stroke-width=".8"/>`;
+  else if (lv === 3) g = `<path d="M-32 20h64v3h-64z" fill="#a8784a" stroke="${K}" stroke-width="1"/>` + body(28, 18) + roof(28, 2, '#3a4a6a') + door + `<path d="M-22 8h9v7h-9zM13 8h9v7h-9z" fill="#f6eed8" stroke="${K}" stroke-width=".8"/><path d="M-8 -6h16v5h-16z" fill="#f6e8c8" stroke="${K}" stroke-width=".8"/>`;
+  else g = `<path d="M-32 20h64v3h-64z" fill="#a8784a" stroke="${K}" stroke-width="1"/>` + body(28, 16) + roof(28, 4, '#3a4a6a') + `<path d="M-18 -10h36v14h-36z" fill="#e8d8b8" stroke="${K}" stroke-width="1.1"/>` + roof(18, -10, '#3a4a6a') + door + `<path d="M-22 10h9v6h-9zM13 10h9v6h-9zM-10 -6h8v6h-8zM2 -6h8v6h-8z" fill="#f6eed8" stroke="${K}" stroke-width=".8"/>` + (lv >= 5 ? `<path d="M-6 -26h12v8h-12z" fill="#e8d8b8" stroke="${K}" stroke-width="1"/>${roof(6, -26, '#3a4a6a')}<path d="M0 -24v4" stroke="${K}" stroke-width="1"/><circle cx="0" cy="-19" r="2.4" fill="#d8a83a" stroke="${K}" stroke-width=".8"/>` : '');
+  return big ? `<svg ${W} viewBox="-50 -50 100 80" aria-hidden="true"><rect x="-50" y="-50" width="100" height="80" fill="#efe4cc"/><path d="M-50 22h100v8h-100z" fill="#cdb98a"/>${g}</svg>` : g;
+}
+SHEETS.hall = () => {
+  const lv = hallLv(), L = HALL_LV[lv], nx = HALL_LV[lv + 1], t = UI.hallTab || 'build';
+  const pct = nx ? clamp((HALL.total - L.pts)/(nx.pts - L.pts)*100, 0, 100) : 100;
+  const seg = `<div class="seg" style="margin:10px 0">${[['build','납품'],['req','의뢰'],['shop','증표 교환소']].map(([k, n]) => `<button data-act="hallTab" data-t="${k}" aria-pressed="${t === k}">${n}${k === 'req' ? ` ${dailyReqs().filter(o => !o.done).length}` : ''}</button>`).join('')}</div>`;
+  let body = '';
+  if (t === 'build'){
+    const mats = Object.keys(S.inv).filter(k => !k.endsWith('*') && ['mat','fish'].includes(IT[k]?.t) && cnt(k) > 0 && !MAT_KEEP.includes(k)).sort((a, b) => cnt(b) - cnt(a));
+    body = `<p class="small muted" style="margin-top:0">남는 재료를 납품하면 마을회관이 조금씩 형태를 갖춘다. 모두의 납품이 합쳐지고, 단계가 오를 때마다 마을 전체에 혜택이 생긴다. 납품 점수 20점마다 <b>개척 증표</b> 1개를 받는다.</p>
+    <div class="list">${mats.map(k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">×${cnt(k)}</span></b><span class="tiny muted">1개 ${hallPtsOf(k, 1)}점 · 전부 ${hallPtsOf(k, cnt(k))}점</span></div><div class="row" style="gap:4px"><button class="btn sm ghost" data-act="hallGive" data-k="${k}" data-n="10">10개</button><button class="btn sm" data-act="hallGive" data-k="${k}" data-n="9999">전부</button></div></div>`).join('') || '<p class="small muted">납품할 재료가 없다.</p>'}</div>
+    ${HALL.people.length ? `<h3 style="margin-top:14px">많이 납품한 개척자</h3><div class="list">${HALL.people.slice(0, 5).map((p, i) => `<div class="li"><b class="num" style="width:1.5em">${i + 1}</b><div class="t"><b>${esc(p.name || '누군가')}${p.uid === ST.uid ? ' (나)' : ''}</b></div><span class="num small">${p.pts}점</span></div>`).join('')}</div>` : ''}`;
+  } else if (t === 'req'){
+    const L2 = dailyReqs();
+    body = `<p class="small muted" style="margin-top:0">마을 사람들의 부탁. 고장 재료를 모아 건네면 엽전·경험치·개척 증표를 받고, 회관 점수도 1.5배로 쌓인다. 매일 자정에 바뀐다.</p>
+    <div class="list">${L2.map((o, i) => `<div class="li ${o.done ? 'done' : ''}">${itemIcon(o.id)}<div class="t"><b>${IT[o.id].n} ×${o.n} <span class="cntx">가진 것 ${cnt(o.id)}</span></b><span>${esc(o.who)} · ${REG[o.ri].n} 재료</span><span class="tiny">${o.gold}${CUR} · 경험치 ${o.xp} · 증표 ${o.tok}${o.bonus ? ` · 덤 ${itemName(o.bonus)}` : ''}</span></div>${o.done ? '<span class="chip good">완료</span>' : `<button class="btn sm ${cnt(o.id) >= o.n ? 'seal' : 'ghost'}" data-act="reqGive" data-i="${i}" ${cnt(o.id) >= o.n ? '' : 'disabled'}>건네기</button>`}</div>`).join('')}</div>`;
+  } else {
+    body = lv < 1 ? '<div class="card"><p style="margin:0">교환소는 회관 지붕을 고치면(300점) 열린다. 지금은 먼지만 쌓여 있다.</p></div>'
+      : `<p class="small muted" style="margin-top:0">개척 증표 <b>${cnt('token')}</b>개. 납품과 의뢰로 모은 증표를 귀한 물건으로 바꾼다.</p><div class="list">${TOKEN_SHOP.map(([k, c], i) => `<div class="li">${k.startsWith('egg_') ? eggArt(k.slice(4)) : itemIcon(k)}<div class="t"><b>${esc(tokenName(k))}</b><span>${k.startsWith('egg_') ? '둥지에서 부화시킨다' : esc(IT[k]?.d || '')}</span></div><button class="btn sm ${cnt('token') >= c ? 'seal' : 'ghost'}" data-act="tokenBuy" data-i="${i}" ${cnt('token') >= c ? '' : 'disabled'}>증표 ${c}</button></div>`).join('')}</div>`;
+  }
+  return sheetHead('마을회관', `<span class="chip gold">증표 ${cnt('token')}</span>`) + `
+  <div class="hall-top">${hallArt(lv, true)}<div class="grow"><b style="font-size:1.1rem">${L.n}</b> <span class="chip">${lv}단계</span><p class="small" style="margin:4px 0">${L.d}</p>
+    <div class="bar gold"><i style="width:${pct}%"></i></div><span class="tiny muted num">${nx ? `${HALL.total} / ${nx.pts}점 · 다음: ${nx.n} (${nx.perk})` : `${HALL.total}점 · 최고 단계!`}</span><br><span class="tiny muted">내 기여 ${HALL.mine}점</span></div></div>
+  <details class="sub" style="margin-top:8px"><summary class="small">단계별 혜택</summary><div class="list">${HALL_LV.slice(1).map((x, i) => `<div class="li" ${lv >= i + 1 ? '' : 'style="opacity:.55"'}><div class="t"><b>${i + 1}단계 · ${x.n} <span class="tiny muted">${x.pts}점</span></b><span>${x.perk}</span></div>${lv >= i + 1 ? '<span class="chip good">달성</span>' : ''}</div>`).join('')}</div></details>
+  ${seg}${body}`;
+};
+// 혜택 적용
+const _makeSnap0 = makeSnap;
+makeSnap = ri => { const s = _makeSnap0(ri); if (hallLv() >= 3) s.rew = +(s.rew*1.03).toFixed(3); return s; };
+const _regenMult0 = regenMult;
+regenMult = () => _regenMult0() * (restActive() && hallLv() >= 4 ? 1.2 : 1);
+const _addXP0 = addXP;
+addXP = (n, quiet) => _addXP0(hallLv() >= 5 ? n*1.05 : n, quiet);
+
+// 거점 지도에 회관 (단계에 따라 모습이 바뀐다)
+BASE.push({k:'hall', n:'마을회관', g:'납품 · 의뢰 · 증표', x:158, y:96, act:'sheet', s:'hall'});
+BASE_SHEETS.push('hall');
+const _baseGlyph0 = baseGlyph;
+baseGlyph = k => k === 'hall' ? `<g transform="scale(.62)">${hallArt(hallLv(), false)}</g>` : _baseGlyph0(k);
+const _baseStatus0 = baseStatus;
+baseStatus = k => k === 'hall' ? '' : _baseStatus0(k);
+// 거점 칸에 마을회관 바로가기
+const _home0 = TABS.home;
+TABS.home = () => { const h = _home0(), mark = '<div class="tiles" style="margin-top:10px">'; const ready = dailyReqs().filter(o => !o.done && cnt(o.id) >= o.n).length, left = dailyReqs().filter(o => !o.done).length;
+  const tile = `<button class="tile" data-act="sheet" data-s="hall"><span class="ic" style="width:34px;height:28px"><svg viewBox="-40 -40 80 64" width="100%">${hallArt(hallLv(), false)}</svg></span><b>마을회관</b><span class="st ${ready ? 'on' : ''}">${HALL_LV[hallLv()].n} · ${ready ? `의뢰 완료 가능 ${ready}` : `오늘 의뢰 ${left}`}</span></button>`;
+  return h.includes(mark) ? h.replace(mark, mark + tile) : h; };
+
+TITLES.push(
+  {id:'enh5', n:'단련의 손', d:'장비를 +5까지 강화했다.', c:S => Object.values(S.enh || {}).some(v => v >= 5)},
+  {id:'enh10', n:'명장', d:'장비를 +10까지 강화했다.', c:S => st_(S,'enh10') >= 1},
+  {id:'hall1', n:'회관 일꾼', d:'마을회관에 처음 납품했다.', c:S => st_(S,'hallGive') >= 1},
+  {id:'hall500', n:'마을의 기둥', d:'마을회관에 500점 넘게 기여했다.', c:S => (S.hallPts || 0) >= 500},
+  {id:'dreq10', n:'부탁 들어주는 사람', d:'납품 의뢰를 10번 마쳤다.', c:S => st_(S,'dreq') >= 10},
+);
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -6138,6 +6396,8 @@ const ACT = {
   plantAll: d => plantAll(d.k), harvestAll: () => harvestAll(), waterAll: () => waterAll(), compostAll: () => compostAll(),
   bagSel: d => { UI.bagSel = UI.bagSel === d.k ? null : (d.k || null); render(); }, bagView: () => { UI.bagView = UI.bagView === 'list' ? 'grid' : 'list'; render(); },
   fishDeliver: d => fishDeliver(+d.i), forderTog: () => { UI.forderOpen = !UI.forderOpen; },
+  enhance: d => enhance(d.k), toolPick: d => { UI.tool = d.k || null; render(); },
+  hallTab: d => { UI.hallTab = d.t; renderSheet(true); }, hallGive: d => hallDeliver(d.k, +d.n), reqGive: d => reqDeliver(+d.i), tokenBuy: d => tokenBuy(+d.i),
   npcESel: d => { UI.npcE = d.u; UI.npcDraft = null; renderSheet(true); },
   npcLikeAdd: () => { const l = $('#ne_lk').value, k = $('#ne_li').value; const L = UI.npcDraft[l]; if (IT[k] && !L.includes(k) && L.length < 12){ for (const x of ['like','love','dislike']) UI.npcDraft[x] = UI.npcDraft[x].filter(y => y !== k); UI.npcDraft[l].push(k); } renderSheet(true); },
   npcLikeDel: d => { UI.npcDraft[d.l] = UI.npcDraft[d.l].filter(x => x !== d.k); renderSheet(true); },
