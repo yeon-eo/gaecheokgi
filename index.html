@@ -2196,7 +2196,7 @@ async function giftTo(o, k, n, msg){
   const defs = base.startsWith('c_') && S.customs && S.customs[base] ? {[base]:S.customs[base]} : null; // 자유 요리는 만드는 법(이름·버프·그림)을 함께 보낸다
   const r = await postSend(o, 'gift', {items:[[k, n]], msg:(msg||'').trim().slice(0, 100), ...(defs ? {defs} : {})}); stat('gift');
   postSent(r, o, `${itemName(k)} ×${n}`);
-  const mult = (it.r === 'mochi' ? 2 : 1);
+  const mult = (it.r && foodRec(it.r)?.b?.gift ? 2 : 1);
   const liked = (PL[o]?.likes || []).includes(base);
   const g = met ? await addAff(o, (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2) * mult * (liked ? 2 : 1), true) : 0;
   sfx('coin'); toast(`${itemName(k)} ${n}개를 ${PL[o]?.name || '상대'}님의 우편함으로 보냈습니다.${g?` 호감도 +${g}${liked ? ' (좋아하는 물건이라 2배!)' : ''}`:met ? '' : ' (멀리서 보낸 선물이라 호감도는 오르지 않아요)'}`); closeSheet(); render();
@@ -2470,6 +2470,7 @@ function applyGo(P){
   const snap = makeSnap(g.region); snap.pots = list;
   const allies = Object.keys(g.roster).filter(u => u !== ST.uid).map(u => g.roster[u]);
   snap.rew = +(snap.rew * (1 + 0.05*allies.length)).toFixed(3);
+  const tool = applyTool(snap); if (tool) toast(`${IT[tool].n}${pp(IT[tool].n,'을','를')} 챙겼다. ${IT[tool].d}`);
   S.exp = {id:g.id + '-' + (hashStr(ST.uid) % 100000).toString(36), region:g.region, start:g.start, dur:g.dur, tick:g.tick, seed:(g.seed + hashStr(ST.uid)) % 2147483647, snap, wait:3*H/SPD(), party:allies, nt:g.nt || 15000, v:g.v || 0, lead:P.leader === ST.uid};
   notify('exp', '조사대 탐사', `${allies.map(a=>a.name).join(', ')}${pp(allies[allies.length-1]?.name||'','과','와')} 함께 ${josa(REG[g.region].n,'으로','로')} 떠났습니다.`);
   sfx('go'); save(); pubDirty(); render();
@@ -2554,6 +2555,7 @@ function partyCard(){
   if (g){
     const ready = Object.keys(g.ready || {});
     gat = `<div class="card" style="padding:10px;margin-top:8px"><b class="small">조사대 탐사 모집 · ${REG[g.region].n} ${g.hours}시간</b><p class="tiny muted" style="margin:2px 0 6px">준비: ${ready.map(nameOf).map(esc).join(', ')}</p>
+      ${!S.exp ? `<div style="margin-bottom:8px">${toolSel()}</div>` : ''}
       ${lead ? `<div class="row"><button class="btn sm seal" data-act="partyGo" ${ready.length < 2 ? 'disabled' : ''}>함께 출발</button><button class="btn sm ghost" data-act="partyCancel">모집 취소</button></div>` : ready.includes(ST.uid) ? '<span class="chip good">준비 완료</span>' : `<button class="btn sm seal" data-act="partyReady">함께 가기</button>`}</div>`;
   }
   return `<div class="card" style="margin-bottom:10px"><div class="row"><h3 class="grow">우리 조사대 ${P.members.length}/4</h3><button class="btn sm ghost" data-act="leaveParty">조사대 나가기</button></div><div class="row wrapf" style="gap:6px;margin-top:6px">${mem}</div>${hand}${P.members.length < 2 ? '<p class="tiny muted" style="margin:6px 0 0">다른 개척자의 프로필에서 \'함께 가기\'를 누르면 조사대원이 됩니다.</p>' : ''}${gat}</div>`;
@@ -3398,13 +3400,13 @@ const SHEETS = {};
 const haveTxt = need => needHave(need).map(x => `<span style="color:${x.have>=x.n?'var(--ink)':'var(--seal)'}">${esc(x.txt)} ${x.have}/${x.n}</span>`).join(' · ');
 
 SHEETS.kitchen = () => {
-  const p = prof('cook'), known = knownRecipes(), next = RECIPES.filter(r => !known.includes(r));
+  const p = prof('cook'), known = knownRecipes(), next = RECIPES.filter(r => !known.includes(r) && cookPass(r)), shown = known.filter(r => cookPass(r) && (!UI.kCan || needOk(r.need)));
   const foods = Object.keys(S.inv).filter(k => IT[k.replace('*','')]?.t === 'food' && cnt(k) > 0);
   const fb = foodActive();
   return sheetHead('부엌', `<span class="chip">요리 숙련도 ${p}</span>`) + `
   <p class="small muted" style="margin-top:0">요리할수록 숙련도가 올라 새 레시피를 배운다. 숙련도가 높을수록 '정성 가득'(버프 1.5배)이 잘 나온다. 식사 버프는 하나만 유지된다.</p>
   ${fb ? `<p class="small">지금 버프: <b>${foodRec(fb.id).n}${fb.q?' (정성 가득)':''}</b> · 남은 <span class="num" data-cd="${fb.until}"></span></p>` : ''}
-  <div class="list">${known.map(r => `<div class="li">${itemIcon('f_' + r.id)}<div class="t"><b>${r.n}</b><span>${r.bd} · ${r.b.dur}시간</span><span class="tiny">${haveTxt(r.need)}</span></div><button class="btn sm" data-act="cook" data-r="${r.id}" ${needOk(r.need)?'':'disabled'}>요리</button></div>`).join('')}</div>
+  ${cookFilterBar()}<div class="list">${shown.length ? '' : '<p class="small muted">이 분류에서 지금 만들 수 있는 요리가 없다.</p>'}${shown.slice().sort((a, b) => needOk(b.need) - needOk(a.need)).map(r => `<div class="li">${itemIcon('f_' + r.id)}<div class="t"><b>${r.n}</b><span>${r.bd} · ${r.b.dur}시간</span><span class="tiny">${haveTxt(r.need)}</span></div><button class="btn sm" data-act="cook" data-r="${r.id}" ${needOk(r.need)?'':'disabled'}>요리</button></div>`).join('')}</div>
   ${next.length ? `<details class="sub" style="margin-top:10px"><summary class="small">아직 모르는 레시피 ${next.length}가지 · 배우는 곳</summary><div class="list">${next.map(r => `<div class="li" style="opacity:.6">${itemIcon('f_' + r.id)}<div class="t"><b>${r.n} <span class="tiny muted">${r.bd}</span></b><span>${recipeSource(r)}</span></div></div>`).join('')}</div></details>` : ''}
   ${foods.length ? `<hr class="rule"><h3>먹을 수 있는 요리</h3><div class="list">${foods.map(k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${cnt(k)}</span></b><span>${IT[k.replace('*','')].d}</span></div><button class="btn sm seal" data-act="eat" data-k="${k}">먹기</button></div>`).join('')}</div>` : ''}`;
 };
@@ -3598,7 +3600,7 @@ SHEETS.shop = () => {
   const sellable = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && sellPrice(k) > 0 && !['ticket','ring'].includes(k))
     .sort((a,b) => IT[a.replace('*','')].t.localeCompare(IT[b.replace('*','')].t) || itemName(a).localeCompare(itemName(b), 'ko'));
   const bRow = k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">보유 ${cnt(k)}</span></b>${IT[k].f ? `<span class="flav">${esc(IT[k].f)}</span>` : ''}<span>${esc(IT[k].d || '')}</span></div><div class="acts"><button class="btn sm" data-act="buy" data-k="${k}" data-n="1" ${S.gold<IT[k].p?'disabled':''}>${IT[k].p}${CUR}</button>${IT[k].p <= 30 ? `<button class="btn sm ghost" data-act="buy" data-k="${k}" data-n="5" ${S.gold<IT[k].p*5?'disabled':''}>5개</button>` : ''}</div></div>`;
-  const bGroups = [['요리 재료', SHOP.filter(k => IT[k].t === 'mat')], ['씨앗', SHOP.filter(k => IT[k].t === 'seed')], ['약 · 특수', SHOP.filter(k => !['mat','seed'].includes(IT[k].t))]];
+  const bGroups = [...Object.keys(TAG_N).map(t => [`요리 재료 · ${TAG_N[t]}`, SHOP.filter(k => IT[k].t === 'mat' && ingTag(k) === t)]), ['씨앗', SHOP.filter(k => IT[k].t === 'seed')], ['약 · 특수', SHOP.filter(k => !['mat','seed'].includes(IT[k].t))]];
   const buyList = bGroups.filter(([, ks]) => ks.length).map(([n, ks]) => `<h3 class="shop-h">${n}</h3><div class="list">${ks.map(bRow).join('')}</div>`).join('');
   const sellList = sellable.length ? `<div class="list">${sellable.map(k => { const free = cnt(k) - equippedN(k); return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b><span>한 개 ${sellPrice(k)}${CUR}${equippedN(k) ? ' · 장착 중인 것은 제외' : ''}</span></div><div class="acts"><button class="btn sm" data-act="sell" data-k="${k}">팔기</button>${free > 1 ? `<button class="btn sm ghost" data-act="sellAll" data-k="${k}">모두 ${sellPrice(k)*free}${CUR}</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">팔 수 있는 물건이 없다.</p>';
   return sheetHead('잡화점', `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`) + `
@@ -4230,6 +4232,8 @@ const HARD_AUTO_X = ['머뭇거리는 사이 몸이 먼저 움직였다…', '�
 
 // ---- 계산 ----
 const hardStat = (k) => effStats()[k] || 0;
+const hardTool = H => (H.tool && IT[H.tool] && IT[H.tool].tool) || {}; // 들고 간 탐사 도구의 효과
+const hardKeep = (H, kind) => (kind === 'down' ? 0.4 : kind === 'quit' ? 0.5 : 1) + (kind !== 'done' && hardTool(H).cap ? 0.15 : 0); // 큰 보따리: 중도 귀환 때 더 챙긴다
 function hardChance(H, o, auto){
   if (!o.st) return 1;
   const T = 5 + REG[H.ri].lv*0.55;               // 그 고장에서 기대되는 능력치
@@ -4244,7 +4248,7 @@ function hardAddItem(H, k, n = 1){ if (!IT[k] || n <= 0) return; H.loot[k] = (H.
 function hardLog(H, x, k = '', t){ H.log.push({t:t || H.clock || now(), x, k}); if (H.log.length > 400) H.log.shift(); }
 function hardDamage(H, frac, danger){
   const lvGap = Math.max(0, REG[H.ri].lv - S.lv) * 0.04;
-  const d = Math.max(1, Math.round(H.max * frac * HARD_DMG * (0.8 + Math.random()*0.4) * danger * (1 + lvGap)));
+  const d = Math.max(1, Math.round(H.max * frac * HARD_DMG * (0.8 + Math.random()*0.4) * danger * (1 + lvGap) * (hardTool(H).cost || 1)));
   H.hp -= d; return d;
 }
 function hardReward(H, r, mult){
@@ -4263,7 +4267,7 @@ function hardReward(H, r, mult){
   if (r.ingot && Math.random() < r.ingot * rm) add('ingot', 1);
   if (r.rare && Math.random() < Math.min(0.95, r.rare * rm)) add(pick(Math.random, [...HARD_RARE.filter(k => k !== 'rareore'), ...orePool(H.ri)]), 1);
   if (r.gear && Math.random() < r.gear * rm){ const g = pick(Math.random, ['gw','ga','gx']) + H.ri; add(g, 1); }
-  if (r.egg && !H.egg && Math.random() < r.egg){ H.egg = Math.random() < 0.6 ? {kind:'pet', sp:pick(Math.random, PET_SP)} : {kind:'summon', sp:pick(Math.random, SUM_SP)}; got.push(H.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'); }
+  if (r.egg && !H.egg && Math.random() < r.egg * (hardTool(H).egg || 1)){ H.egg = Math.random() < 0.6 ? {kind:'pet', sp:pick(Math.random, PET_SP)} : {kind:'summon', sp:pick(Math.random, SUM_SP)}; got.push(H.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'); }
   if (r.gold){ const g = Math.round(r.gold * (8 + Math.random()*16) * (1 + H.ri*0.5) * lm); H.gold += g; got.push(`엽전 ${g}${CUR}`); }
   if (r.xp){ const x = Math.round(r.xp * (5 + R.lv*1.5)); H.xp += x; got.push(`경험치 ${x}`); }
   if (r.heal){ const h = Math.round(H.max * r.heal); H.hp = Math.min(H.max, H.hp + h); got.push(`체력 +${h}`); }
@@ -4282,12 +4286,12 @@ function hardFight(H, kind, danger, ambush){
   while (r < 6 && m.hp > 0 && H.hp > 0){
     r++;
     const mine = () => { let d = pDmg(s, m, Math.random); if (S.job === 'samurai' && r === 1 && first) d *= 2; if (s.summ) d += Math.round(s.summ); m.hp -= d; dealt += d; };
-    const theirs = () => { const d = Math.max(1, Math.round(mDmg(m, s, Math.random) * danger * 1.25)); H.hp -= d; taken += d; };
+    const theirs = () => { const d = Math.max(1, Math.round(mDmg(m, s, Math.random) * danger * 1.25 * (hardTool(H).enc || 1))); H.hp -= d; taken += d; };
     if (first){ mine(); if (m.hp > 0) theirs(); } else { theirs(); if (H.hp > 0) mine(); }
   }
   if (H.hp <= 0) return {win:false, down:true};
   if (m.hp <= 0){
-    const drops = []; for (const [it, ch] of MON[id].dr6 || MON[id].dr) if (Math.random() < ch * 1.2){ hardAddItem(H, it, 1); drops.push(IT[it].n); }
+    const drops = []; for (const [it, ch] of MON[id].dr6 || MON[id].dr) if (Math.random() < ch * 1.2 * (hardTool(H).rew || 1)){ hardAddItem(H, it, 1); drops.push(IT[it].n); }
     const x = 6 + m.L*4; H.xp += x;
     S.codex.mon[id] = (S.codex.mon[id] || 0) + 1; stat(m.t === 'y' ? 'yokai' : 'animal');
     hardLog(H, `${r}합 만에 ${josa(m.n,'을','를')} 쓰러뜨렸다! 피해 ${dealt}, 받은 피해 ${taken} · 경험치 +${x}${drops.length ? ' · ' + drops.join(', ') : ''}`, 'win');
@@ -4341,13 +4345,15 @@ function hardStart(mins){
   setHP(curHP());
   if (curHP() < maxHP()*0.4) return toast('체력이 너무 적습니다. 최대 체력의 40% 이상일 때 떠날 수 있어요. 온천에서 쉬고 오세요.', 'warn');
   if (S.rest) endRest(true);
-  const pots = {pot1:Math.min(UI.hp1 ?? 2, cnt('pot1')), pot2:Math.min(UI.hp2 ?? 0, cnt('pot2'))};
+  const pots = {pot1:Math.min(UI.h1 ?? 2, cnt('pot1')), pot2:Math.min(UI.h2 ?? 0, cnt('pot2'))};
   for (const k in pots) if (pots[k]) takeItem(k, pots[k]);
+  const tool = takeTool();
   const ri = S.loc, start = now();
   S.hard = {id:uid36(), ri, mins, start, end:start + mins*MIN/SPD(), ev:null, count:0, sinceRoute:0, lastSc:'', path:[{x:40, y:90, sc:'start'}], trend:0, route:'',
-    hp:Math.round(curHP()), max:maxHP(), loot:{}, gold:0, xp:0, egg:null, log:[], buff:{}, seg:{danger:1, loot:1, rare:1}, pots, auto:0, picks:0, ambQ:[]};
+    hp:Math.round(curHP()), max:maxHP(), loot:{}, gold:0, xp:0, egg:null, log:[], buff:{}, seg:{danger:1, loot:1, rare:1}, pots, tool, auto:0, picks:0, ambQ:[]};
   S.hardDay.n++; stat('hard');
   hardLog(S.hard, `${REG[ri].n}의 험한 길로 들어섰다. (고난도 탐사 ${mins === 60 ? '1시간' : mins + '분'})`, 'start', start);
+  if (tool) hardLog(S.hard, `${IT[tool].n}${pp(IT[tool].n,'을','를')} 챙겼다. ${IT[tool].d}`, 'item', start);
   if (compSnap().length) hardLog(S.hard, compSay(Math.random, 'start', compSnap()), 'comp', start);
   hardScheduleWalk(S.hard, start); S.hard.nextAt = start + 4000/SPD(); // 첫 갈림길은 곧바로
   sfx('go'); save(); pubDirty(); UI.exTab = 'hard'; render();
@@ -4361,7 +4367,7 @@ function hardChoose(idx, auto, at){
   H.ev = null; if (!auto) H.picks++;
   H.path[H.path.length - 1].pick = idx; H.path[H.path.length - 1].auto = !!auto;
   const danger = H.seg.danger * (auto ? HARD_AUTO_DANGER : 1) * (H.buff.safe ? 0.6 : 1) * (HARD_DMUL[H.mins] || 1);
-  const mult = {loot:H.seg.loot, rare:H.seg.rare};
+  const mult = {loot:H.seg.loot * (hardTool(H).rew || 1), rare:H.seg.rare * (hardTool(H).rare || 1)};
   hardLog(H, `▶ ${o.t}`, 'choice');
   const hp0 = H.hp, loot0 = Object.values(H.loot).reduce((a, b) => a + b, 0);
   const done = () => {
@@ -4420,9 +4426,9 @@ function hardDrink(){
 function hardDown(){ const H = S.hard; H.hp = 0; hardLog(H, '눈앞이 하얘졌다… 무리한 탐사 끝에 빈사 상태가 되었다.', 'down'); if (compSnap().length) hardLog(H, compSay(Math.random, 'down', compSnap()), 'comp'); hardFinish('down'); }
 function hardFinish(kind){
   const H = S.hard; if (!H) return;
-  const mult = kind === 'down' ? 0.4 : kind === 'quit' ? 0.5 : 1;
-  const got = {}; for (const k in H.loot){ const n = Math.floor(H.loot[k]*mult + (mult < 1 ? Math.random()*0.99 : 0)); if (n > 0){ got[k] = n; addItem(k, n); } }
-  const gold = Math.round(H.gold*mult), xpRaw = Math.round(H.xp*(kind === 'down' ? 0.5 : mult));
+  const mult = kind === 'down' ? 0.4 : kind === 'quit' ? 0.5 : 1, keep = hardKeep(H, kind);
+  const got = {}; for (const k in H.loot){ const n = Math.floor(H.loot[k]*keep + (keep < 1 ? Math.random()*0.99 : 0)); if (n > 0){ got[k] = n; addItem(k, n); } }
+  const gold = Math.round(H.gold*keep), xpRaw = Math.round(H.xp*(kind === 'down' ? 0.5 : mult));
   S.gold += gold; const xp = addXP(xpRaw + (kind === 'done' ? Math.round(H.mins*1.5*(1 + H.ri*0.4)) : 0));
   let egg = null; if (H.egg && kind !== 'down'){ egg = H.egg; S.eggs.push({...egg, id:uid36()}); }
   for (const k in H.pots) if (H.pots[k]) addItem(k, H.pots[k]);
@@ -4431,7 +4437,7 @@ function hardFinish(kind){
   const lines = H.log.map(l => ({i:Math.round((l.t - H.start)/1000), x:l.x, k:l.k === 'choice' ? 'start' : l.k}));
   const n = Object.values(got).reduce((a, b) => a + b, 0) + (egg ? 1 : 0);
   S.hist.unshift({kind:'hard_' + kind, region:H.ri, at:now(), start:H.start, tick:1000, xp, gold, fee:0, n, got, egg, kills:{}, dur:H.mins*MIN, party:[], lines:lines.slice(-250)}); S.hist = S.hist.slice(0, 8);
-  const sum = {kind:'hard_' + kind, region:H.ri, mins:H.mins, got, gold, xp, egg, lines, start:H.start, auto:H.auto, picks:H.picks, count:H.count};
+  const sum = {kind:'hard_' + kind, region:H.ri, mins:H.mins, got, gold, xp, egg, lines, start:H.start, auto:H.auto, picks:H.picks, count:H.count, keep:Math.round(keep*100)};
   S.hard = null; save(); pubDirty();
   notify('exp', '고난도 탐사', kind === 'down' ? `${REG[sum.region].n}에서 빈사 상태로 돌아왔습니다.` : `${REG[sum.region].n} 고난도 탐사를 마쳤습니다.`, 'hard' + sum.start);
   openSheet('hardres', sum); sfx(kind === 'done' ? 'win' : 'soft'); render();
@@ -4456,7 +4462,7 @@ function hardTick(){
   if (bar && H.ev){ const left = Math.max(0, H.ev.deadline - now()); bar.style.width = (left/HARD_PICK_MS*100) + '%'; const tx = document.getElementById('hdPickTx'); if (tx) tx.textContent = Math.ceil(left/1000) + '초'; }
   const mk = document.getElementById('hdMe'); if (mk){ const [x, y] = hardMePos(H); mk.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`); }
 }
-async function hardQuit(){ if (!S.hard) return; if (!await ask('돌아가기', '지금까지 모은 것의 절반만 챙겨 돌아갑니다.', '돌아가기')) return; hardLog(S.hard, '더는 무리라고 판단하고 발길을 돌렸다.', 'end', now()); hardFinish('quit'); }
+async function hardQuit(){ if (!S.hard) return; if (!await ask('돌아가기', `지금까지 모은 것의 ${Math.round(hardKeep(S.hard, 'quit')*100)}%만 챙겨 돌아갑니다.`, '돌아가기')) return; hardLog(S.hard, '더는 무리라고 판단하고 발길을 돌렸다.', 'end', now()); hardFinish('quit'); }
 
 // ---- 험로 지도: 지나온 길과 지금 위치, 갈림길의 세 갈래 ----
 const hardOff = H => { const last = H.path[H.path.length - 1]; return Math.max(0, last.x + 64 - 300); };
@@ -4512,6 +4518,7 @@ function hardView(){
       <div class="hd-warn"><b>⚠ 자동 진행 주의</b><br>사건이 나타난 뒤 <b>1분 안에 고르지 않으면</b> 몸이 먼저 무작정 움직인다. 자동 진행은 위험이 1.5배이고 환약도 챙기지 못해 <b>빈사 확률이 크게 높아진다.</b> 빈사가 되면 모은 것의 40%만 챙겨 돌아오고, 6시간 동안 지친 몸이 된다. 고른 시간 동안 화면을 지켜볼 수 있을 때 떠나자.</div>
       <div class="seg hours" role="group" aria-label="탐사 시간">${HARD_MINS.map(m => `<button data-act="hdStart" data-m="${m}" ${lock ? 'disabled' : ''}>${m === 60 ? '1시간' : m + '분'}<span class="tiny">${m === 10 ? '가볍게' : m === 30 ? '제대로' : '끝까지'}</span></button>`).join('')}</div>
       <div class="stack" style="gap:6px">${potSel('pot1')}${potSel('pot2')}</div>
+      ${toolSel()}
       <p class="tiny muted" style="margin:0">체력 ${Math.floor(curHP())}/${maxHP()} · 최대 체력의 40% 이상이어야 떠날 수 있다. ${lock ? '<b style="color:var(--seal)">지금은 다른 일을 하는 중이라 떠날 수 없다.</b>' : ''}</p>
     </div>`;
   }
@@ -4525,13 +4532,13 @@ function hardView(){
     <div class="bar xp"><i style="width:${pct}%"></i></div>
     ${hardMapSVG(H)}
     <div class="bt-hp me"><div class="row small"><b class="grow">체력</b><span class="num">${Math.max(0, Math.round(H.hp))} / ${H.max}</span></div><div class="bar"><i style="width:${Math.max(0, H.hp)/H.max*100}%"></i></div>
-      <div class="row wrapf" style="gap:4px;margin-top:4px">${H.buff.luck ? '<span class="chip good">행운</span>' : ''}${H.buff.curse ? '<span class="chip bad">저주</span>' : ''}${H.buff.safe ? '<span class="chip blue">길을 안다</span>' : ''}${H.auto ? `<span class="chip bad">자동 진행 ${H.auto}번</span>` : ''}</div></div>
+      <div class="row wrapf" style="gap:4px;margin-top:4px">${H.tool && IT[H.tool] ? `<span class="chip blue">${esc(IT[H.tool].n)}</span>` : ''}${H.buff.luck ? '<span class="chip good">행운</span>' : ''}${H.buff.curse ? '<span class="chip bad">저주</span>' : ''}${H.buff.safe ? '<span class="chip blue">길을 안다</span>' : ''}${H.auto ? `<span class="chip bad">자동 진행 ${H.auto}번</span>` : ''}</div></div>
     ${ev ? `<div class="hd-node ${SC.minor ? 'minor' : ''}"><div class="row"><b class="grow">${HARD_IC[ev.sc] || ''} 【${SC.t}】</b><span class="tiny muted" id="hdPickTx">${Math.ceil(Math.max(0, ev.deadline - now())/1000)}초</span></div>
       <p style="margin:6px 0 8px">${SC.d[ev.d]}</p>
       <div class="bar" style="height:5px"><i id="hdPick" style="width:${Math.max(0, ev.deadline - now())/HARD_PICK_MS*100}%;background:var(--gold)"></i></div>
       <div class="hd-opts">${SC.o.map((o, i) => { const p = o.st ? Math.round(hardChance(H, o, false)*100) : null; return `<button class="btn hd-opt ${o.fight || o.k === 'charge' ? 'seal' : ''}" data-act="hdPick" data-i="${i}"><b>${o.t}</b><span class="tiny">${o.h || (o.st ? `${STN[o.st]} 판정 · 성공 약 ${p}%` : o.fight ? '전투' : o.pot ? `환약 1개 (${potN}개 남음)` : o.safe ? '안전' : '')}</span></button>`; }).join('')}</div></div>`
     : `<p class="small muted" style="margin:0">${H.nextAt < H.end ? '험한 길을 헤쳐 나가는 중… 무언가 다가온다.' : '출구가 보인다. 조금만 더!'}</p>`}
-    <div class="row wrapf" style="gap:6px"><button class="btn sm" data-act="hdDrink" ${potN && H.hp < H.max ? '' : 'disabled'}>환약 먹기 (${potN})</button><button class="btn sm ghost" data-act="hdQuit">포기하고 돌아가기 (절반)</button></div>
+    <div class="row wrapf" style="gap:6px"><button class="btn sm" data-act="hdDrink" ${potN && H.hp < H.max ? '' : 'disabled'}>환약 먹기 (${potN})</button><button class="btn sm ghost" data-act="hdQuit">포기하고 돌아가기 (${Math.round(hardKeep(H, 'quit')*100)}%)</button></div>
     ${lootChips ? `<div><b class="small">지금까지 모은 것</b><div class="row wrapf" style="gap:6px;margin-top:4px">${lootChips}</div></div>` : ''}
     <div class="log" style="max-height:340px">${H.log.slice().reverse().slice(0, 40).map(l => `<p class="${l.k}"><time class="num">${fmtClock(l.t)}</time><span>${esc(l.x)}</span></p>`).join('')}</div>
   </div>`;
@@ -4540,7 +4547,7 @@ SHEETS.hardres = s => {
   const ttl = s.kind === 'hard_done' ? '고난도 탐사 완료' : s.kind === 'hard_down' ? '빈사 상태로 귀환' : '도중에 돌아옴';
   const items = Object.entries(s.got);
   return sheetHead(ttl) + `<p style="margin-top:0">${REG[s.region].n} · ${s.mins === 60 ? '1시간' : s.mins + '분'} · 만난 사건 ${s.count}곳 · 직접 고른 사건 ${s.picks}번${s.auto ? ` · 자동 진행 ${s.auto}번` : ''}</p>
-    ${s.kind === 'hard_down' ? '<p class="small" style="color:var(--seal)">무리한 끝에 쓰러졌다. 모은 것의 40%만 챙겼고, 6시간 동안 지친 몸이 된다.</p>' : s.kind === 'hard_quit' ? '<p class="small">모은 것의 절반을 챙겨 돌아왔다.</p>' : ''}
+    ${s.kind === 'hard_down' ? '<p class="small" style="color:var(--seal)">무리한 끝에 쓰러졌다. 모은 것의 ' + (s.keep || 40) + '%만 챙겼고, 6시간 동안 지친 몸이 된다.</p>' : s.kind === 'hard_quit' ? '<p class="small">모은 것의 ' + (s.keep || 50) + '%를 챙겨 돌아왔다.</p>' : ''}
     <div class="card"><div class="row num" style="justify-content:space-between"><span>경험치 <b>+${s.xp}</b></span><span>엽전 <b>+${s.gold}</b></span></div><hr class="rule">
     ${items.length || s.egg ? `<div class="row wrapf" style="gap:6px">${items.map(([k, v]) => `${ichip(k, v)}`).join('')}${s.egg ? `<span class="chip gold">🥚 ${s.egg.kind === 'pet' ? '야생동물의 알' : '요괴의 알'} ×1</span>` : ''}</div>` : '<span class="muted small">챙겨 온 물건이 없다.</span>'}</div>
     <details class="sub" style="margin-top:10px" open><summary class="small">탐사 기록 (${s.lines.length}줄)</summary><div class="log" style="max-height:340px">${s.lines.map(l => `<p class="${l.k}"><time class="num">${fmtClock(s.start + l.i*1000)}</time><span>${esc(l.x)}</span></p>`).join('')}</div></details>
@@ -5218,7 +5225,7 @@ function freeView(){
     : `<div class="row">${itemIcon(prev.key) .replace('</span>', '</span>')}<div class="grow"><b>${known ? esc(S.customs[prev.key].n) : esc(prev.n)}</b> ${known ? '<span class="chip">만들어 본 요리</span>' : '<span class="chip gold">처음 만드는 조합</span>'}<br><span class="small" style="color:var(--moss)">${prev.bd} · ${prev.b.dur}시간</span></div></div>`}
     <button class="btn seal full" style="margin-top:10px" data-act="freeCook" ${pot.length >= 2 ? '' : 'disabled'}>요리하기</button></div>
   <h3 style="margin-top:12px">재료 <span class="tiny muted">눌러서 넣기 · 성질에 따라 버프가 달라진다</span></h3>
-  ${avail.length ? Object.keys(TAG_N).map(t => { const ks = avail.filter(k => ingTag(k) === t); if (!ks.length) return ''; return `<div class="ing-h"><b>${TAG_N[t]}</b> <span class="tiny muted">${t === 'season' ? '버프 시간 +1시간' : t === 'herb' ? '회복 2배' : TAG_ST[t].map(s => STN[s]).join('·')}</span></div><div class="ing-row">${ks.map(k => { const left = cnt(k) - (used[k] || 0); return `<button class="ing" data-act="potAdd" data-k="${k}" ${left > 0 && pot.length < 4 ? '' : 'disabled'}>${itemIcon(k, 'lg')}<b class="bc-n num">${left}</b><span>${esc(IT[k].n)}</span></button>`; }).join('')}</div>`; }).join('') : '<p class="small muted">요리에 쓸 재료가 없다. 잡화점에서 기본 재료를 살 수 있다.</p>'}`;
+  ${avail.length ? Object.keys(TAG_N).map(t => { const ks = avail.filter(k => ingTag(k) === t); if (!ks.length) return ''; return `<div class="ing-h"><b>${TAG_N[t]}</b> <span class="tiny muted">${t === 'season' ? '버프 시간 +1시간' : t === 'herb' ? '회복 2배' : TAG_ST[t].map(s => STN[s]).join('·')}</span></div><div class="ing-row">${ks.map(k => { const left = cnt(k) - (used[k] || 0); return `<button class="ing" data-act="potAdd" data-k="${k}" ${left > 0 && pot.length < 4 ? '' : 'disabled'}>${itemIcon(k, 'lg')}<b class="bc-n num">${left}</b><span>${esc(IT[k].n)}</span></button>`; }).join('')}</div>`; }).join('') : '<p class="small muted">요리에 쓸 재료가 없다. 잡화점에서 살 수 있다.</p>'}`;
 }
 function bookView(){
   const L = Object.values(S.customs || {});
@@ -5852,14 +5859,14 @@ SHEETS.craft = st => {
   return h.slice(0, segEnd) + segBtn + h.slice(segEnd);
 };
 
-// ---------- 2. 탐사 도구 (장기 탐사에 하나씩 들고 가는 소모품) ----------
+// ---------- 2. 탐사 도구 (장기·조사대·고난도 탐사에 하나씩 들고 가는 소모품) ----------
 Object.assign(IT, {
-  t_torch:{n:'횃불', t:'tool', p:30, d:'장기 탐사 동안 몬스터와 마주칠 확률 25% 감소', f:'송진을 먹인 횃불. 짐승들이 불빛을 꺼린다.', tool:{enc:0.75}},
-  t_trap:{n:'사냥 덫', t:'tool', p:30, d:'장기 탐사 보상 +15%', f:'길목마다 놓아 두면 쓸 만한 것이 걸려든다.', tool:{rew:1.15}},
-  t_lantern:{n:'영험한 등롱', t:'tool', p:45, d:'장기 탐사 희귀 발견 +25%', f:'부적을 바른 등롱. 숨은 것을 비춘다고 한다.', tool:{rare:1.25}},
-  t_incense:{n:'향 주머니', t:'tool', p:40, d:'장기 탐사 알 발견 +60%', f:'짐승이 좋아하는 향을 담은 주머니.', tool:{egg:1.6}},
-  t_sack:{n:'큰 보따리', t:'tool', p:35, d:'장기 탐사 짐 무게 +15칸', f:'가죽으로 덧댄 커다란 보따리.', tool:{cap:15}},
-  t_charm:{n:'액막이 주머니', t:'tool', p:40, d:'장기 탐사 체력 소모 15% 감소', f:'부적을 넣고 꿰맨 작은 주머니. 피곤함을 덜어 준다.', tool:{cost:0.85}},
+  t_torch:{n:'횃불', t:'tool', p:30, d:'장기·조사대: 몬스터와 마주칠 확률 25% 감소 / 고난도: 전투 피해 25% 감소', f:'송진을 먹인 횃불. 짐승들이 불빛을 꺼린다.', tool:{enc:0.75}},
+  t_trap:{n:'사냥 덫', t:'tool', p:30, d:'장기·조사대·고난도 탐사 보상 +15%', f:'길목마다 놓아 두면 쓸 만한 것이 걸려든다.', tool:{rew:1.15}},
+  t_lantern:{n:'영험한 등롱', t:'tool', p:45, d:'장기·조사대·고난도 탐사 희귀 발견 +25%', f:'부적을 바른 등롱. 숨은 것을 비춘다고 한다.', tool:{rare:1.25}},
+  t_incense:{n:'향 주머니', t:'tool', p:40, d:'장기·조사대·고난도 탐사 알 발견 +60%', f:'짐승이 좋아하는 향을 담은 주머니.', tool:{egg:1.6}},
+  t_sack:{n:'큰 보따리', t:'tool', p:35, d:'장기·조사대: 짐 무게 +15칸 / 고난도: 빈사·포기 때 챙기는 양 +15%', f:'가죽으로 덧댄 커다란 보따리.', tool:{cap:15}},
+  t_charm:{n:'액막이 주머니', t:'tool', p:40, d:'장기·조사대: 체력 소모 15% 감소 / 고난도: 사고로 받는 피해 15% 감소', f:'부적을 넣고 꿰맨 작은 주머니. 피곤함을 덜어 준다.', tool:{cost:0.85}},
 });
 CRAFT.tool = {n:'도구방', sub:'lumber', list:[
   {out:'t_torch', need:[['#mat',6],['sap',1]]},
@@ -5870,12 +5877,17 @@ CRAFT.tool = {n:'도구방', sub:'lumber', list:[
   {out:'t_lantern', need:[['#mat',8],['talisman',1],['gem',1]]},
 ]};
 Object.assign(ICON, {t_torch:['wand','#f08a3a','#ffd060'], t_trap:['rock','#8a6a4a','#c8c8c8'], t_lantern:['jar','#f6e0a0','#e05a3a'], t_incense:['seedbag','#c08ad0','#7a4a8a'], t_sack:['sack','#b88a5a','#8a5a32'], t_charm:['paper','#f4e8c8','#7a4ab8'], token:['orb','#c89a3a','#fff0b0'], hallmat:['crystal','#c8a060','#fff0c0']});
-function applyTool(snap){
+function takeTool(){
   const k = UI.tool; if (!k || !IT[k] || IT[k].t !== 'tool' || !cnt(k)) return null;
-  takeItem(k); const t = IT[k].tool;
+  takeItem(k); stat('tool'); UI.tool = null;
+  return k;
+}
+function applyTool(snap){
+  const k = takeTool(); if (!k) return null;
+  const t = IT[k].tool;
   if (t.enc) snap.enc = t.enc; if (t.rew) snap.rew = +(snap.rew*t.rew).toFixed(3); if (t.rare) snap.rare = +(snap.rare*t.rare).toFixed(3);
   if (t.egg) snap.egg = +(snap.egg*t.egg).toFixed(3); if (t.cap) snap.cap += t.cap; if (t.cost) snap.cost = +(snap.cost*t.cost).toFixed(3);
-  snap.tool = k; stat('tool'); UI.tool = null;
+  snap.tool = k;
   return k;
 }
 const toolSel = () => { const ks = Object.keys(IT).filter(k => IT[k].t === 'tool' && cnt(k) > 0); if (UI.tool && !cnt(UI.tool)) UI.tool = null;
@@ -6032,6 +6044,367 @@ TITLES.push(
   {id:'hall500', n:'마을의 기둥', d:'마을회관에 500점 넘게 기여했다.', c:S => (S.hallPts || 0) >= 500},
   {id:'dreq10', n:'부탁 들어주는 사람', d:'납품 의뢰를 10번 마쳤다.', c:S => st_(S,'dreq') >= 10},
 );
+// ===================== 요리 확장: 새 식재료 · 씨앗 · 레시피 · 잡화점 =====================
+// 그림 틀
+Object.assign(GL, {
+  block:(a, b) => iL('M9 20l15-7l15 7v14l-15 7l-15-7z', a) + iL('M9 20l15 7l15-7l-15-7z', b) + iLN('M24 27v14', IK, 1.5),
+  fruit:(a, b) => iC(24, 27, 12.5, a) + iLN('M24 15q0-3 2-5', '#6a4a2a', 2) + iL('M25 13c3-3 7-4 10-3c-2 4-6 5-10 3z', b) + iSH(19, 22, 2.2, 4, 30),
+  long:(a, b) => `<g transform="rotate(-40 24 24)"><rect x="8" y="17" width="31" height="14" rx="7" fill="${a}" stroke="${IK}" stroke-width="1.5"/>${iL('M36 17q6 3 6 7t-6 7q2-7 0-14z', b)}<ellipse cx="18" cy="21" rx="6" ry="1.5" fill="#fff" opacity=".4"/></g>`,
+  negi:(a, b) => iLN('M15 40L31 10', IK, 7.4) + iLN('M15 40L24 23', a, 5) + iLN('M24 23L31 10', b, 5) + iLN('M31 10l5-4M30 12l7-1', b, 2.2),
+  shrimp:(a, b) => iL('M34 13c-12-3-22 4-22 14c0 7 6 11 12 10c-4-2-5-6-3-9c3-5 9-7 14-7z', a) + iLN('M18 21l5 5M15 26l6 3M21 17l4 6', b, 1.3) + iC(31, 16, 1.4, IK, 0) + iLN('M34 13l7-4M34 15l7-1', b, 1.2),
+  tako:(a, b) => iL('M12 21c0-7 5-12 12-12s12 5 12 12c0 4-2 6-4 8H16c-2-2-4-4-4-8z', a) + iLN('M16 29q-3 5-7 6M21 30q-1 6-4 9M27 30q1 6 4 9M32 29q3 5 7 6', a, 3) + iC(20, 20, 1.6, IK, 0) + iC(28, 20, 1.6, IK, 0) + `<circle cx="24" cy="25" r="1.6" fill="${b}"/>`,
+  flask:(a, b) => iL('M20 7h8v7c0 3 8 7 8 15c0 8-5 12-12 12s-12-4-12-12c0-8 8-12 8-15z', a) + iL('M18 25h12v9H18z', b) + iLN('M22 28h4M22 31h4', IK, 1) + iSH(16, 27, 1.5, 4, 15),
+  sushi:(a, b) => iL('M9 31h30v5q-15 5-30 0z', '#fbf8f0') + iL('M8 30c3-7 9-11 16-11s13 4 16 11q-16 4-32 0z', a) + iLN('M16 28q2-4 5-6M24 28q2-4 5-6', b, 1.3),
+  bento:(a, b) => iL('M8 14h32v24H8z', a) + iL('M11 17h12v18H11z', '#fbf8f0') + iL('M25 17h12v8H25z', b) + iL('M25 27h12v8H25z', '#7ab05a') + `<circle cx="17" cy="26" r="2.4" fill="#c8324a"/>`,
+});
+
+// 식재료: 태그는 자유 요리의 성질이 된다
+const COOK_MATS = {
+  negi:{n:'파', p:5, tag:'veg', ic:['negi','#f4f2e4','#6aae4a'], f:'뿌리 쪽이 하얗고 굵은 파. 어느 국에 넣어도 향이 산다.'},
+  ginger:{n:'생강', p:7, tag:'veg', ic:['root','#e0c488','#7aa84a'], f:'알싸한 뿌리. 고기 냄새를 잡고 몸을 덥힌다.'},
+  cucumber:{n:'오이', p:5, tag:'veg', ic:['long','#5a9a4a','#c8d870'], f:'가시가 오톨도톨한 오이. 한 입 베어 물면 물이 뚝뚝 떨어진다.'},
+  eggplant:{n:'가지', p:6, tag:'veg', ic:['long','#5a3a7a','#5a7a3a'], f:'윤이 나는 보랏빛 가지. 구우면 살이 부드럽게 녹는다.'},
+  tofu:{n:'두부', p:8, tag:'veg', ic:['block','#f4f0e4','#ffffff'], f:'콩물을 굳힌 하얀 두부. 물에 담가 판다.'},
+  aburaage:{n:'유부', p:9, tag:'veg', ic:['block','#d8a050','#ecc070'], f:'두부를 얇게 썰어 튀겼다. 여우가 좋아한다는 말이 있다.'},
+  konnyaku:{n:'곤약', p:7, tag:'veg', ic:['block','#7a7a80','#a0a0a8'], f:'탱글탱글한 회색 덩어리. 맛이 잘 배도록 칼집을 낸다.'},
+  nori:{n:'김', p:8, tag:'veg', ic:['leaf','#2a3a2a','#5a7a4a'], f:'바위에 붙은 해초를 얇게 떠서 말렸다.'},
+  chicken:{n:'닭고기', p:12, tag:'meat', ic:['bonemeat','#f0c0a0','#fbe4d0'], f:'정육점에서 끊어 온 닭고기. 굽고 튀기기 좋다.'},
+  shrimp:{n:'새우', p:14, tag:'fish', ic:['shrimp','#f08a6a','#c8503a'], f:'어물전의 등 굽은 새우. 튀기면 붉게 빛난다.'},
+  tako:{n:'문어', p:15, tag:'fish', ic:['tako','#c85a5a','#f4c0b0'], f:'항아리에 숨어 있다 잡힌 문어. 삶으면 쫄깃하다.'},
+  chestnut:{n:'밤', p:10, tag:'sweet', ic:['beans','#8a5a32','#d8b080'], f:'가시 속에서 여문 밤. 삶으면 포슬포슬 달다.'},
+  persimmon:{n:'감', p:8, tag:'sweet', ic:['fruit','#ec8a30','#5a8a3a'], f:'가을 하늘에 매달린 주홍빛 감.'},
+  yuzu:{n:'유자', p:12, tag:'sweet', ic:['fruit','#f0c838','#5a9a4a'], f:'울퉁불퉁한 노란 유자. 껍질 향이 방 안을 채운다.'},
+  ume:{n:'매실', p:9, tag:'sweet', ic:['berries','#9ac04a','#5a8a3a'], f:'소금에 절이면 시고 짠 우메보시가 되는 푸른 매실.'},
+  soy:{n:'간장', p:12, tag:'season', ic:['flask','#3a2418','#f4e8c8'], f:'콩과 밀을 오래 띄워 짠 검은 간장.'},
+  vinegar:{n:'식초', p:10, tag:'season', ic:['flask','#d8c890','#c8322a'], f:'쌀을 삭힌 맑은 식초. 입맛을 돋운다.'},
+  mirin:{n:'맛술', p:14, tag:'season', ic:['flask','#e8c060','#7a4ab8'], f:'달큰한 술. 끓이면 윤기와 단맛만 남는다.'},
+  sesame:{n:'참깨', p:8, tag:'season', ic:['beans','#e8d8a8','#a08a5a'], f:'볶으면 고소한 냄새가 온 집 안에 퍼진다.'},
+  katsuo:{n:'가쓰오부시', p:16, tag:'season', ic:['log','#a8603a','#d89a6a'], f:'가다랑어를 돌처럼 말렸다. 대패로 밀어 국물을 낸다.'},
+  kombu:{n:'다시마', p:10, tag:'season', ic:['leaf','#2a4a3a','#4a7a5a'], f:'바다에서 건진 넓은 잎. 끓는 물에 넣으면 깊은 맛이 난다.'},
+};
+for (const k in COOK_MATS){ const m = COOK_MATS[k]; IT[k] = {n:m.n, t:'mat', p:m.p, f:m.f}; ING[k] = m.tag; ICON[k] = m.ic; }
+
+// 농사로도 기를 수 있는 채소
+Object.assign(SEEDS, {
+  s_negi:{crop:'negi',n:'파 씨앗',h:2,y:[2,4],p:6}, s_cucumber:{crop:'cucumber',n:'오이 씨앗',h:3,y:[2,4],p:7},
+  s_eggplant:{crop:'eggplant',n:'가지 모종',h:4,y:[2,4],p:8}, s_ginger:{crop:'ginger',n:'생강 씨앗',h:5,y:[3,5],p:9},
+});
+for (const k of ['s_negi','s_cucumber','s_eggplant','s_ginger']) IT[k] = {n:SEEDS[k].n, t:'seed', p:SEEDS[k].p, d:`${IT[SEEDS[k].crop].n} · ${SEEDS[k].h}시간`, f:'논밭에 심으면 실제 시간이 지나 자란다.'};
+
+// 레시피: 값(p)은 재료값의 1.5배로 매겨, 사서 만들어 팔아도 이득이 남지 않게 한다 (판매가 = 값의 절반)
+const NEW_RECIPES = [
+  // 숙련도 0
+  {id:'hiyayakko',n:'냉두부',need:[['tofu',1],['soy',1]],lv:0,b:{dur:2,st:{VIT:1,SPI:1}},bd:'체력 +1, 정신 +1',f:'찬 두부에 간장 한 줄기. 더운 날 가장 먼저 찾는 맛.',ic:['block','#f4f0e4','#ffffff']},
+  {id:'asazuke',n:'오이 소금절임',need:[['cucumber',2],['salt',1]],lv:0,b:{dur:2,cost:-0.1},bd:'체력 소모 10% 감소',f:'오이를 소금에 살짝 절였다. 도시락 한쪽에 꼭 들어간다.',ic:['long','#6aa84a','#d8e080']},
+  {id:'umeonigiri',n:'매실 주먹밥',need:[['rice',1],['ume',1]],lv:0,b:{dur:2,st:{LUK:1,SPI:1}},bd:'운 +1, 정신 +1',f:'신 매실을 한 알 넣은 주먹밥. 여름에도 잘 쉬지 않는다.',ic:['onigiri','#fbfaf6','#c8324a']},
+  // 숙련도 5
+  {id:'tofumiso',n:'두부 된장국',need:[['tofu',1],['miso',1],['negi',1]],lv:5,b:{dur:3,regen:1,st:{VIT:2}},bd:'체력 자연 회복 2배, 체력 +2',f:'네모난 두부와 파를 띄운 된장국. 아침 밥상의 기본.',ic:['bowl','#c89a5a','#f4f0e4']},
+  {id:'yakitori',n:'닭꼬치',need:[['chicken',1],['soy',1]],lv:5,b:{dur:2,st:{STR:2,AGI:1}},bd:'힘 +2, 민첩 +1',f:'숯불 위에서 간장을 발라 가며 구운 닭꼬치.',ic:['skewer','#b8703a','#d8904a','#a8603a']},
+  {id:'nasumiso',n:'가지 된장구이',need:[['eggplant',1],['miso',1]],lv:5,b:{dur:2,st:{INT:2,SPI:1}},bd:'지능 +2, 정신 +1',f:'가지를 반으로 갈라 된장을 바르고 구웠다.',ic:['plate','#5a3a7a','#a4703c']},
+  {id:'gomaae',n:'오이 참깨무침',need:[['cucumber',1],['sesame',1]],lv:5,b:{dur:2,st:{SEN:2,INT:1}},bd:'감각 +2, 지능 +1',f:'오이를 볶은 참깨에 버무렸다. 고소한 향이 먼저 온다.',ic:['bowl','#7ab05a','#e8d8a8']},
+  {id:'norionigiri',n:'김 주먹밥',need:[['rice',1],['nori',1],['salt',1]],lv:5,b:{dur:3,cost:-0.15,st:{VIT:1}},bd:'체력 소모 15% 감소, 체력 +1',f:'바삭한 김을 두른 주먹밥. 먼 길을 떠나는 이의 품에 들어간다.',ic:['onigiri','#fbfaf6','#1a2a1a']},
+  {id:'konnyakuni',n:'곤약 간장조림',need:[['konnyaku',1],['soy',1]],lv:5,b:{dur:3,cost:-0.08,st:{VIT:1}},bd:'체력 소모 8% 감소, 체력 +1',f:'칸칸이 칼집 낸 곤약에 간장이 까맣게 뱄다.',ic:['bowl','#5a4a42','#8a8a90']},
+  // 숙련도 12
+  {id:'inari',n:'유부초밥',need:[['rice',1],['aburaage',1],['vinegar',1]],lv:12,b:{dur:3,st:{LUK:2,AGI:1}},bd:'운 +2, 민첩 +1',f:'달콤하게 조린 유부에 초밥을 채웠다. 신사 여우에게도 바친다.',ic:['sushi','#d8a050','#a8703a']},
+  {id:'kitsuneudon',n:'유부우동',need:[['wheat',1],['aburaage',1],['katsuo',1]],lv:12,b:{dur:3,st:{SPI:2,VIT:1}},bd:'정신 +2, 체력 +1',f:'가쓰오 국물에 큼직한 유부를 얹은 우동.',ic:['bowl','#e8c890','#d8a050']},
+  {id:'karaage',n:'닭튀김',need:[['chicken',1],['wheat',1],['soy',1]],lv:12,b:{dur:3,st:{STR:3}},bd:'힘 +3',f:'간장에 재운 닭을 튀겼다. 소리부터 맛있다.',ic:['tempura','#c8803a','#f0c060']},
+  {id:'kurigohan',n:'밤밥',need:[['rice',1],['chestnut',2]],lv:12,b:{dur:3,st:{VIT:2,LUK:1}},bd:'체력 +2, 운 +1',f:'햇밤을 듬뿍 넣어 지은 밥. 가을이 입안에 가득하다.',ic:['don','#f0e6d0','#c89a5a']},
+  {id:'takosu',n:'문어 초무침',need:[['tako',1],['cucumber',1],['vinegar',1]],lv:12,b:{dur:3,st:{AGI:2,SEN:1}},bd:'민첩 +2, 감각 +1',f:'쫄깃한 문어와 오이를 식초에 버무렸다.',ic:['plate','#c85a5a','#6aa84a']},
+  {id:'shogayaki',n:'생강 고기구이',need:[['meat',1],['ginger',1],['soy',1]],lv:12,b:{dur:3,st:{STR:2,VIT:1}},bd:'힘 +2, 체력 +1',f:'생강 간장에 고기를 구웠다. 밥이 절로 넘어간다.',ic:['plate','#a8603a','#e0c488']},
+  {id:'hoshigaki',n:'곶감',need:[['persimmon',3]],lv:12,b:{dur:3,st:{AGI:2,LUK:1}},bd:'민첩 +2, 운 +1',f:'처마 밑에 매달아 말렸다. 하얀 분이 피면 다 된 것이다.',ic:['fruit','#b8602a','#f4e8c8']},
+  // 숙련도 20
+  {id:'ebiten',n:'새우튀김',need:[['shrimp',2],['wheat',1],['egg',1]],lv:20,b:{dur:3,st:{AGI:3,SEN:1}},bd:'민첩 +3, 감각 +1',f:'꼬리까지 바삭한 새우튀김. 장터 어느 집보다 잘 튀겼다.',ic:['tempura','#f0c060','#f08a6a']},
+  {id:'sukiyaki',n:'스키야키',need:[['meat',1],['tofu',1],['negi',1],['soy',1]],lv:20,b:{dur:4,st:{STR:3},maxhp:20},bd:'힘 +3, 최대 체력 +20',f:'철냄비에 고기를 굽고 달큰한 간장 국물을 부었다.',ic:['nabe','#7a4a2a','#d0605a']},
+  {id:'dashimaki',n:'가쓰오 달걀말이',need:[['egg',2],['katsuo',1],['soy',1]],lv:20,b:{dur:3,st:{INT:3,LUK:1}},bd:'지능 +3, 운 +1',f:'국물을 머금은 달걀말이. 젓가락으로 누르면 국물이 배어난다.',ic:['roll','#f6d04a','#a8603a']},
+  {id:'yudofu',n:'다시마 두부전골',need:[['tofu',2],['kombu',1]],lv:20,b:{dur:3,regen:1,st:{SPI:3}},bd:'체력 자연 회복 2배, 정신 +3',f:'다시마 국물에 두부를 천천히 데웠다. 절집의 겨울 음식.',ic:['nabe','#e0e8e0','#f4f0e4']},
+  {id:'kakiage',n:'채소 튀김',need:[['eggplant',1],['negi',1],['wheat',1]],lv:20,b:{dur:3,st:{SEN:3,AGI:1}},bd:'감각 +3, 민첩 +1',f:'가지와 파를 한데 모아 튀겼다. 값싸고 든든하다.',ic:['tempura','#d8b050','#6aae4a']},
+  {id:'teriyaki',n:'닭 데리야키',need:[['chicken',1],['soy',1],['mirin',1]],lv:20,b:{dur:3,st:{STR:2,VIT:1,AGI:1}},bd:'힘 +2, 체력 +1, 민첩 +1',f:'간장과 맛술을 졸여 윤기 나게 구운 닭.',ic:['plate','#8a4a22','#e8c060']},
+  // 숙련도 30
+  {id:'okonomi',n:'오코노미야키',need:[['cabbage',1],['wheat',1],['egg',1],['shrimp',1]],lv:30,b:{dur:4,st:{STR:2,VIT:2,LUK:1}},bd:'힘 +2, 체력 +2, 운 +1',f:'배추와 새우를 반죽에 섞어 철판에 부쳤다. 뒤집을 때가 승부.',ic:['mochi','#c8843a','#7ab05a']},
+  {id:'tonkatsu',n:'멧돼지 커틀릿',need:[['boar',1],['wheat',1],['egg',1]],lv:30,b:{dur:4,st:{STR:3,VIT:2}},bd:'힘 +3, 체력 +2',f:'멧돼지 고기에 튀김옷을 입혀 두툼하게 튀겼다.',ic:['tempura','#c88a3a','#8a5a2a']},
+  {id:'gyudon',n:'고기덮밥',need:[['meat',1],['negi',1],['rice',1],['soy',1]],lv:30,b:{dur:4,st:{STR:2,VIT:2},cost:-0.08},bd:'힘 +2, 체력 +2, 체력 소모 8% 감소',f:'파와 고기를 간장에 졸여 밥에 얹었다. 빠르고 든든하다.',ic:['don','#8a5a32','#6aae4a']},
+  {id:'chirashi',n:'치라시 초밥',need:[['rice',1],['shrimp',1],['egg',1],['vinegar',1]],lv:30,b:{dur:4,st:{LUK:3,SEN:2}},bd:'운 +3, 감각 +2',f:'초밥 위에 새우와 달걀지단을 흩뿌렸다. 잔칫날의 꽃밭.',ic:['don','#f6d070','#f08a6a']},
+  {id:'yuzucha',n:'유자차',need:[['yuzu',1],['honey',1]],lv:30,b:{dur:3,regen:1,tiredCut:1,st:{SPI:2}},bd:'지친 몸 1시간 단축, 회복 2배, 정신 +2',f:'유자를 꿀에 재워 뜨거운 물에 풀었다. 지친 몸이 먼저 안다.',ic:['cup','#f0c838','#f6dc70']},
+  {id:'yokan',n:'밤양갱',need:[['chestnut',1],['redbean',2],['sugar',1]],lv:30,b:{dur:3,st:{LUK:2},gift:2},bd:'운 +2. 선물하면 호감도 2배',f:'단팥을 굳힌 양갱에 통밤이 박혔다. 어른들이 가장 반기는 선물.',ic:['block','#4a2420','#7a3a30']},
+  // 숙련도 45
+  {id:'nigiri',n:'모둠 초밥',need:[['#fish',2],['rice',1],['vinegar',1]],lv:45,b:{dur:4,st:{AGI:2,SEN:2,LUK:2}},bd:'민첩 +2, 감각 +2, 운 +2',f:'갓 잡은 생선을 손으로 쥔 밥 위에 얹었다. 장인의 손맛.',ic:['sushi','#e86a6a','#ffd4cc']},
+  {id:'ramen',n:'된장 라멘',need:[['wheat',1],['meat',1],['negi',1],['miso',1]],lv:45,b:{dur:5,st:{STR:3,VIT:3}},bd:'힘 +3, 체력 +3',f:'뼈를 고아 낸 국물에 된장을 풀고 굵은 면을 말았다.',ic:['bowl','#c88a4a','#f6e0a0']},
+  {id:'botansuki',n:'모란 스키야키',need:[['boar',1],['tofu',1],['mushroom',1],['soy',1]],lv:45,b:{dur:5,st:{STR:3,VIT:2,SPI:1},maxhp:30},bd:'힘 +3, 체력 +2, 정신 +1, 최대 체력 +30',f:'멧돼지 고기를 모란처럼 펼쳐 간장 국물에 익혔다.',ic:['nabe','#7a4a2a','#b8483e']},
+  {id:'taisteam',n:'유자 도미찜',need:[['f_seabream',1],['yuzu',1],['kombu',1]],lv:45,b:{dur:5,st:{INT:3,SPI:3},rare:0.1},bd:'지능 +3, 정신 +3, 희귀 발견 +10%',f:'다시마를 깔고 도미를 쪘다. 유자 향이 뚜껑 밑에서 피어오른다.',ic:['plate','#e86a6a','#f0c838']},
+  // 숙련도 60 · 80: 오래 요리한 사람의 상차림
+  {id:'makunouchi',n:'막간 도시락',need:[['rice',1],['egg',1],['#fish',1],['chicken',1]],lv:60,b:{dur:6,st:{STR:3,VIT:3,AGI:2,LUK:2},cost:-0.1},bd:'힘 +3, 체력 +3, 민첩 +2, 운 +2, 체력 소모 10% 감소',f:'연극 막간에 먹던 찬합. 칸마다 다른 맛이 담겼다.',ic:['bento','#7a2a1e','#f6d04a']},
+  {id:'osechi',n:'정월 찬합',need:[['shrimp',1],['chestnut',1],['egg',1],['kombu',1]],lv:60,b:{dur:6,st:{LUK:4,SEN:3,INT:3},rew:0.08},bd:'운 +4, 감각 +3, 지능 +3, 장기 탐사 보상 +8%',f:'한 해의 복을 비는 음식을 겹겹이 담았다. 재료마다 뜻이 있다.',ic:['bento','#1a1a22','#f08a6a']},
+  {id:'kaiseki',n:'가이세키 한 상',need:[['f_seabream',1],['boar',1],['yuzu',1],['kombu',1]],lv:80,b:{dur:6,st:{STR:3,AGI:3,VIT:3,INT:3,SPI:3,SEN:3,LUK:3},rew:0.05},bd:'모든 스탯 +3, 장기 탐사 보상 +5%',f:'철마다 가장 좋은 것을 한 그릇씩 올린 상. 요리사의 마지막 꿈.',ic:['bento','#5a2a1a','#e86a6a']},
+];
+const recipeCost = r => r.need.reduce((a, [k, n]) => a + n*(k === '#fish' ? 10 : (Array.isArray(k) ? Math.min(...k.map(x => IT[x].p)) : IT[k].p)), 0);
+for (const r of NEW_RECIPES){
+  RECIPES.push(r);
+  IT['f_' + r.id] = {n:r.n, t:'food', p:Math.floor(recipeCost(r)*1.5), d:r.bd, f:r.f, r:r.id};
+  ICON['f_' + r.id] = r.ic;
+}
+
+// 잡화점: 새 재료와 씨앗, 그동안 채집·사냥으로만 얻던 요리 재료도 판다 (약초는 환약 재료라 팔지 않는다)
+SHOP.push(...Object.keys(COOK_MATS), 'buckwheat', 'imo', 'sansai', 'mushroom', 'berry', 'clam', 'meat', 'boar', 'honey', 's_negi', 's_cucumber', 's_eggplant', 's_ginger');
+
+// 재료를 전부 잡화점에서 살 수 있는 기존 요리도 값을 재료값의 1.5배 아래로 낮춘다 (올리지는 않는다)
+for (const r of RECIPES){
+  const buyable = r.need.every(([k]) => k !== '#fish' && (Array.isArray(k) ? k.some(x => SHOP.includes(x)) : SHOP.includes(k)));
+  if (buyable) IT['f_' + r.id].p = Math.min(IT['f_' + r.id].p, Math.floor(recipeCost(r)*1.5));
+}
+TITLES.push(
+  {id:'cook60', n:'이름난 요리사', d:'요리 숙련도 60을 넘겼다.', c:S => (S.prof.cook||0) >= 60},
+  {id:'allrecipes', n:'천하의 숙수', d:'모든 레시피를 익혔다.', c:S => RECIPES.every(r => (S.prof.cook||0) >= r.lv || (S.recipes || []).includes(r.id))},
+);
+// ===================== 요리 확장 2: 레시피 180종 · 부엌 분류 =====================
+// 분류: 부엌에서 나눠 보는 기준
+const COOK_CATS = {rice:'밥·죽', noodle:'면', soup:'국·전골', fry:'구이·튀김', side:'반찬', sweet:'간식·차'};
+const OLD_CAT = {
+  onigiri:'rice', tkg:'rice', bibim:'rice', kayu:'rice', barleyset:'rice', oyakodon:'rice', taimeshi:'rice', tekkadon:'rice', unadon:'rice', umeonigiri:'rice', norionigiri:'rice', inari:'rice', kurigohan:'rice', gyudon:'rice', chirashi:'rice', nigiri:'rice', makunouchi:'rice',
+  soba:'noodle', udon:'noodle', kitsuneudon:'noodle', ramen:'noodle',
+  misosoup:'soup', clamsoup:'soup', nabe:'soup', koikoku:'soup', oden:'soup', tofumiso:'soup', sukiyaki:'soup', yudofu:'soup', botansuki:'soup', kaiseki:'soup', osechi:'side',
+  grilled:'fry', kushiyaki:'fry', tempura:'fry', yakitori:'fry', nasumiso:'fry', karaage:'fry', shogayaki:'fry', ebiten:'fry', kakiage:'fry', teriyaki:'fry', okonomi:'fry', tonkatsu:'fry',
+  tamagoyaki:'side', nimono:'side', chawan:'side', sabamiso:'side', sashimi:'side', hiyayakko:'side', asazuke:'side', gomaae:'side', konnyakuni:'side', takosu:'side', dashimaki:'side', taisteam:'side',
+  greentea:'sweet', yakiimo:'sweet', dango:'sweet', mochi:'sweet', honeydango:'sweet', zenzai:'sweet', hoshigaki:'sweet', yuzucha:'sweet', yokan:'sweet',
+};
+RECIPES.forEach(r => { r.c = OLD_CAT[r.id] || 'side'; });
+
+// 버프 설명은 버프 값에서 만든다
+function cookBuffText(b){
+  const es = Object.entries(b.st || {}), all = es.length === STATS.length && es.every(([, v]) => v === es[0][1]);
+  return [all ? `모든 스탯 +${es[0][1]}` : es.map(([s, v]) => `${STN[s]} +${v}`).join(', '), b.maxhp ? `최대 체력 +${b.maxhp}` : '', b.cost ? `체력 소모 ${Math.round(-b.cost*100)}% 감소` : '', b.tiredCut ? `지친 몸 ${b.tiredCut}시간 단축` : '', b.regen ? '체력 자연 회복 2배' : '', b.rare ? `희귀 발견 +${Math.round(b.rare*100)}%` : '', b.rew ? `장기 탐사 보상 +${Math.round(b.rew*100)}%` : '', b.gift ? '선물하면 호감도 2배' : ''].filter(Boolean).join(', ');
+}
+const cookDur = lv => lv < 12 ? 2 : lv < 30 ? 3 : lv < 45 ? 4 : lv < 60 ? 5 : 6;
+// [id, 이름, 재료, 숙련도, 버프, 분류, 설명, 그림]  재료: 'rice:1,#fish:2'
+const MORE_RECIPES = [
+  // 숙련도 0
+  ['shirogayu','흰죽','rice:2,salt:1',0,{regen:1},'rice','쌀을 푹 퍼지게 끓였다. 아픈 날에도 넘어가는 맛.',['bowl','#f4eee0','#fbf8f0']],
+  ['yakionigiri','구운 주먹밥','rice:1,soy:1',0,{st:{STR:1,VIT:1}},'rice','간장을 발라 노릇하게 구운 주먹밥.',['onigiri','#c8904a','#7a4a22']],
+  ['mugicha','보리차','barley:2',0,{st:{SPI:1,VIT:1}},'sweet','볶은 보리를 끓여 식혔다. 일하다 들이켜는 한 잔.',['cup','#b8843a','#d8a860']],
+  ['namasu','무 초절임','radish:1,vinegar:1',0,{st:{SEN:1,AGI:1}},'side','채 썬 무를 식초에 절였다. 입안이 개운해진다.',['bowl','#f4f4e8','#fbf8f0']],
+  ['yudetamago','삶은 달걀','egg:1,salt:1',0,{st:{STR:1,LUK:1}},'side','주머니에 넣어 다니는 먼 길의 간식.',['egg','#f6ead6','#f0c040']],
+  ['edamame','소금 풋콩','bean:2,salt:1',0,{st:{AGI:1,SEN:1}},'side','꼬투리째 삶아 소금을 쳤다. 손이 멈추지 않는다.',['pod','#7ab84a','#c8e890']],
+  // 숙련도 5
+  ['hakusai','배추 소금절임','cabbage:2,salt:1',5,{st:{VIT:1},cost:-0.08},'side','하룻밤 눌러 둔 배추. 밥 한 그릇이 금방이다.',['bowl','#c8e0a0','#f4f4e0']],
+  ['sansaimiso','산나물 된장무침','sansai:1,miso:1',5,{st:{SEN:2,SPI:1}},'side','쌉싸름한 나물에 된장이 구수하다.',['bowl','#7aa84a','#a4703c']],
+  ['yakikinoko','버섯 간장구이','mushroom:1,soy:1',5,{st:{INT:2,SEN:1}},'fry','갓 위에 간장이 보글보글 끓는다.',['mushroom','#8a5030','#f0d8b8']],
+  ['daikonsui','무 맑은국','radish:1,kombu:1',5,{st:{SPI:2,VIT:1}},'soup','다시마 국물에 무만 띄웠다. 맑고 순하다.',['bowl','#e8ecd8','#f4f4e8']],
+  ['tamagosui','달걀국','egg:1,katsuo:1',5,{st:{VIT:2,INT:1}},'soup','가쓰오 국물에 달걀을 구름처럼 풀었다.',['bowl','#f0d870','#f6e8a0']],
+  ['mamegohan','콩밥','rice:1,bean:1',5,{st:{VIT:2,STR:1}},'rice','풋콩이 밥알 사이에서 톡톡 터진다.',['don','#f0e6d0','#8ac05a']],
+  ['imogohan','고구마밥','rice:1,imo:1',5,{st:{VIT:2,LUK:1}},'rice','달큰한 고구마가 듬성듬성 박힌 밥.',['don','#f0e6d0','#9a5aa0']],
+  ['yakinegi','파 소금구이','negi:2,salt:1',5,{st:{SEN:2,STR:1}},'fry','겉이 까맣게 타면 속이 달아진다.',['negi','#f4f2e4','#4a8a3a']],
+  ['shogacha','생강차','ginger:1,honey:1',5,{regen:1,st:{VIT:1}},'sweet','몸 안쪽부터 따뜻해지는 알싸한 차.',['cup','#c89a4a','#e8c070']],
+  ['berryjam','산열매 조림','berry:2,sugar:1',5,{st:{LUK:2,AGI:1}},'sweet','새콤한 열매를 흑설탕에 졸였다.',['jar','#a8324a','#e8a0a8']],
+  ['nimame','콩자반','bean:2,soy:1',5,{st:{STR:2,VIT:1}},'side','까맣게 윤이 나는 짭조름한 콩.',['beans','#3a2a22','#8a6a4a']],
+  ['yakihama','대합 간장구이','clam:1,soy:1',5,{st:{INT:2,AGI:1}},'fry','껍데기가 벌어지면 간장 한 방울.',['shell','#c89a6a','#7a5030']],
+  // 숙련도 12
+  ['torigayu','닭죽','chicken:1,rice:1,ginger:1',12,{regen:1,st:{VIT:2}},'rice','닭 국물에 쌀을 끓이고 생강을 띄웠다.',['bowl','#f0e4c0','#e0c488']],
+  ['kinokomeshi','버섯 솥밥','rice:1,mushroom:1,soy:1',12,{st:{SEN:2,INT:1}},'rice','뚜껑을 열면 숲 냄새가 올라온다.',['don','#c8a060','#8a5030']],
+  ['hamamiso','대합 된장국','clam:1,miso:1,negi:1',12,{st:{INT:2,VIT:1}},'soup','조개 국물과 된장이 만나 시원하다.',['bowl','#b89050','#e8cfa8']],
+  ['kenchin','채소 맑은탕','radish:1,tofu:1,konnyaku:1',12,{st:{SPI:2},cost:-0.08},'soup','절에서 끓이던 고기 없는 탕.',['bowl','#d8d8c0','#8a8a90']],
+  ['zoni','떡국','glut:1,radish:1,katsuo:1',12,{st:{LUK:2,VIT:1}},'soup','새해 아침에 먹는 말간 국물과 떡.',['bowl','#f0ead8','#fbf8f2']],
+  ['kakesoba','따뜻한 메밀국수','buckwheat:2,katsuo:1',12,{st:{AGI:2,VIT:1}},'noodle','가쓰오 국물을 부어 호로록 먹는다.',['bowl','#a8905a','#c4b48a']],
+  ['zaruudon','냉우동','wheat:2,soy:1',12,{st:{STR:2,AGI:1}},'noodle','찬물에 헹궈 쫄깃한 면을 간장에 찍는다.',['zaru','#f0e4c0','#fbf6e4']],
+  ['tsukimisoba','달걀 메밀국수','buckwheat:1,egg:1,negi:1',12,{st:{LUK:2,SEN:1}},'noodle','국물 위에 뜬 노른자가 보름달 같다.',['bowl','#a8905a','#f6d04a']],
+  ['nasuage','가지 튀김','eggplant:1,wheat:1,salt:1',12,{st:{SEN:2,AGI:1}},'fry','기름을 머금은 가지가 입에서 녹는다.',['tempura','#5a3a7a','#d8b050']],
+  ['agedashi','두부 튀김','tofu:1,wheat:1,soy:1',12,{st:{SPI:2,VIT:1}},'fry','겉은 바삭, 속은 뜨겁게 흐물거린다.',['block','#d8a860','#ecc888']],
+  ['tsukune','닭 완자꼬치','chicken:1,negi:1,egg:1',12,{st:{STR:2,VIT:1}},'fry','다진 닭에 파를 섞어 빚어 구웠다.',['skewer','#a8703a','#b8803a','#a8703a']],
+  ['kinpira','무 간장볶음','radish:1,soy:1,sesame:1',12,{st:{SEN:2,STR:1}},'side','채 썬 무를 볶아 참깨를 뿌렸다.',['bowl','#a87a3a','#e8d8a8']],
+  ['kombuni','다시마 조림','kombu:2,soy:1',12,{st:{INT:2,SPI:1}},'side','까맣게 졸인 다시마. 오래 두고 먹는다.',['bowl','#2a3a2a','#4a6a5a']],
+  ['shiraae','두부 나물무침','tofu:1,sesame:1,sansai:1',12,{st:{SPI:2,SEN:1}},'side','으깬 두부와 참깨로 나물을 버무렸다.',['bowl','#f4f0e4','#7aa84a']],
+  ['kyusu','오이 초무침','cucumber:2,vinegar:1',12,{st:{AGI:2},cost:-0.05},'side','아삭하고 새콤해 더위를 잊게 한다.',['bowl','#7ab05a','#d8e080']],
+  ['umekyu','오이 매실무침','cucumber:1,ume:1',12,{st:{SEN:2,LUK:1}},'side','으깬 매실의 신맛이 오이에 스민다.',['plate','#7ab05a','#c8324a']],
+  ['mamekashi','콩강정','bean:1,sugar:1,sesame:1',12,{st:{LUK:2,AGI:1}},'sweet','볶은 콩을 설탕에 굴려 굳혔다.',['beans','#a8783a','#e8d8a8']],
+  ['anmochi','단팥떡','glut:1,redbean:1',12,{st:{LUK:2,VIT:1}},'sweet','쫀득한 떡을 단팥으로 감쌌다.',['mochi','#7a3030','#a85050']],
+  // 숙련도 20
+  ['torimeshi','닭고기 솥밥','rice:1,chicken:1,mushroom:1,soy:1',20,{st:{STR:2,SEN:2}},'rice','닭과 버섯의 맛이 밥알마다 뱄다.',['don','#c8a060','#e0b080']],
+  ['ebimeshi','새우 볶음밥','rice:1,shrimp:1,egg:1',20,{st:{AGI:2,STR:1,LUK:1}},'rice','센 불에 볶아 밥알이 낱낱이 흩어진다.',['don','#f0d070','#f08a6a']],
+  ['ochazuke','녹차 말이밥','rice:1,tea:1,nori:1',20,{st:{SPI:3,VIT:1}},'rice','밥에 녹차를 붓고 김을 얹어 후루룩.',['don','#a8b880','#2a3a2a']],
+  ['takomeshi','문어밥','rice:1,tako:1,soy:1',20,{st:{STR:2,AGI:2}},'rice','쫄깃한 문어를 넣고 간장으로 지은 밥.',['don','#c89a6a','#c85a5a']],
+  ['tonjiru','멧돼지 된장국','boar:1,miso:1,radish:1,konnyaku:1',20,{st:{STR:2,VIT:2}},'soup','기름이 동동 뜨는 건더기 많은 국.',['bowl','#b8884a','#b8483e']],
+  ['yosenabe','해물 모둠전골','clam:1,shrimp:1,cabbage:1,kombu:1',20,{st:{INT:2,AGI:2}},'soup','바다에서 난 것을 모두 한 냄비에.',['nabe','#d8c8a0','#f08a6a']],
+  ['torinabe','닭 전골','chicken:1,cabbage:1,tofu:1,soy:1',20,{st:{STR:2,VIT:2}},'soup','닭 국물에 배추가 달게 익는다.',['nabe','#d8b070','#f0c0a0']],
+  ['dotenabe','대합 된장전골','clam:2,miso:1,tofu:1',20,{st:{INT:3,VIT:1}},'soup','냄비 가장자리에 된장을 둑처럼 발랐다.',['nabe','#a4703c','#e8cfa8']],
+  ['nikuudon','고기 우동','wheat:1,meat:1,negi:1',20,{st:{STR:3,VIT:1}},'noodle','달게 조린 고기를 면 위에 듬뿍.',['bowl','#c8903a','#a8503a']],
+  ['ebisoba','새우 메밀국수','buckwheat:1,shrimp:1,katsuo:1',20,{st:{AGI:3,SEN:1}},'noodle','꼬리까지 붉은 새우가 국수 위에 눕는다.',['bowl','#a8905a','#f08a6a']],
+  ['yuzuudon','유자 냉우동','wheat:1,yuzu:1,soy:1',20,{st:{AGI:2,SPI:2}},'noodle','유자 껍질 향이 찬 면 위에 퍼진다.',['zaru','#f0e4c0','#f0c838']],
+  ['misoudon','된장 우동','wheat:1,miso:1,mushroom:1',20,{st:{VIT:2,SPI:2}},'noodle','진한 된장 국물에 면을 끓였다.',['bowl','#a4703c','#f0e4c0']],
+  ['nikukushi','고기 꼬치','meat:1,salt:1',20,{st:{STR:3,AGI:1}},'fry','소금만 뿌려 숯불에 구운 고기.',['skewer','#a8503a','#b8603a','#a8503a']],
+  ['torishio','유자 닭구이','chicken:1,salt:1,yuzu:1',20,{st:{STR:2,LUK:2}},'fry','유자를 짜 뿌린 짭짤한 닭구이.',['plate','#e0a860','#f0c838']],
+  ['takoyakiate','문어 간장구이','tako:1,soy:1,mirin:1',20,{st:{AGI:2,SEN:2}},'fry','철판 위에서 달큰한 간장이 끓는다.',['tako','#a8483a','#f4c0b0']],
+  ['saikyoyaki','생선 된장구이','#fish:1,miso:1,mirin:1',20,{st:{INT:2,SEN:2}},'fry','단 된장에 재워 천천히 구운 생선.',['plate','#c89a5a','#a4703c']],
+  ['nanban','생선 초절임튀김','#fish:1,wheat:1,vinegar:1',20,{st:{AGI:2,STR:2}},'fry','튀긴 생선을 뜨거울 때 식초에 담갔다.',['tempura','#d8a050','#f4f4e8']],
+  ['nikuimo','고기 고구마조림','meat:1,imo:1,soy:1',20,{st:{STR:2,VIT:2}},'side','집집마다 맛이 다른 뭉근한 조림.',['bowl','#a8703a','#9a5aa0']],
+  ['kakuni','멧돼지 간장조림','boar:1,soy:1,sugar:1',20,{st:{STR:3},maxhp:20},'side','젓가락으로 잘릴 만큼 푹 졸였다.',['bowl','#6a3a22','#b8483e']],
+  ['dengaku','곤약 된장꼬치','konnyaku:1,miso:1,sesame:1',20,{st:{VIT:2,SPI:2}},'fry','단 된장을 발라 구운 장터 간식.',['skewer','#8a8a90','#a4703c','#8a8a90']],
+  ['yuzujam','유자청','yuzu:2,sugar:1',20,{st:{LUK:2,SPI:2}},'sweet','겨울 내내 두고 먹는 노란 단지.',['jar','#f0c838','#f6e080']],
+  // 숙련도 30
+  ['katsudon','커틀릿 덮밥','boar:1,egg:1,rice:1,soy:1',30,{st:{STR:3,VIT:2}},'rice','시합 전날 먹으면 이긴다는 든든한 덮밥.',['don','#c88a3a','#f6d04a']],
+  ['tendon','새우튀김 덮밥','shrimp:1,wheat:1,rice:1,soy:1',30,{st:{AGI:3,STR:2}},'rice','튀김에 진한 간장 양념을 끼얹었다.',['don','#d8a050','#f08a6a']],
+  ['sekihan','팥밥','glut:1,redbean:1,sesame:1',30,{st:{LUK:3,VIT:2}},'rice','경사스러운 날 짓는 붉은 찰밥.',['don','#b85a5a','#e8d8a8']],
+  ['sabazushi','고등어 초밥','f_mackerel:1,rice:1,vinegar:1',30,{st:{AGI:3,INT:2}},'rice','식초에 절인 고등어를 밥과 함께 눌렀다.',['sushi','#3a6a8a','#c8dcea']],
+  ['koinabe','잉어 전골','f_carp:1,tofu:1,negi:1,miso:1',30,{st:{SPI:3,VIT:2}},'soup','힘을 보태 준다는 호수의 전골.',['nabe','#b8884a','#d08a3a']],
+  ['shabu','샤부샤부','meat:1,kombu:1,cabbage:1,tofu:1',30,{st:{STR:2,VIT:2,SPI:1}},'soup','끓는 다시마 물에 고기를 살랑살랑.',['nabe','#e0e8d8','#d0605a']],
+  ['chanko','장사 전골','chicken:1,boar:1,cabbage:1,miso:1',30,{st:{STR:3},maxhp:30},'soup','씨름꾼들이 큰 솥으로 끓여 먹는다.',['nabe','#c88a4a','#b8483e']],
+  ['kamosoba','닭 파 메밀국수','buckwheat:1,chicken:1,negi:1,soy:1',30,{st:{STR:2,AGI:2,VIT:1}},'noodle','구운 파 향이 국물에 깊게 뱄다.',['bowl','#8a7040','#6aae4a']],
+  ['yakiudon','볶음 우동','wheat:1,meat:1,cabbage:1,soy:1',30,{st:{STR:3,SEN:2}},'noodle','철판에 면을 지글지글 볶았다.',['zaru','#a8703a','#7ab05a']],
+  ['nabeudon','냄비 우동','wheat:1,egg:1,shrimp:1,mushroom:1',30,{st:{VIT:2,AGI:2,LUK:1}},'noodle','작은 냄비째 끓여 나오는 겨울 별미.',['nabe','#e8c890','#f08a6a']],
+  ['shirayaki','장어 소금구이','eel:1,salt:1',30,{st:{STR:2,AGI:2,VIT:1}},'fry','양념 없이 구워 기름 맛을 그대로 즐긴다.',['eel','#c8a878','#f0e0c0']],
+  ['ayuginger','은어 생강구이','f_ayu:1,ginger:1',30,{st:{AGI:3,SEN:2}},'fry','여울 향과 생강 향이 함께 난다.',['plate','#a8b4a0','#e0c488']],
+  ['urukumaki','우럭 맑은탕','f_rockfish:1,kombu:1,negi:1',30,{st:{SPI:2,VIT:2,INT:1}},'soup','뼈째 끓여 국물이 뽀얗다.',['bowl','#e8e4d0','#5a4a52']],
+  ['namazuage','메기 튀김','f_catfish:1,wheat:1,salt:1',30,{st:{STR:3,VIT:2}},'fry','흙내를 빼고 튀기면 살이 포슬하다.',['tempura','#a88a5a','#6a5a48']],
+  ['toteriyaki','두부 데리야키','tofu:2,soy:1,mirin:1',30,{st:{SPI:3,VIT:2}},'fry','고기보다 맛있다는 스님들의 구이.',['block','#a8703a','#c89050']],
+  ['daigaku','고구마 맛탕','imo:2,sugar:1,sesame:1',30,{st:{LUK:3,AGI:2}},'sweet','튀긴 고구마에 설탕을 입혀 윤이 난다.',['yakiimo','#d8903a','#f6c84a']],
+  ['kurimochi','밤 경단','chestnut:2,sugar:1,glut:1',30,{st:{LUK:3,SEN:2}},'sweet','으깬 밤을 곱게 빚어 찹쌀에 싸 구웠다.',['mochi','#d8a860','#8a5a32']],
+  ['ohagi','콩고물떡','glut:2,bean:1,sugar:1',30,{st:{LUK:3,VIT:2}},'sweet','고소한 콩가루를 듬뿍 묻힌 떡.',['mochi','#d8c070','#b89a50']],
+  ['amazake','감주','rice:1,sugar:1',30,{regen:1,tiredCut:1,st:{VIT:2}},'sweet','쌀을 삭힌 달큰한 음료. 피로에 그만이다.',['cup','#f4eee0','#fbf8f0']],
+  // 숙련도 45
+  ['gomoku','오목 솥밥','rice:1,chicken:1,mushroom:1,konnyaku:1',45,{st:{STR:2,SEN:2,VIT:2}},'rice','다섯 가지 맛이 어우러진 솥밥.',['don','#c8a060','#7ab05a']],
+  ['kaisenmeshi','해물 솥밥','rice:1,shrimp:1,tako:1,clam:1',45,{st:{AGI:2,SEN:2,INT:2}},'rice','뚜껑 아래 바다가 통째로 들어 있다.',['nabe','#f0e0c0','#f08a6a']],
+  ['unatama','장어 달걀덮밥','eel:1,egg:1,rice:1',45,{st:{STR:3,VIT:3}},'rice','구운 장어를 달걀로 부드럽게 감쌌다.',['don','#f0c060','#a8603a']],
+  ['kaisendon','해물덮밥','#fish:1,shrimp:1,rice:1,vinegar:1',45,{st:{AGI:3,SEN:2,LUK:1}},'rice','초밥 위에 그날 잡은 것을 가득 올렸다.',['don','#e86a6a','#f08a6a']],
+  ['troutmeshi','산천어 솥밥','f_trout:1,rice:1,ginger:1',45,{st:{SEN:3,LUK:3}},'rice','산 냄새 나는 생선을 통째로 얹어 지었다.',['nabe','#f0e0c0','#7a8a9a']],
+  ['taisui','도미 맑은국','f_seabream:1,kombu:1,negi:1',45,{st:{INT:3,SPI:2,LUK:1}},'soup','머리까지 우려낸 잔칫상의 국.',['bowl','#f4ece0','#e86a6a']],
+  ['botannabe','멧돼지 된장전골','boar:2,miso:1,negi:1',45,{st:{STR:4,VIT:2}},'soup','겨울 산 사냥꾼이 끓이던 진한 전골.',['nabe','#a4703c','#b8483e']],
+  ['yukinabe','눈 두부전골','tofu:1,radish:2,kombu:1',45,{st:{SPI:3,INT:3}},'soup','간 무가 눈처럼 덮인 하얀 전골.',['nabe','#f4f8fa','#fbfbf8']],
+  ['kaisenramen','해물 라멘','wheat:1,shrimp:1,clam:1,soy:1',45,{st:{AGI:3,VIT:3}},'noodle','조개와 새우로 낸 시원한 국물.',['bowl','#c8a060','#f08a6a']],
+  ['shoyuramen','간장 라멘','wheat:1,chicken:1,negi:1,soy:1',45,{st:{STR:3,VIT:3}},'noodle','맑은 닭 국물에 간장을 더했다.',['bowl','#8a5a2a','#f6e0a0']],
+  ['oyakoudon','닭 달걀우동','wheat:1,chicken:1,egg:1,katsuo:1',45,{st:{STR:2,VIT:2,LUK:2}},'noodle','닭과 달걀을 국물째 면에 부었다.',['bowl','#f0c860','#f0e4c0']],
+  ['kushikatsu','모둠 꼬치튀김','meat:1,negi:1,wheat:1,egg:1',45,{st:{STR:3,AGI:2,SEN:1}},'fry','고기와 파를 번갈아 꿰어 튀겼다.',['skewer','#c8903a','#d8a850','#c88030']],
+  ['yuzukara','유자 닭튀김','chicken:1,wheat:1,yuzu:1,soy:1',45,{st:{STR:3,LUK:3}},'fry','튀긴 닭에서 유자 향이 난다.',['tempura','#c8803a','#f0c838']],
+  ['ebishio','새우 소금구이','shrimp:2,salt:1',45,{st:{AGI:4,SEN:2}},'fry','껍질째 구워 머리까지 먹는다.',['shrimp','#e06a4a','#a8402a']],
+  ['namazuni','메기 생강조림','f_catfish:1,soy:1,ginger:1',45,{st:{VIT:3,STR:3}},'side','생강으로 흙내를 잡아 뭉근히 졸였다.',['bowl','#6a4a2a','#6a5a48']],
+  ['yuzunamasu','유자 무절임','radish:2,yuzu:1,vinegar:1',45,{st:{SEN:3,LUK:2},cost:-0.05},'side','정월 상에 오르는 노란 향의 절임.',['plate','#f4f4e8','#f0c838']],
+  ['kurizenzai','밤 단팥죽','chestnut:1,redbean:1,glut:1,honey:1',45,{regen:1,st:{LUK:3,SPI:3}},'sweet','통밤을 넣은 진한 단팥죽.',['bowl','#6a2828','#d8a860']],
+  ['hachimitsucha','꿀 녹차','tea:1,honey:1',45,{tiredCut:1,st:{SPI:3,INT:3}},'sweet','쌉쌀한 녹차에 꿀을 한 숟갈.',['cup','#a8b050','#e8c040']],
+  // 숙련도 60
+  ['iwaisushi','잔칫날 모둠초밥','f_seabream:1,f_mackerel:1,rice:1,vinegar:1',60,{st:{AGI:3,SEN:3,LUK:3}},'rice','붉고 푸른 생선이 나란히 놓였다.',['sushi','#e86a6a','#3a6a8a']],
+  ['fukagawa','대합 솥밥','clam:2,rice:1,ginger:1',60,{st:{INT:4,VIT:3,SPI:2}},'rice','항구 사람들이 자랑하는 조개 솥밥.',['nabe','#f0e0c0','#e8cfa8']],
+  ['unakama','장어 솥밥','eel:1,rice:1,mushroom:1,soy:1',60,{st:{STR:3,VIT:3,AGI:3},cost:-0.05},'rice','장어 기름이 밥알마다 번진다.',['nabe','#c8a060','#5a3a22']],
+  ['troutsui','산천어 맑은탕','f_trout:1,kombu:1,yuzu:1,negi:1',60,{st:{SPI:4,SEN:3,INT:2}},'soup','계곡물처럼 맑고 찬 맛이 난다.',['bowl','#e4ecec','#7a8a9a']],
+  ['ozukiyaki','왕 스키야키','boar:1,meat:1,tofu:1,soy:1',60,{st:{STR:4,VIT:4},maxhp:40},'soup','고기를 두 가지나 넣는 호사스러운 냄비.',['nabe','#7a4a2a','#b8483e']],
+  ['tsukemen','찍어 먹는 라멘','wheat:2,boar:1,katsuo:1',60,{st:{STR:4,AGI:3,VIT:2}},'noodle','굵은 면을 진한 국물에 푹 찍는다.',['zaru','#d8b870','#7a4a2a']],
+  ['sobagozen','메밀 정식','buckwheat:2,shrimp:1,nori:1',60,{st:{AGI:4,SEN:3,INT:2}},'noodle','메밀국수에 새우튀김과 김을 곁들였다.',['bento','#6a5030','#f08a6a']],
+  ['magurosashi','참다랑어 회','f_tuna:1,soy:1',60,{st:{AGI:4,SEN:4,STR:2}},'side','붉은 살을 두껍게 썰었다. 바다의 왕.',['plate','#c83a4a','#f0a0a8']],
+  ['ebitakoage','새우 문어튀김','shrimp:1,tako:1,wheat:1,egg:1',60,{st:{AGI:4,STR:3,SEN:2}},'fry','바다의 것을 모아 큼직하게 튀겼다.',['tempura','#e0a040','#c85a5a']],
+  ['boarroast','멧돼지 통구이','boar:2,salt:1,ginger:1',60,{st:{STR:5,VIT:3},maxhp:20},'fry','마을 사람이 다 모여 뜯는 큰 구이.',['bonemeat','#a8483e','#e0a890']],
+  ['wagashi','사계절 화과자','redbean:1,chestnut:1,persimmon:1,sugar:1',60,{st:{LUK:5,SPI:2},gift:2},'sweet','철마다 다른 모양으로 빚은 귀한 과자.',['flower','#f0a8c0','#f6e080']],
+  ['yakuzen','약선 닭탕','chicken:1,herb:2,ginger:1',60,{regen:1,tiredCut:2,st:{VIT:4,SPI:3}},'soup','약초를 넣고 하루 종일 고았다.',['nabe','#c8b070','#5aa86a']],
+  // 숙련도 80
+  ['kinkoimushi','황금 잉어찜','f_goldcarp:1,kombu:1,yuzu:1',80,{st:{LUK:5,SPI:4,INT:3},rare:0.15},'side','달빛을 먹고 자란 잉어를 통째로 쪘다.',['plate','#f0b830','#fff0a0']],
+  ['magunabe','참다랑어 전골','f_tuna:1,negi:1,tofu:1,soy:1',80,{st:{STR:4,AGI:4,VIT:4},maxhp:30},'soup','큼직한 살이 파와 함께 끓는다.',['nabe','#7a3a3a','#d84a5a']],
+  ['taimaru','도미 통구이','f_seabream:2,salt:1,yuzu:1',80,{st:{LUK:5,INT:4,SEN:3},rew:0.05},'fry','머리와 꼬리를 세워 구운 잔치의 주인공.',['fish','#e86a6a','#ffd4cc']],
+  ['botanshabu','모란 샤부샤부','boar:2,kombu:1,tofu:1',80,{st:{STR:5,VIT:5,SPI:2},cost:-0.1},'soup','꽃잎처럼 저민 멧돼지를 맑은 국물에.',['nabe','#e0e8d8','#b8483e']],
+  ['unagozen','장어 정찬','eel:2,rice:1,soy:1',80,{st:{STR:3,AGI:3,VIT:3,INT:2,SPI:2,SEN:2,LUK:2}},'rice','세 번 구워 세 가지로 즐기는 장어 상.',['bento','#5a3a22','#a8603a']],
+  ['shojin','사찰 정찬','tofu:1,sansai:1,mushroom:1,rareherb:1',80,{regen:1,tiredCut:3,st:{SPI:6,INT:4,VIT:2}},'side','산사에서 내려온 고기 없는 정갈한 상.',['bento','#3a2a22','#7aa84a']],
+  // 숙련도 100
+  ['maguroshoku','참다랑어 정찬','f_tuna:1,f_seabream:1,rice:1,yuzu:1',100,{st:{STR:4,AGI:4,VIT:4,INT:4,SPI:4,SEN:4,LUK:4},rew:0.08},'rice','바다의 왕과 잔치의 주인공이 한 상에.',['bento','#c83a4a','#e86a6a']],
+  ['kinkomeshi','황금 잉어 솥밥','f_goldcarp:1,rice:1,rareherb:1',100,{st:{STR:4,AGI:4,VIT:4,INT:4,SPI:4,SEN:4,LUK:4},rare:0.15},'rice','한 숟갈마다 금빛이 어린다는 전설의 밥.',['nabe','#f0d060','#f0b830']],
+  ['kaitakuzen','개척 잔칫상','boar:1,f_tuna:1,f_goldcarp:1,rareherb:1',100,{dur:8,st:{STR:5,AGI:5,VIT:5,INT:5,SPI:5,SEN:5,LUK:5},rew:0.1},'soup','이 땅에서 난 가장 귀한 것을 모은 상.',['bento','#b03e2a','#f0b830']],
+];
+for (const [id, n, needS, lv, b0, c, f, ic] of MORE_RECIPES){
+  const need = needS.split(',').map(x => { const [k, m] = x.split(':'); return [k, +m]; });
+  const b = {dur:cookDur(lv), ...b0}, r = {id, n, need, lv, b, bd:cookBuffText(b), f, c};
+  NEW_RECIPES.push(r); RECIPES.push(r);
+  IT['f_' + id] = {n, t:'food', p:Math.floor(recipeCost(r)*1.5), d:r.bd, f, r:id};
+  ICON['f_' + id] = ic;
+}
+
+// 부엌 분류 줄
+function cookFilterBar(){
+  const c = UI.kCat || 'all', can = !!UI.kCan;
+  const btn = (k, n) => `<button data-act="kCat" data-c="${k}" aria-pressed="${c === k}">${n}</button>`;
+  return `<div class="seg scrollx" style="margin:6px 0 8px">${btn('all', '전체')}${Object.entries(COOK_CATS).map(([k, n]) => btn(k, n)).join('')}</div><button class="chip ${can ? 'gold' : ''}" data-act="kCan" aria-pressed="${can}" style="margin-bottom:6px">${can ? '✓ ' : ''}지금 만들 수 있는 것만</button>`;
+}
+const cookPass = r => (!UI.kCat || UI.kCat === 'all' || r.c === UI.kCat);
+// ===================== 요리 그림: 그릇 모양을 요리 방식별로 나눈다 =====================
+const iSteam = (x = 24, y = 9) => iLN(`M${x - 5} ${y + 3}q-2-3 0-6M${x + 4} ${y + 3}q-2-3 0-6`, '#d9cfc4', 1.2);
+const iDeep = (c = '#7a3a2a') => iL('M8 23h32c0 10-7 16-16 16S8 33 8 23z', c);
+const iStick = () => iLN('M27 22L42 7M31 23L44 10', '#c79a62', 1.8);
+const iDish = () => `<ellipse cx="24" cy="33" rx="18" ry="6.5" fill="#eef0f3" stroke="${IK}" stroke-width="1.5"/>`;
+Object.assign(GL, {
+  // 면
+  ramen:(a, b) => iDeep('#b8322a') + `<ellipse cx="24" cy="23" rx="16" ry="4.8" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + iLN('M13 23q3-2 6 0t6 0t6 0t5 0', b, 1.5) + `<ellipse cx="29" cy="21" rx="3.6" ry="2.6" fill="#fff" stroke="${IK}" stroke-width="1"/><circle cx="29" cy="21" r="1.4" fill="#f0b020"/><circle cx="18" cy="21" r="2.6" fill="#fff" stroke="#e0607a" stroke-width="1.2"/>` + iStick() + iLN('M12 32q12 4 24 0', '#f6e6c8', 1.2),
+  udon:(a, b) => iDeep('#3a2a2a') + `<ellipse cx="24" cy="23" rx="16" ry="4.8" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + iLN('M12 23q4-3 8 0t8 0t8 0', '#fbf6e4', 2.8) + iLN('M12 23q4-3 8 0t8 0t8 0', IK, .4) + `<ellipse cx="24" cy="20" rx="6.5" ry="2.6" fill="${b}" stroke="${IK}" stroke-width="1.1"/>`,
+  sobabowl:(a, b) => iL('M10 22h28l-3 14q-1 3-11 3t-11-3z', '#2e3a5c') + `<ellipse cx="24" cy="22" rx="14" ry="4.2" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + iLN('M13 22q3-2 5 0t5 0t5 0t5 0M15 24q3-1.5 5 0t5 0t5 0', '#6a5a42', 1) + `<circle cx="24" cy="20.5" r="3.2" fill="${b}" stroke="${IK}" stroke-width="1"/>` + iLN('M15 31h18', '#c9a24a', 1.3),
+  tsuke:(a, b) => iL('M5 25h25l-2 7H7z', '#b88a50') + iLN('M9 25q3-5 7-2q4-4 9 2M11 22q3-2 6-1', a, 2) + iL('M30 25h13l-2 12q-4 2-9 0z', '#3a2a2a') + `<ellipse cx="36.5" cy="25" rx="6.5" ry="2.2" fill="${b}" stroke="${IK}" stroke-width="1.2"/>`,
+  // 국
+  lacquer:(a, b) => iL('M10 27h28c0 7-6 12-14 12s-14-5-14-12z', '#7a1f1a') + iL('M9 26c1-9 7-14 15-14s14 5 15 14z', '#2a1a18') + iL('M21 12h6v-2h-6z', '#2a1a18') + iLN('M15 22q9-6 18 0', '#d8a83a', 1.4) + `<ellipse cx="24" cy="27" rx="14" ry="2" fill="${a}" stroke="${IK}" stroke-width="1"/>` + `<circle cx="31" cy="27" r="1.4" fill="${b}"/>` + iLN('M16 33q8 3 16 0', '#d8a83a', 1),
+  suimono:(a, b) => iL('M6 24h36c-1 8-8 13-18 13S7 32 6 24z', '#f4efe2') + `<ellipse cx="24" cy="24" rx="18" ry="5" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + [0,72,144,216,288].map(r => `<ellipse cx="24" cy="21.8" rx="1.4" ry="2.2" fill="${b}" stroke="${IK}" stroke-width=".6" transform="rotate(${r} 24 24)"/>`).join('') + iLN('M12 31q12 4 24 0', '#6a8ab0', 1.1) + iSteam(24, 8),
+  kayu:(a, b) => iDeep('#8a6a4a') + `<ellipse cx="24" cy="23" rx="16" ry="4.8" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + `<circle cx="20" cy="23" r="2" fill="${b}"/><circle cx="27" cy="24" r="1.3" fill="${b}"/>` + iL('M28 20c3-1 5 0 5 2s-3 3-5 2q-2-2 0-4z', '#f4f4f0') + iLN('M32 21L42 10', IK, 3.4) + iLN('M32 21L42 10', '#f4f4f0', 1.8),
+  // 조림 · 반찬
+  nimono:(a, b) => iL('M9 21h30l-3 16q-1 2-12 2t-12-2z', '#5a6a7a') + `<ellipse cx="24" cy="21" rx="15" ry="4.2" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + iL('M14 17l6-2l5 3l-1 5l-7 1l-4-3z', b) + iL('M25 15l6-1l4 4l-3 5l-6-1z', a) + iLN('M15 30q9 3 18 0', '#c8d4dc', 1.2),
+  kobachi:(a, b) => iL('M10 25h28l-4 12H14z', '#3a5a6a') + iL('M12 26c1-8 6-12 12-12s11 4 12 12z', a) + iLN('M17 22l3-4M23 22v-5M29 22l-2-4', b, 1.5) + `<g fill="#f6efd0">${[[19,24],[26,20],[30,23],[22,19]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join('')}</g>` + iLN('M13 31h22', '#c8d4dc', 1),
+  tsukemono:(a, b) => iDish() + [[15,29],[21,26],[27,26],[33,29]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="5" ry="4.2" fill="${a}" stroke="${IK}" stroke-width="1.2"/><ellipse cx="${x}" cy="${y}" rx="3" ry="2.4" fill="${b}"/>`).join(''),
+  chawan:(a, b) => iL('M13 20h22l-3 17q-1 2-8 2t-8-2z', a) + iL('M11 18c1-5 7-8 13-8s12 3 13 8z', a) + iL('M21 10h6v-3h-6z', b) + iLN('M16 28q8 3 16 0', b, 1.4) + iLN('M11 18h26', IK, 1.5),
+  // 밥
+  ricebowl:(a, b) => iL('M11 26h26c0 7-5 12-13 12s-13-5-13-12z', '#4a6a8a') + iL('M11 26c1-9 6-14 13-14s12 5 13 14z', a) + `<g fill="${b}" stroke="${IK}" stroke-width=".7">${[[18,22],[24,17],[29,22],[23,24]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="2.3" ry="1.9"/>`).join('')}</g>` + iLN('M15 32q9 3 18 0', '#c8d8e8', 1.1),
+  kama:(a, b) => iL('M11 21h26v9c0 6-5 9-13 9s-13-3-13-9z', '#35343a') + iL('M6 23h36v3H6z', '#4a494f') + iL('M9 19c2-5 8-8 15-8s13 3 15 8z', '#b08a58') + iL('M20 11h8v-3h-8z', '#7a5a32') + `<ellipse cx="24" cy="19.5" rx="13" ry="2" fill="${a}" stroke="${IK}" stroke-width="1"/><circle cx="29" cy="19.5" r="1.3" fill="${b}"/><circle cx="19" cy="19.5" r="1.3" fill="${b}"/>` + iLN('M13 15q11-5 22 0', '#8a6a3a', 1),
+  donslice:(a, b) => iL('M9 25h30c0 8-7 13-15 13S9 33 9 25z', '#2e3a5c') + iL('M10 25c2-7 8-10 14-10s12 3 14 10z', '#f4ead2') + [[14,20],[20,17],[26,17],[32,20]].map(([x,y], i) => `<rect x="${x-3}" y="${y-2}" width="6.4" height="8" rx="1.4" fill="${i % 2 ? b : a}" stroke="${IK}" stroke-width="1" transform="rotate(${(i-1.5)*14} ${x} ${y})"/>`).join('') + iLN('M13 32q11 3 22 0', '#c9a24a', 1.3),
+  unaju:(a, b) => iL('M7 15h34v23H7z', '#2a1a18') + iL('M10 18h28v17H10z', '#f4ead2') + iL('M12 21h24v11H12z', a) + iLN('M15 24l4 5M21 23l4 6M27 23l4 6', b, 1.4) + iLN('M7 15h34', '#c8322a', 2),
+  hangiri:(a, b) => iL('M7 25h34l-2 11q-15 5-30 0z', '#c79a62') + iLN('M9 31q15 4 30 0', '#6a4428', 1.8) + `<ellipse cx="24" cy="25" rx="17" ry="6.5" fill="#f4ead2" stroke="${IK}" stroke-width="1.5"/>` + `<g stroke="${IK}" stroke-width=".7">${[[14,25,a],[21,23,b],[28,23,'#7ab05a'],[33,26,a],[24,27,'#f6d04a'],[18,27.5,b]].map(([x,y,f]) => `<ellipse cx="${x}" cy="${y}" rx="2.8" ry="1.5" fill="${f}"/>`).join('')}</g>`,
+  wok:(a, b) => iL('M6 25h29c0 8-6 12-14 12s-15-4-15-12z', '#3b3a40') + iLN('M34 26l10-5', IK, 3.6) + iLN('M34 26l10-5', '#8a5a34', 2) + iL('M9 25c2-7 7-10 12-10s10 3 12 10z', a) + `<g fill="${b}" stroke="${IK}" stroke-width=".7">${[[15,21],[21,18],[26,22],[29,23],[19,24]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.6"/>`).join('')}</g>`,
+  // 전골
+  donabe:(a, b) => iL('M8 23h32v5c0 7-7 11-16 11S8 35 8 28z', '#8a5a3a') + iL('M3 24h6v5H3zM39 24h6v5h-6z', '#8a5a3a') + iL('M8 22c2-7 8-10 16-10s14 3 16 10z', a) + iC(24, 10.5, 2.6, b) + iLN('M14 18q10-5 20 0', '#fff', .9) + iLN('M13 32q11 4 22 0', '#c8a070', 1.3),
+  sukinabe:(a, b) => iL('M5 22h38l-3 10q-16 6-32 0z', '#2c2c32') + iL('M2 22h4v3H2zM42 22h4v3h-4z', '#2c2c32') + `<ellipse cx="24" cy="22" rx="19" ry="6" fill="${a}" stroke="${IK}" stroke-width="1.5"/>` + `<g stroke="${IK}" stroke-width=".9">${[[16,21,b],[23,19,b],[30,21,b]].map(([x,y,f]) => `<path d="M${x-5} ${y}q5-4 10 0q-5 3-10 0z" fill="${f}"/>`).join('')}<rect x="20" y="22.5" width="7" height="4" rx=".8" fill="#f4f0e4"/><ellipse cx="32" cy="25" rx="3.4" ry="1.6" fill="#6aae4a"/></g>`,
+  // 구이 · 튀김
+  teppan:(a, b) => iL('M4 31h40v5H4z', '#35343a') + iL('M9 31c0-9 7-14 15-14s15 5 15 14z', a) + iLN('M14 27q5-5 10 0t10-1M15 23q4-3 8 0', b, 1.8) + iLN('M15 30q9-2 18 0', '#fff', .9) + iSteam(24, 8),
+  shioyaki:(a, b) => iLN('M6 40Q24 26 40 8', '#c79a62', 2.4) + `<g transform="rotate(-40 24 24)">${iL('M7 24c6-7 15-9 24-6l7-5v21l-7-5c-9 3-18 2-24-5z', a)}${iLN('M15 19v10M21 18v12M27 18v11', b, 1.3)}${iC(11.5, 23, 1.2, IK, 0)}<g fill="#fff">${[[17,23],[24,21],[24,27],[30,24]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join('')}</g></g>`,
+  sashimi:(a, b) => iL('M5 30h38l-3 7H8z', '#a87a4a') + iLN('M7 33h34', '#6a4428', 1) + iL('M9 31c1-7 6-11 11-13l3 13z', '#7ab05a') + iLN('M13 29l6-7', '#3a6a3a', 1) + [0,1,2,3].map(i => `<g transform="translate(${i*5.2} 0)">${iL('M20 31l3-14q4 0 4 3l-2 11z', i % 2 ? b : a)}</g>`).join(''),
+  fillet:(a, b) => iDish() + iL('M10 31c0-5 6-9 14-9s14 4 14 9c-3 3-9 4-14 4s-11-1-14-4z', a) + iLN('M16 26l5 7M23 25l5 8M30 26l4 6', '#3a2418', 1.5) + iL('M31 21c3-3 7-3 9-2c-1 3-5 5-9 2z', b),
+  slices:(a, b) => iDish() + iLN('M29 28q6-5 11 0M31 31q5-3 9 0', '#7ab05a', 1.6) + [0,1,2,3].map(i => `<g transform="translate(${i*5} ${i*.2})"><rect x="8" y="22" width="5.4" height="12" rx="1.3" fill="${a}" stroke="${IK}" stroke-width="1.2"/><rect x="9.3" y="24" width="2.6" height="8" fill="${b}"/></g>`).join(''),
+  nuggets:(a, b) => iDish() + [[15,29],[24,30],[33,29],[19,23],[28,23],[24,17]].map(([x,y]) => iL(`M${x-5} ${y}c0-3 3-5 5-5s6 1 6 5s-3 5-6 5s-5-2-5-5z`, a) + `<circle cx="${x-1}" cy="${y-1}" r=".9" fill="#7a4a1a"/>`).join('') + iL('M33 16q5 0 7 5q-5 2-8 0z', b),
+  ebifry:(a, b) => iL('M8 37l32-3l-1-5L9 31z', '#f4efe2') + [0,1].map(i => `<g transform="translate(${i*3} ${i*9 - 3})">${iL('M7 23c6-4 17-6 26-4c-2 4-7 6-13 6.500c-5 .5-10 0-13-2.500z', a)}${iL('M33 19l7-4l-1 6l2 3l-7-2z', b)}${iLN('M12 22l1 2M18 20.500l1 3M24 20l1 3', '#a86a2a', 1)}</g>`).join(''),
+  yakitori:(a, b) => iLN('M8 41L40 7', '#c79a62', 2.4) + [[30,17,a],[24.500,23,b],[19,29,a],[13.500,35,b]].map(([x,y,f]) => `<rect x="${x-4.200}" y="${y-3.600}" width="8.400" height="7.200" rx="1.800" fill="${f}" stroke="${IK}" stroke-width="1.300" transform="rotate(-45 ${x} ${y})"/>`).join(''),
+  dengaku:(a, b) => iLN('M24 28V44', '#c79a62', 2.6) + iL('M15 7h18v24H15z', a) + iL('M15 7h18v12q-4 3-9 0t-9 0z', b) + `<g fill="#f6efd0">${[[20,11],[27,13],[23,15]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join('')}</g>`,
+  // 차 · 과자
+  yunomi:(a, b) => iL('M14 13h20l-2 25q-8 3-16 0z', a) + `<ellipse cx="24" cy="13" rx="10" ry="3" fill="${b}" stroke="${IK}" stroke-width="1.5"/>` + iLN('M15 22q9 3 18 0M16 29q8 3 16 0', '#fff', 1) + iSteam(24, 6.5),
+  teapot:(a, b) => iL('M12 21c2-5 22-5 24 0c2 9-3 16-12 16s-14-7-12-16z', a) + iL('M11 24l-7-4l1 5l6 5z', a) + iLN('M35 24q8-1 7 6q-1 4-8 4', IK, 2.8) + iLN('M35 24q8-1 7 6q-1 4-8 4', b, 1.4) + iL('M16 18c3-3 13-3 16 0z', b) + iC(24, 14.500, 2, b),
+  tokkuri:(a, b) => iL('M19 8h10l-1 8c5 4 8 9 7 15c-1 6-5 9-11 9s-10-3-11-9c-1-6 2-11 7-15z', a) + iLN('M15 26q9 4 18 0', b, 2) + iSH(18, 27, 1.400, 4, 15) + iLN('M20 8h8', IK, 1.5),
+  daifuku:(a, b) => iL('M8 32c0-10 7-17 16-17s16 7 16 17c-4 4-10 5-16 5s-12-1-16-5z', a) + `<circle cx="24" cy="27" r="6" fill="${b}" opacity=".55"/>` + `<g fill="#fff">${[[14,24],[20,20],[29,19],[34,26],[24,17]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join('')}</g>` + iSH(16, 22, 1.800, 3.600, 40),
+  yokanbar:(a, b) => iDish() + iL('M10 19l22-5l6 5v12l-22 4l-6-5z', a) + iL('M10 19l6 5l22-5l-6-5z', b) + iLN('M16 24v11', IK, 1.5),
+  // 상차림
+  jubako:(a, b) => iL('M10 8h28v10H10z', '#1a1a22') + iL('M10 18h28v10H10z', '#7a1f1a') + iL('M10 28h28v10H10z', '#1a1a22') + iLN('M10 18h28M10 28h28', '#d8a83a', 1.3) + iC(24, 13, 2.800, a) + iC(24, 23, 2.800, b) + iC(24, 33, 2.800, '#d8a83a'),
+  zen:(a, b) => iL('M4 19h40l-3 18H7z', '#6a2418') + iLN('M6 23h36', '#d8a83a', 1.200) + iC(13, 28, 5, '#f4f0e4') + `<circle cx="13" cy="28" r="2.600" fill="${a}"/>` + iC(35, 28, 5, '#2a1a18') + `<circle cx="35" cy="28" r="2.600" fill="${b}"/>` + iL('M19 25h10v8H19z', '#eef0f3') + iLN('M21 28l6 2', a, 1.800) + iLN('M16 15L33 10M16 18L33 13', '#c79a62', 1.300),
+  geta:(a, b) => iL('M5 30h38v4H5z', '#a87a4a') + iL('M9 34h6v4H9zM33 34h6v4h-6z', '#7a5a32') + [[15,a],[33,b]].map(([x,f]) => iL(`M${x-7} 30v-5q7-3 14 0v5z`, '#fbf8f0') + iL(`M${x-8} 25c3-5 13-5 16 0q-8 3-16 0z`, f)).join(''),
+  inari:(a, b) => [[15,26],[32,27]].map(([x,y]) => iL(`M${x-10} ${y+8}c-1-9 4-16 10-16s11 7 10 16q-10 4-20 0z`, a) + iLN(`M${x-7} ${y-2}q7-3 14 0`, b, 1.300) + `<ellipse cx="${x}" cy="${y-5}" rx="5" ry="1.500" fill="#fbf8f0" stroke="${IK}" stroke-width=".8"/>`).join(''),
+});
+
+// 요리별 그림 다시 배정 [틀, 주색, 보조색]
+Object.assign(ICON, {
+  // 면
+  f_ramen:['ramen','#c88a4a','#f6e0a0'], f_kaisenramen:['ramen','#d8b070','#f08a6a'], f_shoyuramen:['ramen','#6a3a1a','#f6e0a0'],
+  f_udon:['udon','#c8a060','#a8613a'], f_kitsuneudon:['udon','#c89a5a','#d8a050'], f_nikuudon:['udon','#a8703a','#a8503a'], f_misoudon:['udon','#a4703c','#c8a070'], f_oyakoudon:['udon','#c8a060','#f6d04a'],
+  f_kakesoba:['sobabowl','#a8905a','#6aae4a'], f_tsukimisoba:['sobabowl','#a8905a','#f6d04a'], f_ebisoba:['sobabowl','#a8905a','#f08a6a'], f_kamosoba:['sobabowl','#8a7040','#e0b080'],
+  f_tsukemen:['tsuke','#f0d890','#7a4a2a'], f_zaruudon:['zaru','#f0e4c0','#fbf6e4'], f_yuzuudon:['zaru','#f0e4c0','#f0c838'], f_yakiudon:['wok','#c8903a','#7ab05a'],
+  // 국
+  f_misosoup:['lacquer','#a4703c','#5a9a4a'], f_tofumiso:['lacquer','#c89a5a','#f4f0e4'], f_koikoku:['lacquer','#8a6030','#d08a3a'], f_hamamiso:['lacquer','#b89050','#e8cfa8'], f_tonjiru:['lacquer','#a87840','#b8483e'],
+  f_clamsoup:['suimono','#eef0e8','#e8cfa8'], f_daikonsui:['suimono','#e8ecd8','#fbfbf4'], f_tamagosui:['suimono','#f0d870','#f6e8a0'], f_kenchin:['suimono','#d8d8c0','#8a8a90'], f_zoni:['suimono','#f0ead8','#c8324a'], f_urukumaki:['suimono','#e8e4d0','#5a4a52'], f_taisui:['suimono','#f4ece0','#e86a6a'], f_troutsui:['suimono','#d8e8e8','#7a8a9a'],
+  f_kayu:['kayu','#f4eee0','#7aae5a'], f_shirogayu:['kayu','#fbf8f0','#f4eee0'], f_torigayu:['kayu','#f0e4c0','#e0c488'], f_zenzai:['kayu','#7a3030','#fbf8f2'], f_kurizenzai:['kayu','#6a2828','#d8a860'],
+  // 조림 · 반찬
+  f_nimono:['nimono','#c8a060','#f4ecdc'], f_konnyakuni:['nimono','#5a4a42','#8a8a90'], f_nikuimo:['nimono','#a8703a','#9a5aa0'], f_kakuni:['nimono','#6a3a22','#b8483e'], f_namazuni:['nimono','#6a4a2a','#8a7a60'], f_kombuni:['nimono','#2a3a2a','#4a6a5a'],
+  f_gomaae:['kobachi','#7ab05a','#4a8a3a'], f_sansaimiso:['kobachi','#a4703c','#7aa84a'], f_shiraae:['kobachi','#f4f0e4','#7aa84a'], f_kinpira:['kobachi','#a87a3a','#f4f0e0'], f_kyusu:['kobachi','#7ab05a','#d8e080'], f_takosu:['kobachi','#c85a5a','#6aa84a'], f_umekyu:['kobachi','#8ac05a','#c8324a'],
+  f_namasu:['tsukemono','#f4f4e8','#fbfbf8'], f_hakusai:['tsukemono','#c8e0a0','#f4f4e0'], f_yuzunamasu:['tsukemono','#f4f4e8','#f0c838'], f_asazuke:['tsukemono','#5a9a4a','#d8e8a0'],
+  f_chawan:['chawan','#f4e4b0','#a87a4a'], f_sashimi:['sashimi','#f08080','#ffd0c8'], f_magurosashi:['sashimi','#c83a4a','#e8606a'],
+  // 밥
+  f_tkg:['ricebowl','#f6e4b0','#f0b020'], f_kurigohan:['ricebowl','#f4ead2','#c89a5a'], f_mamegohan:['ricebowl','#f4ead2','#8ac05a'], f_imogohan:['ricebowl','#f4ead2','#9a5aa0'], f_sekihan:['ricebowl','#d88080','#7a2a2a'], f_ochazuke:['ricebowl','#c8d4a0','#2a3a2a'],
+  f_bibim:['kama','#f0e6d0','#7aa84a'], f_kinokomeshi:['kama','#c8a060','#8a5030'], f_torimeshi:['kama','#d8b070','#f0c0a0'], f_takomeshi:['kama','#c89a6a','#c85a5a'], f_gomoku:['kama','#c8a060','#7ab05a'], f_taimeshi:['kama','#f0e0c0','#e86a6a'], f_kaisenmeshi:['kama','#f0e0c0','#f08a6a'], f_troutmeshi:['kama','#f0e0c0','#7a8a9a'], f_fukagawa:['kama','#e8d8b0','#e8cfa8'], f_unakama:['kama','#c8a060','#5a3a22'], f_kinkomeshi:['kama','#f0d060','#f0b830'],
+  f_katsudon:['donslice','#c88a3a','#f6d04a'], f_tekkadon:['donslice','#d84a5a','#f0a0a8'], f_kaisendon:['donslice','#e86a6a','#f08a6a'],
+  f_unadon:['unaju','#8a4a22','#3a2010'], f_unatama:['unaju','#f0c060','#8a4a22'], f_chirashi:['hangiri','#f08a6a','#f6d04a'], f_ebimeshi:['wok','#f0d070','#f08a6a'],
+  // 전골
+  f_yudofu:['donabe','#b89878','#f4f0e4'], f_torinabe:['donabe','#a87a50','#f0c0a0'], f_dotenabe:['donabe','#8a6030','#e8cfa8'], f_koinabe:['donabe','#9a7040','#d08a3a'], f_chanko:['donabe','#7a4a2a','#b8483e'], f_botannabe:['donabe','#8a3a2a','#e0a890'], f_yukinabe:['donabe','#e8ecf0','#ffffff'], f_yakuzen:['donabe','#7a8a5a','#5aa86a'], f_magunabe:['donabe','#7a3a3a','#d84a5a'], f_nabeudon:['donabe','#c8a060','#f08a6a'],
+  f_sukiyaki:['sukinabe','#7a4a2a','#c8605a'], f_botansuki:['sukinabe','#6a3a22','#b8483e'], f_ozukiyaki:['sukinabe','#5a2e1a','#d8504a'],
+  // 구이 · 튀김
+  f_okonomi:['teppan','#c8843a','#5a3010'], f_grilled:['shioyaki','#9aa8b4','#5a4a3a'], f_kushiyaki:['shioyaki','#c8a070','#7a5a3a'], f_ayuginger:['shioyaki','#a8b4a0','#e0c488'],
+  f_shogayaki:['fillet','#a8603a','#e0c488'], f_teriyaki:['fillet','#8a4a22','#6aae4a'], f_torishio:['fillet','#e0a860','#f0c838'], f_toteriyaki:['fillet','#a8703a','#7ab05a'],
+  f_tonkatsu:['slices','#c88a3a','#f4e0c8'], f_karaage:['nuggets','#c8803a','#f6e080'], f_yuzukara:['nuggets','#b8702a','#f0c838'], f_ebiten:['ebifry','#f0c060','#f08a6a'], f_ebitakoage:['ebifry','#e0a040','#c85a5a'],
+  f_yakitori:['yakitori','#b8703a','#6aae4a'], f_nikukushi:['yakitori','#a8503a','#c86a4a'], f_kushikatsu:['yakitori','#c8903a','#d8a850'], f_dengaku:['dengaku','#8a8a90','#a4703c'],
+  // 차 · 과자
+  f_greentea:['yunomi','#8a9a6a','#9ac46a'], f_mugicha:['yunomi','#a87a3a','#c89a4a'], f_hachimitsucha:['yunomi','#6a8a5a','#e8c040'], f_shogacha:['teapot','#a8703a','#e0c488'], f_yuzucha:['teapot','#d8a838','#f6dc70'], f_amazake:['tokkuri','#f4eee0','#3a5a8a'],
+  f_mochi:['daifuku','#fbf8f2','#7a3030'], f_anmochi:['daifuku','#8a3a3a','#5a2020'], f_kurimochi:['daifuku','#e8c890','#8a5a32'], f_ohagi:['daifuku','#d8c070','#7a5030'], f_yokan:['yokanbar','#4a2420','#7a3a30'],
+  // 상차림 · 초밥
+  f_osechi:['jubako','#f08a6a','#f6d04a'], f_kaiseki:['zen','#e86a6a','#f0c838'], f_maguroshoku:['zen','#c83a4a','#e86a6a'], f_kaitakuzen:['zen','#f0b830','#b8483e'], f_unagozen:['zen','#8a4a22','#f6d04a'], f_shojin:['zen','#7aa84a','#f4f0e4'],
+  f_nigiri:['geta','#e86a6a','#f0a040'], f_iwaisushi:['geta','#e86a6a','#3a6a8a'], f_inari:['inari','#d8a050','#a8703a'],
+});
 // ===================== 소리 =====================
 const AU = {ctx:null, bgm:null, sfx:null, timer:null};
 function auInit(){
@@ -6406,6 +6779,8 @@ const ACT = {
   likeTog: d => likeToggle(d.k), likeF: d => { UI.likeF = d.f; renderSheet(true); }, tradeOpen: () => { const T = tradeLive(); if (T){ UI.trade = T.id; openSheet('trade'); } },
   npcTalk: d => npcTalk(d.u), npcGreet: d => npcGreet(d.u), npcGiftOpen: d => { UI.npcGift = UI.npcGift === d.u ? null : d.u; renderSheet(true); }, npcGift: d => npcGift(d.u, d.k),
   kTab: d => { UI.kTab = d.t; renderSheet(true); },
+  kCat: d => { UI.kCat = d.c; renderSheet(true); },
+  kCan: () => { UI.kCan = !UI.kCan; renderSheet(true); },
   potAdd: d => { UI.pot = UI.pot || []; if (UI.pot.length < 4) UI.pot.push(d.k); renderSheet(true); }, potDel: d => { UI.pot.splice(+d.i, 1); renderSheet(true); },
   freeCook: () => freeCook(), dishEdit: d => { UI.dishEdit = d.k; renderSheet(true); }, dishName: d => { renameDish(d.k); UI.dishEdit = null; renderSheet(true); },
   dishAgain: d => { const c = S.customs[d.k]; if (!c) return; UI.pot = c.ings.slice(); freeCook(); },
