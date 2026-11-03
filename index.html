@@ -528,6 +528,16 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .hall-mat{ position:relative; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:.72rem; } .hall-mat .iic.lg{ width:46px; height:46px; } .hall-mat .bc-n{ right:6px; top:30px; bottom:auto; }
 .hall-mat .btn.sm{ padding:2px 6px; font-size:.68rem; min-height:0; }
 .li.done{ opacity:.55; }
+/* 물고기 도감 */
+.fd-grid{ display:grid; grid-template-columns:2.6rem repeat(3, minmax(0,1fr)); gap:3px; }
+.fd-h{ text-align:center; font-size:.76rem; font-weight:700; padding:2px; border-radius:4px; color:var(--ink-2); } .fd-h.side{ display:grid; place-items:center; }
+.fd-h.now{ background:var(--moss); color:var(--paper-2); }
+.fd-cell{ display:flex; flex-wrap:wrap; justify-content:center; align-content:center; gap:2px; min-height:44px; padding:3px; border-radius:4px; background:var(--sunk); }
+.fd-cell.now{ box-shadow:inset 0 0 0 1.5px var(--moss); }
+.fd-f{ width:36px; height:36px; padding:0; display:grid; place-items:center; background:none; border:0; }
+.fd-f .iic.sm{ width:32px; height:32px; margin:0; }
+.fd-ic.un .iic svg{ filter:grayscale(1) contrast(.7); opacity:.55; }
+.fd-more{ padding:4px 8px 12px 8px; display:grid; gap:2px; justify-items:start; border-bottom:1px solid var(--line); }
 /* 아바타 · 내 집 */
 .av-top{ display:flex; gap:12px; align-items:flex-start; }
 .av-big{ width:9.5rem; flex:none; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; line-height:0; }
@@ -6626,11 +6636,9 @@ function fishTime(){ const h = new Date().getHours(); return h >= 5 && h < 11 ? 
 function openFish(){ FG = {st:'idle', spot:UI.spot || 'river', msg:''}; $('#fish').hidden = false; renderFish(); sfx('page'); }
 function closeFish(){ if (FG){ cancelAnimationFrame(FG.raf); clearTimeout(FG.t); } FG = null; $('#fish').hidden = true; $('#fish').innerHTML = ''; render(); }
 function zoneFrac(){ let z = 0.22 * (1 + (S.sub==='fisher'?.25:0) + (hasSyn('hunter:fisher')?.4:0)) * (1 + effStats().AGI*0.01); return Math.min(.5, z); }
-function pickFish(spot){
-  const tod = fishTime();
-  const pool = FISH.filter(f => f.spot === spot && (f.time === 'any' || f.time === tod));
-  return wpick(Math.random, pool.map(f => [f, f.rare ? 0.07*(S.sub==='fisher'?1.6:1) : 1/f.d]));
-}
+const fishPool = (spot, tod) => FISH.filter(f => f.spot === spot && (f.time === 'any' || f.time === tod));
+const fishWeight = f => f.rare ? 0.07*(S.sub==='fisher'?1.6:1) : 1/f.d;
+function pickFish(spot){ return wpick(Math.random, fishPool(spot, fishTime()).map(f => [f, fishWeight(f)])); }
 function renderFish(){
   const el = $('#fish'); if (!FG) return;
   const tod = ({morning:'아침',night:'밤',day:'낮'})[fishTime()];
@@ -7602,6 +7610,64 @@ TITLES.push(
   {id:'liked10', n:'소문난 집', d:'이웃의 마음을 10개 받았다.', c:S => (S.home?.likes || 0) >= 10},
   {id:'treat10', n:'손님 맞는 집', d:'집에 온 손님에게 요리를 10번 대접했다.', c:S => st_(S,'homeTreat') >= 10},
 );
+// ===================== 물고기 도감: 어디서, 언제 낚이는지 한눈에 =====================
+// 낚기 전에는 이름만 가리고 곳과 시간은 보여 준다. 확률은 pickFish와 같은 가중치로 계산한다.
+const FD_TOD = [['morning','아침','오전 5시~11시'], ['day','낮','오전 11시~오후 6시'], ['night','밤','오후 6시~오전 5시']];
+const FD_SPOTS = ['river','sea','lake'];
+const fdSeen = f => (S.codex.fish[f.id] || 0) > 0;
+const fdName = f => fdSeen(f) ? f.n : '???';
+function fdChance(f, tod){
+  const pool = fishPool(f.spot, tod); if (!pool.includes(f)) return 0;
+  return fishWeight(f) / pool.reduce((t, x) => t + fishWeight(x), 0);
+}
+const fdPct = v => { const p = v*100; return p > 0 && p < 1 ? '1% 미만' : `${Math.round(p)}%`; };
+const fdIcon = (f, size) => `<span class="fd-ic ${fdSeen(f) ? '' : 'un'}">${itemIcon(f.id, size)}</span>`;
+function fdWhen(f){ return f.time === 'any' ? '언제나 (아침·낮·밤)' : FD_TOD.filter(t => t[0] === f.time).map(t => `${t[1]} (${t[2]})`).join(''); }
+
+// 곳 × 시간 표. 칸을 누르면 그 물고기 설명이 열린다
+function fdTable(){
+  const cur = fishTime();
+  const head = FD_TOD.map(t => `<div class="fd-h ${t[0] === cur ? 'now' : ''}">${t[1]}${t[0] === cur ? ' · 지금' : ''}</div>`).join('');
+  const rows = FD_SPOTS.map(s => `<div class="fd-h side">${SPOTN[s]}</div>` + FD_TOD.map(t => `<div class="fd-cell ${t[0] === cur ? 'now' : ''}">${fishPool(s, t[0]).map(f => `<button class="fd-f" data-act="fdSel" data-k="${f.id}" aria-label="${esc(fdName(f))}, ${SPOTN[s]}, ${t[1]}">${fdIcon(f, 'sm')}</button>`).join('')}</div>`).join('')).join('');
+  return `<div class="fd-grid"><div class="fd-h side"></div>${head}${rows}</div>`;
+}
+function fdDetail(f){
+  const n = S.codex.fish[f.id] || 0, rec = (S.fishRec || {})[f.id], cm = FISH_CM[f.id];
+  const dishes = knownRecipes().filter(r => r.need.some(([k]) => k === f.id)).map(r => r.n);
+  return `<div class="fd-more">
+    ${fdSeen(f) ? `<p class="small" style="margin:0 0 6px">${esc(f.f)}</p>` : '<p class="small muted" style="margin:0 0 6px">아직 낚지 못했다. 이름과 설명은 낚으면 알 수 있다.</p>'}
+    <div class="tiny"><b>곳</b> 강가 낚시터 · ${SPOTN[f.spot]}</div>
+    <div class="tiny"><b>시간</b> ${fdWhen(f)}</div>
+    <div class="tiny"><b>입질 확률</b> ${FD_TOD.map(t => { const c = fdChance(f, t[0]); return `${t[1]} ${c ? fdPct(c) : '안 나옴'}`; }).join(' · ')}</div>
+    ${f.rare ? '' : '<div class="tiny"><b>그 밖에</b> 고난도 탐사의 물가 사건에서 건질 때가 있다</div>'}
+    <div class="tiny"><b>난이도</b> ${'●'.repeat(f.d)}${'○'.repeat(5 - f.d)} · <b>값</b> ${f.p}${CUR}${cm ? ` · <b>크기</b> ${fishCmTxt(cm[0])}~${fishCmTxt(cm[1])}` : ''}</div>
+    ${n ? `<div class="tiny"><b>내 기록</b> ${n}마리${rec ? ` · 최대 ${fishCmTxt(rec)}` : ''}</div>` : ''}
+    ${dishes.length ? `<div class="tiny"><b>아는 요리</b> ${dishes.slice(0, 6).map(esc).join(', ')}${dishes.length > 6 ? ` 외 ${dishes.length - 6}가지` : ''}</div>` : ''}
+    <button class="btn sm seal" style="margin-top:8px" data-act="fdGo" data-s="${f.spot}" ${baseLocked() ? 'disabled' : ''}>${SPOTN[f.spot]}에서 낚으러 가기</button>
+  </div>`;
+}
+function fdBody(){
+  const sp = FD_SPOTS.includes(UI.fdSpot) ? UI.fdSpot : 'all', tod = fishTime(), onlyNow = !!UI.fdNow;
+  const list = FISH.filter(f => (sp === 'all' || f.spot === sp) && (!onlyNow || fishPool(f.spot, tod).includes(f)));
+  const todN = FD_TOD.find(t => t[0] === tod)[1], seen = FISH.filter(fdSeen).length, total = FISH.reduce((t, f) => t + (S.codex.fish[f.id] || 0), 0);
+  const chip = (v, n) => `<button data-act="fdSpot" data-s="${v}" aria-pressed="${sp === v}">${n}</button>`;
+  return `<div class="card" style="padding:12px;margin-bottom:10px"><div class="row" style="margin-bottom:8px"><b class="grow">어디서 언제 낚일까</b><span class="small muted">${seen}/${FISH.length}종 · ${total}마리</span></div>${fdTable()}<p class="tiny muted" style="margin:8px 0 0">모든 물고기는 강가 낚시터에서 낚는다. 낚시터에서 강·바다·호수를 고를 수 있다.</p></div>
+  <div class="seg" style="margin-bottom:6px">${chip('all','전체')}${FD_SPOTS.map(s => chip(s, SPOTN[s])).join('')}<button data-act="fdNow" aria-pressed="${onlyNow}">지금(${todN}) 낚이는 것만</button></div>
+  ${list.length ? `<div class="list">${list.map(f => { const open = UI.fdSel === f.id, n = S.codex.fish[f.id] || 0, can = fishPool(f.spot, tod).includes(f);
+    return `<div class="fd-item"><button class="li click" data-act="fdSel" data-k="${f.id}" aria-expanded="${open}">${fdIcon(f)}<div class="t"><b>${esc(fdName(f))}${f.rare ? ' <span class="chip gold">희귀</span>' : ''}${can ? ' <span class="chip good">지금 낚인다</span>' : ''}</b><span>${SPOTN[f.spot]} · ${TIMEN[f.time]}</span></div>${n ? `<span class="small num">${n}마리</span>` : ''}</button>${open ? fdDetail(f) : ''}</div>`; }).join('')}</div>` : '<p class="small muted">지금 조건에 맞는 물고기가 없다.</p>'}`;
+}
+const _codex_fd = SHEETS.codex;
+SHEETS.codex = () => { const h = _codex_fd(); if (UI.codex !== 'fish') return h; const i = h.indexOf('<div class="list">'); return i < 0 ? h : h.slice(0, i) + fdBody(); };
+Object.assign(ACT, {
+  fdSel: d => { UI.fdSel = UI.fdSel === d.k ? null : d.k; if (UI.fdSel){ const f = FISH.find(x => x.id === d.k); if (UI.fdSpot && UI.fdSpot !== 'all' && UI.fdSpot !== f.spot) UI.fdSpot = 'all'; if (UI.fdNow && !fishPool(f.spot, fishTime()).includes(f)) UI.fdNow = false; } renderSheet(true); if (UI.fdSel) setTimeout(() => { const el = document.querySelector('#sheet .fd-more'); if (el && el.scrollIntoView) el.scrollIntoView({block:'nearest'}); }, 0); },
+  fdSpot: d => { UI.fdSpot = d.s; renderSheet(true); },
+  fdNow: () => { UI.fdNow = !UI.fdNow; renderSheet(true); },
+  fdGo: d => { if (baseLocked()) return lockToast(); UI.spot = d.s; closeSheet(); openFish(); },
+  fdFromFish: () => { closeFish(); UI.codex = 'fish'; openSheet('codex'); },
+});
+// 낚시터 화면에서 바로 열기 (입질을 기다릴 때는 숨긴다)
+const _renderFish_fd = renderFish;
+renderFish = () => { _renderFish_fd(); if (!FG || !['idle','done'].includes(FG.st)) return; const x = $('#fish .x'); if (x) x.insertAdjacentHTML('beforebegin', '<button class="btn sm ghost" data-act="fdFromFish">도감</button>'); };
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
