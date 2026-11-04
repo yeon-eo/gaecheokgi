@@ -2587,7 +2587,7 @@ function applyGo(P){
   list.forEach(k => takeItem(k));
   setHP(curHP());
   const snap = makeSnap(g.region); snap.pots = list;
-  const allies = Object.keys(g.roster).filter(u => u !== ST.uid).map(u => g.roster[u]);
+  const allies = Object.keys(g.roster).filter(u => u !== ST.uid).map(u => ({...g.roster[u], uid:u}));
   snap.rew = +(snap.rew * (1 + 0.05*allies.length)).toFixed(3);
   const tool = applyTool(snap); if (tool) toast(`${IT[tool].n}${pp(IT[tool].n,'을','를')} 챙겼다. ${IT[tool].d}`);
   S.exp = {id:g.id + '-' + (hashStr(ST.uid) % 100000).toString(36), region:g.region, start:g.start, dur:g.dur, tick:g.tick, seed:(g.seed + hashStr(ST.uid)) % 2147483647, snap, wait:3*H/SPD(), party:allies, nt:g.nt || 15000, v:g.v || 0, lead:P.leader === ST.uid};
@@ -9553,6 +9553,14 @@ function x3Mob(id){
   [-.11, .11].forEach(z => { const e = mesh(new THREE.SphereGeometry(.042, 10, 8), new THREE.MeshBasicMaterial({color:'#2e2428'}), x, y, z); e.castShadow = false; body.add(e); const br = mesh(new THREE.BoxGeometry(.018, .018, .09), new THREE.MeshBasicMaterial({color:'#2e2428'}), x - .01, y + .07, z); br.rotation.x = z > 0 ? .42 : -.42; br.castShadow = false; body.add(br); });
   return {g, body, float:m.t === 'y'};
 }
+// ---------- 조사대원: 공개 프로필의 아바타와 동료 ----------
+function x3Ally(m){
+  const pl = typeof PL !== 'undefined' ? PL : {}, p = (m.uid && pl[m.uid]) || Object.values(pl).find(x => x && m.name && x.name === m.name) || null;
+  const code = p ? (p.avatar || (String(p.photo || '').startsWith('av:') ? p.photo : '')) : '';
+  const comps = (p && Array.isArray(p.comps) ? p.comps : []).filter(c => c && typeof c.sp === 'string').slice(0, COMP_OUT).map(c => Object.prototype.hasOwnProperty.call(SPEC, c.sp) ? c.sp : 'kit');
+  return {known:!!p, code, comps};
+}
+const x3AllySig = () => ((S.exp && S.exp.party) || []).map(m => { const a = x3Ally(m); return a.code + '/' + a.comps.join(); }).join('|');
 // ---------- 장면 ----------
 function x3Scene(ri){
   const T = X3_THEME[ri] || X3_THEME[0], G = c3Clear(), tod = fishTime(), night = tod === 'night' && !T.cave; fSeed = 137 + ri*31;
@@ -9576,8 +9584,8 @@ function x3Scene(ri){
   // 주인공과 동행
   const hero = x3Hero(); hero.base = -.55; G.add(hero.g); X3.hero = hero; hero.lamp.visible = night || !!T.cave;
   if (night || T.cave){ const L = new THREE.PointLight('#ffd088', .7, 6, 1.6); L.position.set(-.3, 1.7, .8); G.add(L); }
-  X3.party = []; ((S.exp && S.exp.party) || []).slice(0, 2).forEach((m, i) => { const s = seededOf(m.name || 'p' + i), h = x3Hero({a:{...AV_DEF}, hair:AV_HAIR[s % AV_HAIR.length], cloth:AV_CLOTH[(s >> 3) % AV_CLOTH.length], obi:AV_CLOTH[(s >> 6) % AV_CLOTH.length], hn:''}); h.base = -1.5 - i*.85; h.z = i % 2 ? -.22 : .24; G.add(h.g); X3.party.push(h); });
-  X3.pets = []; activeComps().slice(0, 2).forEach((c, i) => { const r = mdlPet(c.sp); r.g.scale.setScalar(.36); r.g.rotation.y = 1.2; G.add(r.g); X3.pets.push({r, base:-1.3 - (X3.party.length*.85) - i*.72, z:i ? .78 : .92, ph:i*1.7, hop:0}); });
+  X3.party = []; const allies = ((S.exp && S.exp.party) || []).slice(0, 3).map(x3Ally); allies.forEach((al, i) => { const s = seededOf(((S.exp.party[i] || {}).name) || 'p' + i), h = al.known ? x3Hero({a:avParse(al.code)}) : x3Hero({a:{...AV_DEF}, hair:AV_HAIR[s % AV_HAIR.length], cloth:AV_CLOTH[(s >> 3) % AV_CLOTH.length], obi:AV_CLOTH[(s >> 6) % AV_CLOTH.length], hn:''}); h.base = -1.5 - i*.85; h.z = i % 2 ? -.22 : .24; G.add(h.g); X3.party.push(h); }); X3.allySig = x3AllySig();
+  X3.pets = []; [...activeComps().slice(0, 2).map(c => c.sp), ...allies.flatMap(a => a.comps)].slice(0, 6).forEach((sp, i) => { const r = mdlPet(sp); r.g.scale.setScalar(.36); r.g.rotation.y = 1.2; G.add(r.g); X3.pets.push({r, base:-1 - i*.62, z:i % 2 ? 1.28 : .96, ph:i*1.7, hop:0}); });
   // 입자
   X3.fx = T.fx === 'snow' ? c3Parts({n:90, size:.09, color:'#ffffff', op:.9, g:-.02}) : T.fx === 'leaf' ? c3Parts({n:40, size:.1, color:T.leaf, op:.9, g:-.05}) : T.fx === 'ember' ? c3Parts({n:60, size:.08, color:'#f88838', op:.9, g:.06, add:true}) : T.fx === 'sparkle' ? c3Parts({n:40, size:.07, color:'#d8f4ff', op:.9, g:0, add:true}) : T.fx === 'mist' ? c3Parts({n:30, size:2.1, color:'#ffffff', op:.09, g:0}) : null;
   X3.hit = c3Parts({n:40, size:.13, color:'#ffd878', op:1, g:-3.4, add:true}); X3.poof = c3Parts({n:30, size:.42, color:'#ffffff', op:.5, g:.3}); X3.steam = X3.vents.length ? c3Parts({n:30, size:.5, color:'#d8d0c8', op:.2, g:.1}) : null;
@@ -9666,6 +9674,7 @@ function x3Lines(){
   return {key:null, list:[]};
 }
 function x3Poll(){
+  if (!X3.act && !X3.redo && x3AllySig() !== X3.allySig){ X3.redo = true; setTimeout(() => { X3.redo = false; if (X3.on) x3Scene(X3.ri); }, 0); return; }
   const {key, list} = x3Lines(); if (!key || !list.length) return;
   const last = list[list.length - 1], sig = key + ':' + last.i + ':' + list.length;
   if (X3.sig === sig) return; X3.sig = sig;
