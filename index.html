@@ -580,6 +580,18 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .c3-res{ margin-top:auto; max-height:62%; overflow:auto; background:rgba(255,250,240,.95); color:#2b241b; border-radius:16px; padding:12px; display:flex; flex-direction:column; }
 .c3-res .list{ width:100%; }
 .c3-res > .row:last-child{ position:sticky; bottom:-12px; margin:0 -12px -12px; padding:8px 12px 12px; background:#fbf5e8; z-index:2; flex:none; }
+/* 낚시 3D */
+#water.f3{ background:#9cc0d2; } #water.f3 .ripple, #water.f3 .bobber{ display:none; }
+#f3c{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+#water.f3 .meter, #water.f3 .prog{ z-index:2; }
+#water.f3 .meter{ background:rgba(255,250,240,.32); backdrop-filter:blur(2px); }
+/* 동료 3D */
+.p3-mini{ width:38px; height:38px; flex:none; } .p3-mini .crit{ width:100%; height:100%; }
+.p3-say{ align-self:center; margin-top:10px; max-width:88%; background:rgba(255,250,240,.96); color:#2b241b; border-radius:14px; padding:8px 14px; font-size:.9rem; text-align:center; box-shadow:0 4px 14px rgba(0,0,0,.16); }
+.p3-say[hidden]{ display:none; }
+.btn.seal .tiny.muted{ color:inherit; opacity:.85; font-weight:400; }
+.p3-tabs{ flex-wrap:nowrap; gap:4px; margin-top:4px; } .p3-tabs button{ flex:1; padding:0 2px; min-height:40px; font-size:.82rem; white-space:nowrap; }
+.p3-talk{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; max-height:7.4rem; overflow:auto; pointer-events:auto; } .p3-talk .btn{ min-height:34px; padding:0 8px; }
 /* 선물 상자 */
 .gb-step{ display:flex; align-items:center; gap:4px; flex:none; flex-wrap:wrap; justify-content:flex-end; max-width:9.6rem; } .gb-step .btn{ min-height:34px; min-width:34px; padding:0 8px; } .gb-step b{ min-width:1.6em; text-align:center; }
 .gb-bar{ position:sticky; bottom:-1px; margin:10px -4px 0; padding:8px; background:var(--paper-2); border:1px solid var(--line); border-radius:12px; box-shadow:0 -6px 16px rgba(0,0,0,.1); z-index:3; }
@@ -1288,7 +1300,7 @@ function wpick(rng, list){ const tot = list.reduce((a,x)=>a+x[1],0); let r = rng
 // 무구는 직업마다 이름이 다르다
 let itemName = (k, job) => { const b = k.replace('*',''); let n = IT[b]?.n || k; if (/^w[1-6]$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_N[j]) n = WEAPON_N[j][+b[1]-1]; } else if (/^gw\d+$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_KIND[j]) n = `${REGION_GEAR[+b.slice(2)].p} ${WEAPON_KIND[j]}`; } return n + (k.endsWith('*') ? ' (정성 가득)' : ''); };
 // 동료는 여러 마리 기를 수 있지만 함께 다니는 건 두 마리까지
-const COMP_MAX = 20, COMP_OUT = 2;
+let COMP_MAX = 20; const COMP_OUT = 2;
 const activeComps = () => (S.comps || []).filter(c => c.out !== false).slice(0, COMP_OUT);
 const stat = (k, n = 1) => { if (S){ S.stats = S.stats || {}; S.stats[k] = (S.stats[k]||0) + n; } };
 const itemCnt = k => `${itemName(k)} ×${cnt(k)}`;
@@ -7984,6 +7996,20 @@ TITLES.push(
   {id:'cdexall', n:'백귀야행', d:'동료를 모두 만났다.', c:S => compRoots.every(r => (S.compSeen || {})[r])},
   {id:'legend', n:'전설의 주인', d:'전설의 동료와 함께 지낸다.', c:S => (S.comps || []).some(c => spX(c.sp).r === 3)},
 );
+
+// ---------- 운영자: 모든 동료(기본형 + 진화형)를 시험용으로 받는다. 일반 계정에는 절대 들어가지 않는다 ----------
+const COMP_MAX_BASE = COMP_MAX;
+function opCompsGive(){
+  if (!isOp()) return 0;
+  let n = 0; const have = new Set(S.comps.map(c => c.sp));
+  for (const r of compRoots) for (const sp of [r, r + '_e']) if (!have.has(sp)){ S.comps.push({id:uid36(), sp, name:SPEC[sp].n, lv:EVO_LV, xp:0, bond:EVO_BOND, out:false, born:now()}); n++; }
+  compSeenAll(); S.opCompsV = 1; save(); pubDirty();
+  return n;
+}
+setInterval(() => { if (!S || !S.job) return; const op = isOp(); COMP_MAX = op ? 200 : COMP_MAX_BASE; if (op && !S.opCompsV){ const n = opCompsGive(); if (n) toast(`운영자 계정에 동료 ${n}마리를 넣었습니다. 둥지에서 볼 수 있어요.`, 'good'); if (SCREEN === 'game'){ render(); renderSheet(true); } } }, 2000);
+const _settings_op = SHEETS.settings;
+SHEETS.settings = (...a) => { const h = _settings_op(...a); if (!isOp()) return h; const mark = '<button class="btn sm seal" data-act="opMaxLv"'; return h.includes(mark) ? h.replace(mark, `<button class="btn sm" data-act="opComps">동료 전부 받기 (없는 종만)</button>` + mark) : h; };
+Object.assign(ACT, { opComps: () => { if (!isOp()) return; const n = opCompsGive(); toast(n ? `동료 ${n}마리를 넣었습니다.` : '이미 모든 동료가 있습니다.', 'good'); renderSheet(true); render(); } });
 // ===================== 손맛 요리: 직접 썰고 젓고 굽는 미니게임 · 도시락 싸기 · 요리 버릇 도감 =====================
 // 기존 '요리' 버튼(바로 만들기)은 그대로 둔다. 방치형이라 손맛 요리는 언제나 선택이다.
 // 재료는 완성할 때 뺀다(도중에 앱을 닫아도 잃지 않는다). 잘하면 정성 가득이 보장되고, 망치면 실패작이 나온다. 실패도 '요리 버릇'으로 모이는 재미가 있다.
@@ -8302,9 +8328,9 @@ const mesh = (g, m, x = 0, y = 0, z = 0) => { const o = shadow(new THREE.Mesh(g,
 const lathe = (pts, seg = 72) => new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), seg);
 
 // ---------- 엔진 ----------
-function c3Start(){
-  const root = $('#cookg'); root.innerHTML = '<canvas id="c3c"></canvas><div id="c3hud"></div>'; root.classList.add('c3'); document.body.classList.add('c3-on');
-  const cv = $('#c3c'), r = new THREE.WebGLRenderer({canvas:cv, antialias:true, powerPreference:'high-performance'});
+function c3Start(o = {}){
+  const root = o.box ? null : $('#cookg'); if (root){ root.innerHTML = '<canvas id="c3c"></canvas><div id="c3hud"></div>'; root.classList.add('c3'); document.body.classList.add('c3-on'); }
+  const cv = o.canvas || $('#c3c'), r = new THREE.WebGLRenderer({canvas:cv, antialias:true, powerPreference:'high-performance'});
   r.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.LinearToneMapping; r.toneMappingExposure = 1; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
   const sc = new THREE.Scene(); sc.background = new THREE.Color('#f1e6d4');
   const cam = new THREE.PerspectiveCamera(34, 1, .1, 60);
@@ -8313,16 +8339,16 @@ function c3Start(){
   const panel = (x, y, z, w, h, c) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({color:c, side:THREE.DoubleSide})); m.position.set(x, y, z); m.lookAt(0, 0, 0); envS.add(m); };
   panel(0, 6, 0, 8, 8, '#e8e4dc'); panel(6, 2, 3, 5, 5, '#c8b898'); panel(-6, 1, -2, 4, 6, '#8a98a8'); panel(0, -5, 0, 12, 12, '#4a3a2a');
   const pm = new THREE.PMREMGenerator(r); sc.environment = pm.fromScene(envS, 0.04).texture; pm.dispose();
-  sc.add(new THREE.HemisphereLight('#fff6e6', '#a88a68', .36));
+  const hemi = new THREE.HemisphereLight('#fff6e6', '#a88a68', .36); sc.add(hemi);
   const sun = new THREE.DirectionalLight('#fff0d8', .72); sun.position.set(3.5, 8, 4); sun.castShadow = true; sun.shadow.mapSize.set(1536, 1536); const sh = sun.shadow.camera; sh.left = -5; sh.right = 5; sh.top = 5; sh.bottom = -5; sh.near = 1; sh.far = 20; sun.shadow.bias = -0.0006; sun.shadow.radius = 5; sc.add(sun);
-  const counter = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), Mt('#ffffff', .55, 0, {map:counterTex()})); counter.rotation.x = -Math.PI/2; counter.receiveShadow = true; sc.add(counter);
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 16), Mt('#ffffff', .4, 0, {map:tileTex()})); wall.position.set(0, 8, -9); sc.add(wall);
-  Object.assign(C3, {on:true, r, sc, cam, stage:null, parts:[], upd:[], look:V3(0, 0, 0), to:null, offY:0});
-  const fit = () => { if (!C3.on) return; const w = root.clientWidth || innerWidth, h = root.clientHeight || innerHeight; r.setSize(w, h, false); cam.aspect = w/h; cam.updateProjectionMatrix(); };
+  const counter = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), Mt('#ffffff', .55, 0, {map:counterTex()})); counter.rotation.x = -Math.PI/2; counter.receiveShadow = true; sc.add(counter); C3.counter = counter;
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 16), Mt('#ffffff', .4, 0, {map:tileTex()})); wall.position.set(0, 8, -9); sc.add(wall); C3.wall = wall;
+  Object.assign(C3, {on:true, r, sc, cam, sun, hemi, noFar:false, fw:0, fh:0, stage:null, parts:[], upd:[], look:V3(0, 0, 0), to:null, offY:0});
+  const fit = () => { if (!C3.on) return; const bx = o.box ? o.box() : root, w = (bx && bx.clientWidth) || innerWidth, h = (bx && bx.clientHeight) || innerHeight; if (w === C3.fw && h === C3.fh) return; C3.fw = w; C3.fh = h; r.setSize(w, h, false); cam.aspect = w/h; cam.updateProjectionMatrix(); };
   C3.fit = fit; addEventListener('resize', fit); fit();
   cv.addEventListener('pointerdown', c3Ptr('pd')); cv.addEventListener('pointermove', c3Ptr('pm')); cv.addEventListener('pointerup', c3Ptr('pu')); cv.addEventListener('pointercancel', c3Ptr('pu'));
   C3.last = performance.now();
-  const loop = t => { if (!C3.on) return; const dt = Math.min(.12, (t - C3.last)/1000); C3.last = t; C3.t = (C3.t || 0) + dt; const cur = C3.upd; C3.upd = []; const keep = cur.filter(f => f(dt) !== false); C3.upd = keep.concat(C3.upd); c3PartStep(dt); c3CamStep(dt); r.render(sc, cam); C3.raf = requestAnimationFrame(loop); };
+  const loop = t => { if (!C3.on) return; const dt = Math.min(.12, (t - C3.last)/1000); C3.last = t; C3.t = (C3.t || 0) + dt; const cur = C3.upd; C3.upd = []; const keep = cur.filter(f => f(dt) !== false); C3.upd = keep.concat(C3.upd); c3PartStep(dt); c3CamStep(dt); if (!(C3.skip && C3.skip())) r.render(sc, cam); C3.raf = requestAnimationFrame(loop); };
   C3.raf = requestAnimationFrame(loop);
 }
 function c3Stop(){
@@ -8333,7 +8359,7 @@ function c3Dispose(o){ o.traverse(m => { if (m.geometry) m.geometry.dispose(); i
 function c3Clear(){ if (C3.stage){ C3.sc.remove(C3.stage); c3Dispose(C3.stage); } C3.parts.forEach(p => { C3.sc.remove(p.pts); p.pts.geometry.dispose(); p.pts.material.dispose(); }); C3.parts = []; C3.upd = []; C3.stage = new THREE.Group(); C3.sc.add(C3.stage); return C3.stage; }
 function c3View(pos, look, snap){ C3.toP = V3(...pos); C3.toL = V3(...look); if (snap || !C3.curL){ C3.cam.position.copy(C3.toP.clone().multiplyScalar(c3Far())); C3.curL = C3.toL.clone(); C3.cam.lookAt(C3.curL); } }
 // 세로 화면에서도 잘리지 않게 카메라를 물린다
-const c3Far = () => C3.cam.aspect < 1 ? clamp(1/C3.cam.aspect, 1, 2.4)*.95 : .9;
+const c3Far = () => C3.noFar ? 1 : C3.cam.aspect < 1 ? clamp(1/C3.cam.aspect, 1, 2.4)*.95 : .9;
 function c3CamStep(dt){ if (!C3.toP) return; const k = Math.min(1, dt*4); const p = C3.toP.clone().multiplyScalar(c3Far()); C3.cam.position.lerp(p, k); C3.curL.lerp(C3.toL, k); C3.cam.lookAt(C3.curL); }
 function c3Ptr(kind){ return e => { if (!C3.on) return; if (kind === 'pd'){ try { e.target.setPointerCapture(e.pointerId); } catch(x){} } const h = C3.input; if (h && h[kind]){ e.preventDefault(); h[kind](c3Ndc(e), e); } }; }
 function c3Ndc(e){ const b = C3.r.domElement.getBoundingClientRect(); return new THREE.Vector2((e.clientX - b.left)/b.width*2 - 1, -(e.clientY - b.top)/b.height*2 + 1); }
@@ -8341,7 +8367,7 @@ function c3OnPlane(n, y = 0){ const ray = new THREE.Raycaster(); ray.setFromCame
 const c3Anim = (dur, f, done) => { let t = 0; C3.upd.push(dt => { t += dt; const k = Math.min(1, t/dur); f(k); if (k >= 1){ if (done) done(); return false; } }); };
 
 // ---------- 입자: 김 · 연기 · 기름 · 소금 · 거품 ----------
-function c3Parts(o){ const n = o.n, g = new THREE.BufferGeometry(), pos = new Float32Array(n*3); pos.fill(-99); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.PointsMaterial({size:o.size, map:dotTex(), transparent:true, opacity:o.op ?? .5, depthWrite:false, color:o.color, blending:o.add ? THREE.AdditiveBlending : THREE.NormalBlending}); const pts = new THREE.Points(g, m); pts.frustumCulled = false; C3.sc.add(pts); const p = {pts, pos, life:new Float32Array(n), v:new Float32Array(n*3), n, i:0, g:o.g ?? 0, drag:o.drag ?? 1, stop:o.stop}; C3.parts.push(p); return p; }
+function c3Parts(o){ const n = o.n, g = new THREE.BufferGeometry(), pos = new Float32Array(n*3); pos.fill(-99); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.PointsMaterial({size:o.size, map:o.map || dotTex(), transparent:true, opacity:o.op ?? .5, depthWrite:false, color:o.color, blending:o.add ? THREE.AdditiveBlending : THREE.NormalBlending}); const pts = new THREE.Points(g, m); pts.frustumCulled = false; C3.sc.add(pts); const p = {pts, pos, life:new Float32Array(n), v:new Float32Array(n*3), n, i:0, g:o.g ?? 0, drag:o.drag ?? 1, stop:o.stop}; C3.parts.push(p); return p; }
 function c3Emit(p, x, y, z, vx = 0, vy = 0, vz = 0, life = 1.4){ const i = p.i = (p.i + 1) % p.n; p.pos[i*3] = x; p.pos[i*3 + 1] = y; p.pos[i*3 + 2] = z; p.v[i*3] = vx; p.v[i*3 + 1] = vy; p.v[i*3 + 2] = vz; p.life[i] = life; }
 function c3PartStep(dt){ for (const p of C3.parts){ for (let i = 0; i < p.n; i++){ if (p.life[i] <= 0) continue; p.life[i] -= dt; if (p.life[i] <= 0){ p.pos[i*3 + 1] = -99; continue; } p.v[i*3 + 1] += p.g*dt; p.pos[i*3] += p.v[i*3]*dt; p.pos[i*3 + 1] += p.v[i*3 + 1]*dt; p.pos[i*3 + 2] += p.v[i*3 + 2]*dt; if (p.stop != null && p.pos[i*3 + 1] < p.stop){ p.pos[i*3 + 1] = p.stop; p.v[i*3] = p.v[i*3 + 1] = p.v[i*3 + 2] = 0; } } p.pts.geometry.attributes.position.needsUpdate = true; } }
 
@@ -9054,6 +9080,363 @@ Object.assign(ACT, {
   gbSet: d => giftSet(d.u, d.k, +d.n),
   gbSend: d => giftMany(d.u, ($('#giftMsg')?.value || '').trim().slice(0, 80)),
 });
+// ===================== 동료 3D 교감: 쓰다듬기 · 먹이 · 공놀이 · 대화를 직접 한다 =====================
+// 친밀도·쿨타임·선물 규칙은 p5g_comp의 compTouch, 먹이는 feedComp를 그대로 쓴다. 여기는 3D 몸과 반응만 맡는다.
+
+// ---------- 질감 ----------
+const heartTex = () => tex('heart', () => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.beginPath(); g.moveTo(32, 54); g.bezierCurveTo(4, 34, 8, 8, 24, 10); g.bezierCurveTo(30, 10, 32, 16, 32, 18); g.bezierCurveTo(32, 16, 34, 10, 40, 10); g.bezierCurveTo(56, 8, 60, 34, 32, 54); g.fill(); return new THREE.CanvasTexture(c); });
+const grassTex = () => tex('grass', () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#8fb86a'; g.fillRect(0, 0, w, h); for (let i = 0; i < 900; i++){ g.fillStyle = ['#7ca858', '#a2c87a', '#6e9a4c'][i % 3]; g.fillRect(Math.random()*w, Math.random()*h, 2, 3 + Math.random()*5); } }, 8, 8));
+
+// ---------- 몸 ----------
+const SP_PART = {
+  fox:(R, a) => { R.ear(.3, 1.33, 'cone', .19, .5, a, true); R.tail('fluff', a, .34); },
+  owl:(R, a, b) => { R.ear(.32, 1.2, 'cone', .1, .26, a); R.beak('#e8a64a'); R.wings(a); R.tail('none'); },
+  round:(R, a, b) => { R.ear(.42, 1.08, 'ball', .13, 0, a); R.muzzle(b, .24); R.whisk(); R.tail('thick', a, .24); },
+  fawn:(R, a, b) => { R.ear(.56, 1.02, 'leaf', .13, .3, a, true, 1.1); R.horn('#7a5a3a', .1); R.spots(b); R.tail('nub', b); },
+  pig:(R, a, b) => { R.ear(.34, 1.2, 'cone', .13, .22, a); R.snout('#e9b3a2'); R.tusks(); R.tail('nub', a); R.stripes('#8a6a50'); },
+  flame:(R, a, b) => { R.flame(a, b); },
+  dish:(R, a, b) => { R.plate(); R.beak('#e8c35a', true); R.shell('#7a9a5a'); R.tail('none'); },
+  tanu:(R, a, b) => { R.ear(.4, 1.14, 'ball', .15, 0, a); R.mask('#6e5a49'); R.topLeaf(); R.tail('fluff', a, .3, '#6e5a49'); },
+  snow:(R, a, b) => { R.hood('#d8e6f6'); R.ghost(a); },
+  bunny:(R, a, b) => { R.ear(.2, 1.42, 'leaf', .13, .6, a, true, 0); R.tail('puff', '#ffffff'); R.teeth(); },
+  squirrel:(R, a, b) => { R.ear(.38, 1.16, 'ball', .1, 0, a); R.cheekPad(b); R.tail('big', a, .32); },
+  shiba:(R, a, b) => { R.ear(.32, 1.26, 'cone', .15, .3, a, true); R.muzzle(b, .28); R.brow(b); R.tail('curl', a); },
+  cat:(R, a, b) => { R.ear(.32, 1.28, 'cone', .17, .32, a, true); R.stripes('#8a6a50'); R.whisk(); R.tail('long', a); R.patch('#c88a52'); },
+  monkey:(R, a, b) => { R.ear(.62, .9, 'ball', .16, 0, '#f4d0b8'); R.face(b); R.tail('long', a); },
+  crane:(R, a, b) => { R.crown('#d8402a'); R.beak('#e8a64a', false, 1.6); R.wings('#3a3a44'); R.tail('none'); },
+  bear:(R, a, b) => { R.ear(.44, 1.14, 'ball', .17, 0, a, false, 0, b); R.muzzle(b, .28); R.tail('nub', a); },
+  byakko:(R, a, b) => { R.ear(.42, 1.14, 'ball', .15, 0, a); R.stripes('#34343c', true); R.muzzle('#ffffff', .24); R.whisk(); R.tail('long', a, 0, '#34343c'); },
+  karakasa:(R, a, b) => { R.umbrella('#b06a9a'); R.ghost(a); },
+  oni:(R, a, b) => { R.horn('#f4e0a8', .16, true); R.hairTuft('#3a2a2a'); R.fang(); R.tail('nub', a); },
+  ame:(R, a, b) => { R.cloud(a); R.ghost(a); },
+  tengu:(R, a, b) => { R.tokin(); R.nose('#e8704a'); R.wings('#3a3a44'); R.tail('none'); },
+  nekomata:(R, a, b) => { R.ear(.32, 1.28, 'cone', .17, .34, a, true); R.whisk(); R.tail('long', a); R.tail2(a); },
+  baku:(R, a, b) => { R.ear(.44, 1.08, 'ball', .15, 0, a); R.trunk(a); R.tail('nub', a); },
+  ryu:(R, a, b) => { R.horn('#e8c858', .2, true); R.whisk('#e8c858', true); R.wings('#5a9a80'); R.tail('dragon', a); R.fin('#e88a5a'); },
+};
+function mdlPet(sp){
+  const s = SPEC[sp] || SPEC.kit, a = s.c1, b = s.c2, fur = c => Mt(c, .78, 0, {bumpMap:fineBump(), bumpScale:.004}), G = new THREE.Group(), body = new THREE.Group(), head = new THREE.Group(); G.add(body); body.add(head); head.position.y = 1.2;
+  const R = {g:G, body, head, tails:[], ears:[], paws:[], feet:[], zones:[], wingL:null, wingR:null, floaty:false, flames:[]};
+  const trunk = mesh(new THREE.SphereGeometry(.56, 32, 24), fur(a), 0, .56, 0); trunk.scale.set(1, .98, .94); body.add(trunk); R.trunkM = trunk;
+  const belly = mesh(new THREE.SphereGeometry(.4, 32, 24), fur(b), 0, .5, .25); belly.scale.set(1, 1.05, .78); body.add(belly);
+  const hd = mesh(new THREE.SphereGeometry(.56, 36, 28), fur(a), 0, 0, 0); hd.scale.set(1.08, .95, .98); head.add(hd); R.headM = hd;
+  // 앞발·뒷발
+  [-1, 1].forEach(x => { const p = mesh(new THREE.SphereGeometry(.14, 16, 12), fur(a), x*.34, .34, .36); p.scale.set(.9, 1.3, 1); body.add(p); R.paws.push(p); const f = mesh(new THREE.SphereGeometry(.18, 16, 12), fur(a), x*.34, .13, .2); f.scale.set(1, .68, 1.34); G.add(f); R.feet.push(f); });
+  // 눈: 뜬 눈 / 웃는 눈 / 감은 눈
+  const eyeOf = x => { const E = new THREE.Group(); E.position.set(x*.25, .07, .475); const e = mesh(new THREE.SphereGeometry(.11, 22, 16), Mt('#241a14', .16, 0, {envMapIntensity:1.2})); e.scale.set(1, 1.2, .55); e.castShadow = false; E.add(e); const h1 = new THREE.Mesh(new THREE.SphereGeometry(.036, 10, 8), new THREE.MeshBasicMaterial({color:'#fff'})); h1.position.set(.035, .055, .05); E.add(h1); const h2 = new THREE.Mesh(new THREE.SphereGeometry(.016, 8, 6), new THREE.MeshBasicMaterial({color:'#fff'})); h2.position.set(-.03, -.04, .055); E.add(h2); const hp = new THREE.Mesh(new THREE.TorusGeometry(.085, .017, 8, 16, Math.PI), new THREE.MeshBasicMaterial({color:'#241a14'})); hp.position.z = .05; hp.visible = false; E.add(hp); head.add(E); return {E, hp, open:[e, h1, h2]}; };
+  R.eyeL = eyeOf(-1); R.eyeR = eyeOf(1);
+  [-1, 1].forEach(x => { const c = new THREE.Mesh(new THREE.CircleGeometry(.09, 18), new THREE.MeshBasicMaterial({color:'#f2a2a0', transparent:true, opacity:.7})); c.scale.y = .6; c.position.set(x*.38, -.12, .45); c.rotation.y = x*.65; head.add(c); });
+  R.mouth = new THREE.Mesh(new THREE.TorusGeometry(.055, .012, 6, 14, Math.PI), new THREE.MeshBasicMaterial({color:'#3a2a20'})); R.mouth.rotation.z = Math.PI; R.mouth.position.set(0, -.13, .558); head.add(R.mouth); R.dotNose = mesh(new THREE.SphereGeometry(.032, 10, 8), Mt('#3a2a20', .25), 0, -.05, .55); R.dotNose.scale.set(1.2, .8, .7); head.add(R.dotNose);
+  R.mouthO = mesh(new THREE.SphereGeometry(.075, 14, 10), Mt('#c84a4a', .4), 0, -.16, .5); R.mouthO.scale.set(1, .8, .4); R.mouthO.visible = false; R.mouthO.castShadow = false; head.add(R.mouthO);
+  R.mouthPos = () => head.localToWorld(V3(0, -.16, .62));
+  // 종별 부위
+  const earAt = (x, y, kind, r, h, col, inner, tilt, inside) => [-1, 1].forEach(sg => { const P = new THREE.Group(); P.position.set(sg*x, Math.max(y - 1.2 + .27, kind === 'ball' ? .32 : .3), 0); let m; if (kind === 'cone'){ m = mesh(new THREE.ConeGeometry(r, h, 18), fur(col), 0, h/2 - .04, 0); m.scale.z = .55; } else if (kind === 'ball'){ m = mesh(new THREE.SphereGeometry(r, 18, 14), fur(col)); m.scale.z = .55; if (inside || inner !== false){ const n = mesh(new THREE.SphereGeometry(r*.55, 12, 10), Mt(inside || '#f5b4a8', .6), 0, 0, r*.32); n.scale.z = .4; P.add(n); } } else { m = mesh(new THREE.SphereGeometry(r, 18, 14), fur(col), 0, h*.9, 0); m.scale.set(.8, h/r*1, .44); if (inner){ const n = mesh(new THREE.SphereGeometry(r*.5, 12, 10), Mt('#f5b4a8', .6), 0, h*.9, r*.28); n.scale.set(.8, h/r*.9, .3); P.add(n); } } P.add(m); if (kind === 'cone' && inner){ const n = mesh(new THREE.ConeGeometry(r*.56, h*.62, 12), Mt('#f5b4a8', .6), 0, h*.38, r*.32); n.scale.z = .3; P.add(n); } if (kind === 'leaf' && tilt) P.rotation.z = sg*-tilt; else P.rotation.z = sg*-.22; head.add(P); R.ears.push({P, sg, base:P.rotation.z}); });
+  Object.assign(R, {
+    ear:earAt,
+    tail:(k, col, r = .2, tip) => { const T = new THREE.Group(); T.position.set(0, .42, -.46); body.add(T); R.tails.push(T); const m = fur(col); if (k === 'none') return; if (k === 'nub') T.add(mesh(new THREE.SphereGeometry(.1, 12, 10), m)); else if (k === 'puff') T.add(mesh(noiseSphere(.16, .08, 2, 14), m)); else if (k === 'fluff' || k === 'big' || k === 'thick'){ const L = k === 'big' ? 1.1 : k === 'thick' ? .55 : .8, curve = new THREE.CatmullRomCurve3([V3(0, 0, 0), V3(.08, L*.34, -.28), V3(.22, L*.8, -.3), V3(.3, L*1.18, -.06)]); fi(9, i => { const t = i/8, p = curve.getPoint(t), rr = (r*.5 + Math.sin(t*3.14)*r*.7)*(k === 'thick' ? 1 - t*.4 : 1), q = mesh(new THREE.SphereGeometry(rr, 14, 10), i > 6 && tip ? fur(tip) : i > 6 && k === 'fluff' ? fur('#fff4e2') : m, p.x, p.y, p.z); T.add(q); }); } else if (k === 'curl'){ const pts = [V3(0, 0, 0), V3(0, .3, -.14), V3(.12, .46, 0), V3(.2, .32, .1)]; T.add(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 18, .09, 10), m)); } else if (k === 'long' || k === 'dragon'){ const pts = [V3(0, 0, 0), V3(.12, .24, -.3), V3(.3, .6, -.34), V3(.34, .9, -.1)]; T.add(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, k === 'dragon' ? .1 : .055, 10), m)); if (tip) fi(3, i => { const c = mesh(new THREE.TorusGeometry(.066, .018, 6, 14), fur(tip), .14 + i*.07, .28 + i*.24, -.3); c.rotation.x = 1.4; T.add(c); }); } },
+    tail2:col => { const T = new THREE.Group(); T.position.set(-.1, .42, -.46); T.scale.x = -1; body.add(T); R.tails.push(T); T.add(mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V3(0, 0, 0), V3(.12, .24, -.3), V3(.3, .6, -.34), V3(.34, .9, -.1)]), 20, .055, 10), fur(col))); },
+    beak:(col, flat, sc = 1) => { const m = mesh(new THREE.ConeGeometry(.09*sc, flat ? .1 : .2*sc, 12), Mt(col, .35), 0, -.09, .58); m.rotation.x = flat ? 1.57 : 1.75; if (flat) m.scale.set(1.6, .6, .7); head.add(m); R.mouth.visible = false; R.noMouth = true; R.dotNose.visible = false; },
+    muzzle:(col, s0) => { const m = mesh(new THREE.SphereGeometry(s0, 18, 14), fur(col), 0, -.11, .4); m.scale.set(1.05, .72, .7); head.add(m); R.dotNose.visible = false; const n = mesh(new THREE.SphereGeometry(.05, 12, 10), Mt('#2a1d17', .22), 0, -.04, .6); n.scale.set(1.2, .8, .7); head.add(n); R.mouth.position.z = .59; R.mouth.position.y = -.17; },
+    snout:col => { const m = mesh(new THREE.CylinderGeometry(.14, .16, .1, 22), Mt(col, .5), 0, -.1, .58); m.rotation.x = 1.57; m.scale.z = .75; head.add(m); R.dotNose.visible = false; [-1, 1].forEach(x => { const n = mesh(new THREE.SphereGeometry(.03, 8, 6), Mt('#5a3a2a', .4), x*.05, -.1, .64); head.add(n); }); R.mouth.position.y = -.25; R.mouth.position.z = .5; },
+    whisk:(col = '#4a3a2a', long) => [-1, 1].forEach(x => fi(2, i => { const w = new THREE.Mesh(new THREE.CylinderGeometry(.005, .005, long ? .6 : .34, 4), new THREE.MeshBasicMaterial({color:col})); w.rotation.z = 1.57 + x*(i ? .14 : -.1); w.position.set(x*(long ? .6 : .46), -.1 - i*.05, .4); head.add(w); })),
+    horn:(col, h, big) => [-1, 1].forEach(x => { const c = mesh(new THREE.ConeGeometry(big ? .08 : .045, h*2.4, 12), Mt(col, .4), x*.2, .52 + h*.5, .02); c.rotation.z = x*-.25; head.add(c); }),
+    spots:col => { [[.24, .7, .28], [-.3, .54, .32], [.12, .84, -.04], [-.18, .82, -.1]].forEach(p => body.add(mesh(new THREE.SphereGeometry(.05, 10, 8), Mt(col, .7), ...p))); },
+    tusks:() => [-1, 1].forEach(x => { const t = mesh(new THREE.ConeGeometry(.024, .1, 8), Mt('#f4ecd8', .4), x*.14, -.1, .52); t.rotation.x = 3.14; head.add(t); }),
+    stripes:(col, body2) => { [-.12, 0, .12].forEach((x, i) => { const m = mesh(new THREE.BoxGeometry(.05, .02, .17), Mt(col, .6), x, .52 - Math.abs(x)*.1, .13 - i*0); m.rotation.x = .3; head.add(m); }); if (body2) [[.34, .72], [-.34, .72], [.4, .52], [-.4, .52]].forEach(([x, y]) => { const m = mesh(new THREE.BoxGeometry(.22, .035, .1), Mt(col, .6), x*.92, y, .22); m.rotation.y = x > 0 ? 1 : -1; body.add(m); }); },
+    flame:(c1, c2) => { R.floaty = true; R.noFeet = true; R.feet.forEach(f => f.visible = false); R.paws.forEach(p => p.visible = false); fi(3, i => { const t = mesh(new THREE.ConeGeometry(.22 - i*.05, .55 - i*.1, 16), Mt(i ? c2 : c1, .4), (i - 1)*.14, .54 - i*.04, -.04); head.add(t); R.flames.push(t); }); },
+    plate:() => { const d = mesh(new THREE.CylinderGeometry(.3, .24, .05, 26), Mt('#f4f7ef', .25), 0, .54, 0); head.add(d); const w = mesh(new THREE.CylinderGeometry(.23, .23, .01, 22), Mt('#9ad0e8', .1), 0, .57, 0); head.add(w); },
+    shell:col => { const m = mesh(new THREE.SphereGeometry(.5, 24, 16), Mt(col, .5), 0, .58, -.28); m.scale.set(1, 1, .55); body.add(m); },
+    mask:col => [-1, 1].forEach(x => { const m = mesh(new THREE.SphereGeometry(.15, 16, 12), Mt(col, .75), x*.25, .03, .42); m.scale.z = .35; head.add(m); }),
+    topLeaf:() => { const m = leaf('#8bb36a', .22); m.position.set(0, .56, 0); m.rotation.set(-.6, 0, .4); head.add(m); },
+    hood:col => { const m = mesh(new THREE.SphereGeometry(.62, 28, 18, 0, 6.3, 0, 1.45), fur(col), 0, .05, -.05); head.add(m); const n = mesh(new THREE.SphereGeometry(.09, 12, 10), fur(col), 0, .68, -.05); head.add(n); },
+    ghost:col => { R.floaty = true; R.feet.forEach(f => f.visible = false); R.paws.forEach(p => p.scale.setScalar(.8)); const sk = mesh(new THREE.ConeGeometry(.46, .42, 24), fur(col), 0, .16, 0); sk.rotation.x = 3.14; body.add(sk); },
+    teeth:() => { const t = mesh(new THREE.BoxGeometry(.06, .07, .02), Mt('#fff', .3), 0, -.22, .52); head.add(t); },
+    cheekPad:col => [-1, 1].forEach(x => { const c = mesh(new THREE.SphereGeometry(.17, 14, 12), fur(col), x*.34, -.14, .3); head.add(c); }),
+    brow:col => [-1, 1].forEach(x => { const c = mesh(new THREE.SphereGeometry(.045, 10, 8), Mt(col, .7), x*.22, .2, .47); head.add(c); }),
+    patch:col => { const c = mesh(new THREE.SphereGeometry(.2, 14, 10), Mt(col, .75), .28, .22, .34); c.scale.z = .4; head.add(c); },
+    face:col => { const m = mesh(new THREE.SphereGeometry(.42, 24, 16), fur(col), 0, -.05, .24); m.scale.set(1, .9, .8); head.add(m); },
+    crown:col => { const m = mesh(new THREE.SphereGeometry(.13, 14, 10), Mt(col, .5), 0, .55, .05); m.scale.y = .55; head.add(m); },
+    wings:col => { [-1, 1].forEach(x => { const P = new THREE.Group(); P.position.set(x*.48, .78, -.08); const w = mesh(new THREE.SphereGeometry(.28, 18, 12), fur(col), x*.1, -.22, 0); w.scale.set(.34, 1, .72); P.add(w); body.add(P); if (x < 0) R.wingL = P; else R.wingR = P; }); R.paws.forEach(p => p.visible = false); },
+    umbrella:col => { const m = mesh(lathe([[0,.46],[.2,.42],[.5,.28],[.72,.08],[.78,.02],[.76,0],[.48,.2],[.18,.32],[0,.36]], 24), Mt(col, .5, 0, {side:THREE.DoubleSide}), 0, .34, 0); head.add(m); const t = mesh(new THREE.SphereGeometry(.035, 8, 6), Mt('#2a1d17', .4), 0, .82, 0); head.add(t); },
+    hairTuft:col => { const m = mesh(noiseSphere(.22, .2, 3, 12), Mt(col, .8), 0, .48, -.02); m.scale.y = .7; head.add(m); },
+    fang:() => { const t = mesh(new THREE.ConeGeometry(.024, .07, 8), Mt('#fff', .3), .08, -.18, .53); t.rotation.x = 3.14; head.add(t); },
+    cloud:col => [[0, .56, -.06, .3], [-.32, .42, -.04, .22], [.32, .42, -.04, .22], [.18, .64, .08, .17], [-.18, .64, .08, .17]].forEach(([x, y, z, r]) => head.add(mesh(new THREE.SphereGeometry(r, 16, 12), fur(col), x, y, z))),
+    tokin:() => { const t = mesh(new THREE.CylinderGeometry(.04, .13, .22, 6), Mt('#2b2b33', .5), 0, .58, .06); head.add(t); },
+    nose:col => { const n = mesh(new THREE.CylinderGeometry(.045, .07, .34, 14), Mt(col, .5), 0, -.02, .68); n.rotation.x = 1.75; head.add(n); R.dotNose.visible = false; R.mouth.position.y = -.24; },
+    trunk:col => { const pts = [V3(0, -.05, .48), V3(0, -.22, .62), V3(0, -.42, .6), V3(0, -.5, .5)], t = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, .075, 10), fur(col)); head.add(t); R.trunkT = t; R.mouth.visible = false; R.noMouth = true; R.dotNose.visible = false; },
+    fin:col => fi(3, i => { const f = mesh(new THREE.ConeGeometry(.07, .16, 8), Mt(col, .5), 0, .86 - i*.25, -.5 + i*.03); f.rotation.x = -.5; body.add(f); }),
+  });
+  (SP_PART[s.ear] || SP_PART.round)(R, a, b);
+  // 진화형: 더 크고 표식이 있다
+  if (s.evo){ G.scale.setScalar(1.13); if (s.k === 'pet'){ const sc = mesh(new THREE.TorusGeometry(.4, .07, 10, 28), Mt('#c8402a', .55), 0, .96, .03); sc.rotation.x = 1.45; body.add(sc); const k = mesh(new THREE.ConeGeometry(.1, .28, 8), Mt('#c8402a', .55), .16, .76, .36); k.rotation.x = 2.8; body.add(k); } else { const ma = mesh(new THREE.SphereGeometry(.07, 14, 10), Mt('#f0c040', .25, .6), 0, .22, .54); head.add(ma); const aura = new THREE.Mesh(new THREE.TorusGeometry(.92, .012, 6, 60), new THREE.MeshBasicMaterial({color:'#a88ae8'})); aura.rotation.x = 1.57; aura.position.y = .12; G.add(aura); R.aura = aura; } }
+  // 만지는 곳 판정 (보이지 않는 구)
+  const zone = (name, parent, x, y, z, r, sx = 1, sy = 1, sz = 1) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), new THREE.MeshBasicMaterial({visible:false})); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.userData.zone = name; parent.add(m); R.zones.push(m); };
+  zone('head', head, 0, .34, .1, .34, 1.3, .8, 1.1); zone('cheek', head, -.42, -.08, .3, .2); zone('cheek', head, .42, -.08, .3, .2); zone('chin', head, 0, -.36, .3, .2, 1.3, .8, 1); zone('face', head, 0, 0, .34, .34, 1.1, .7, 1); zone('belly', body, 0, .46, .34, .36, 1.1, 1.1, .9); zone('back', body, 0, .78, -.2, .44, 1.1, .7, 1); zone('tail', body, 0, .7, -.72, .36);
+  return R;
+}
+
+// ---------- 좋아하는 곳: 종마다 다르다 ----------
+const SPOT_N = {head:'머리', cheek:'볼', chin:'턱 밑', belly:'배', back:'등'};
+const petSpot = sp => ['head','cheek','chin','belly','back'][seededOf(rootOf(sp)) % 5];
+
+// ---------- 상태 ----------
+const P3 = {on:false};
+function p3Open(id){
+  const c = S.comps.find(x => x.id === id); if (!c) return;
+  const G = c3Clear(), rig = mdlPet(c.sp);
+  G.add(rig.g); const sc = C3.sc;
+  C3.counter.material.map = grassTex(); C3.counter.material.color.set('#ffffff'); C3.counter.material.needsUpdate = true; C3.wall.material.map = null; C3.wall.material.color.set('#000000'); C3.wall.material.emissive = new THREE.Color('#bfe0ec'); C3.wall.material.needsUpdate = true; sc.background = new THREE.Color('#bfe0ec');
+  fi(5, i => { const h = mesh(new THREE.SphereGeometry(3 + i*.7, 24, 12), Mt(['#88ac88','#7a9e80'][i % 2], .9), -9 + i*4.5, -.8, -8.4); h.scale.y = .5; h.castShadow = false; G.add(h); });
+  // 소품: 돌, 수풀
+  fSeed = 11; fi(7, i => { const a = fr(0, 6.28), r = fr(3.2, 6), m = i % 2 ? mesh(noiseSphere(fr(.3, .6), .12, i + 1, 14), Mt('#6e9a4c', .8), Math.cos(a)*r, .2, -Math.abs(Math.sin(a))*r - .8) : mesh(noiseSphere(fr(.2, .36), .16, i + 2, 12), Mt('#9a9aa0', .8), Math.cos(a)*r, .12, -Math.abs(Math.sin(a))*r - .6); G.add(m); });
+  const heart = c3Parts({n:40, size:.34, color:'#f06a8a', op:1, g:.5, map:heartTex()}), spark = c3Parts({n:60, size:.16, color:'#f0d060', op:1, g:-.6, add:true}), zzz = c3Parts({n:14, size:.2, color:'#ffffff', op:.8, g:.15});
+  Object.assign(P3, {on:true, id, c, rig, heart, spark, zzz, tab:'pat', mood:0, st:'idle', t:0, blink:2, wag:0, x:0, z:0, ry:0, lookX:0, lookY:0, tLook:null, rub:0, rubGain:0, lastPtr:null, downZone:null, idle:0, say:null, sayUntil:0, tgt:null, wander:3, hop:0, chew:0, food:null, ball:null, fx:0, spotFound:!!c.spotKnown, saidSpot:false, sleep:false, tilt:0, press:0});
+  c3View([0, .86, 4.1], [0, .98, 0], true);
+  C3.input = {pd:p3Down, pm:p3Move, pu:p3Up};
+  C3.upd.push(p3Tick); p3Hud();
+}
+function p3Say(x, ms = 2600){ P3.say = x; P3.sayUntil = performance.now() + ms; p3SayPaint(); }
+function p3SayPaint(){ const el = $('#p3Say'); if (!el) return; const on = P3.say && performance.now() < P3.sayUntil; el.hidden = !on; if (on && el.textContent !== P3.say) el.textContent = P3.say; }
+function p3Hearts(n = 1){ const r = P3.rig; const w = r.head.localToWorld(V3(0, .4, .3)); fi(n, () => c3Emit(P3.heart, w.x + rnd(-.3, .3), w.y + rnd(0, .25), w.z, rnd(-.25, .25), rnd(.4, .9), 0, 1.3)); }
+function p3Sparks(n = 12){ const w = P3.rig.head.localToWorld(V3(0, 0, 0)); fi(n, () => { const a = rnd(0, 6.28); c3Emit(P3.spark, w.x, w.y, w.z, Math.cos(a)*rnd(.6, 1.4), rnd(.4, 1.6), Math.sin(a)*rnd(.6, 1.4), .8); }); }
+function p3Expr(kind){ const r = P3.rig, happy = kind === 'happy' || kind === 'purr' || kind === 'sleep'; [r.eyeL, r.eyeR].forEach(e => { e.open.forEach(m => m.visible = !happy); e.hp.visible = happy; e.hp.rotation.z = kind === 'sleep' ? Math.PI : 0; }); if (!r.noMouth){ const open = kind === 'happy' || kind === 'chew' || kind === 'wow'; r.mouth.visible = !open; r.mouthO.visible = open; } }
+
+// ---------- 매 프레임 생동감 ----------
+function p3Tick(dt){
+  if (!P3.on) return false; const r = P3.rig, c = P3.c, T = (P3.t += dt);
+  P3.mood = Math.max(0, P3.mood - dt*.12); P3.idle += dt; const m = P3.mood; p3SayPaint();
+  // 기분에 따른 꼬리·귀
+  const wagSpeed = 5 + m*14, wagAmp = .1 + m*.42;
+  r.tails.forEach((t, i) => { t.rotation.y = Math.sin(T*wagSpeed + i)*wagAmp*(i ? -1 : 1); t.rotation.x = Math.sin(T*2)*.04; });
+  const earBase = P3.st === 'purr' ? .34 : P3.sleep ? .3 : 0; P3.earFlick = Math.max(0, (P3.earFlick || 0) - dt*5); if (Math.random() < dt*.3) P3.earFlick = 1;
+  r.ears.forEach((e, i) => { e.P.rotation.z = e.base + e.sg*(-earBase) + e.sg*Math.sin(P3.earFlick*9 + (i ? 1 : 0))*P3.earFlick*.12; });
+  r.flames.forEach((f, i) => { f.scale.y = 1 + Math.sin(T*9 + i*2)*.18; f.rotation.z = Math.sin(T*6 + i)*.1; });
+  if (r.aura){ r.aura.rotation.z += dt*.8; }
+  if (r.wingL){ const fl = m > .6 ? Math.sin(T*18)*.5 : Math.sin(T*2)*.05; r.wingL.rotation.z = -.1 - fl; r.wingR.rotation.z = .1 + fl; }
+  // 눈 깜빡임
+  if (P3.exprLock == null || P3.exprLock < T){ P3.blink -= dt; if (P3.blink <= 0){ P3.blink = rnd(1.8, 4.6); P3.blinkT = .12; } if (P3.blinkT > 0){ P3.blinkT -= dt; const k = P3.blinkT > 0 ? .08 : 1; r.eyeL.E.scale.y = k; r.eyeR.E.scale.y = k; } else { r.eyeL.E.scale.y = r.eyeR.E.scale.y = 1; } }
+  else { r.eyeL.E.scale.y = r.eyeR.E.scale.y = 1; }
+  // 잠들기
+  if (P3.idle > 45 && !P3.sleep && P3.st === 'idle' && !P3.ball && !P3.food){ P3.sleep = true; p3Expr('sleep'); P3.exprLock = T + 9999; }
+  if (P3.sleep && Math.random() < dt*.8){ const w = r.head.localToWorld(V3(.2, .4, .2)); c3Emit(P3.zzz, w.x, w.y, w.z, .12, .1, 0, 1.6); }
+  // 숨쉬기와 몸 눌림
+  const breathe = Math.sin(T*(P3.sleep ? 1.3 : 2.4))*(P3.sleep ? .03 : .016); P3.press = Math.max(0, P3.press - dt*5); P3.hop = Math.max(0, P3.hop - dt*2.4);
+  const hopY = P3.hop > 0 ? Math.abs(Math.sin(P3.hop*Math.PI*2))*.42 : 0, chew = P3.st === 'chew' ? Math.sin(T*14)*.04 : 0;
+  r.body.scale.set(1 + breathe*.5 + P3.press*.06 - chew*.3, 1 - breathe*.2 - P3.press*.08 + chew, 1 + breathe*.5);
+  r.g.position.y = (r.floaty ? .28 + Math.sin(T*1.8)*.07 : 0) + hopY;
+  r.body.rotation.x = lerp(r.body.rotation.x, P3.sleep ? .22 : 0, dt*3);
+  // 시선: 손가락·음식·공을 쳐다본다
+  const tgt = P3.food ? P3.food.m.position : P3.ball && P3.st !== 'carry' ? P3.ball.m.position : P3.tLook; let lx = 0, ly = 0;
+  if (tgt && !P3.sleep){ const h = r.head.localToWorld(V3(0, 0, 0)), dx = tgt.x - h.x, dy = tgt.y - h.y, dz = Math.max(.4, tgt.z - h.z); lx = clamp(Math.atan2(dx, dz) - P3.ry, -.75, .75); ly = clamp(-Math.atan2(dy, dz), -.5, .4); } else if (!P3.sleep){ lx = Math.sin(T*.7)*.14; ly = Math.sin(T*.5)*.05; } else { ly = .35; }
+  P3.lookX = lerp(P3.lookX, lx, Math.min(1, dt*6)); P3.lookY = lerp(P3.lookY, ly, Math.min(1, dt*6)); P3.tilt = lerp(P3.tilt, P3.st === 'purr' ? P3.lean || 0 : P3.st === 'talk' ? Math.sin(T*1.6)*.28 : 0, Math.min(1, dt*6));
+  r.head.rotation.set(P3.lookY, P3.lookX, P3.tilt);
+  // 걷기
+  const move = target => { const dx = target.x - P3.x, dz = target.z - P3.z, d = Math.hypot(dx, dz), sp = target.sp || 1.1; if (d < .08) return true; const st = Math.min(d, sp*dt); P3.x += dx/d*st; P3.z += dz/d*st; const want = Math.atan2(dx, dz); let da = want - P3.ry; while (da > 3.14) da -= 6.28; while (da < -3.14) da += 6.28; P3.ry += da*Math.min(1, dt*8); fi(2, i => { if (!r.floaty) r.feet[i].position.z = .2 + Math.sin(T*(sp*9) + i*3.14)*.14; }); r.g.position.y += r.floaty ? 0 : Math.abs(Math.sin(T*sp*9))*.05; return false; };
+  // 상태
+  if (P3.st === 'idle' && !P3.sleep){ P3.wander -= dt; if (P3.wander <= 0 && !P3.downZone && !P3.food && P3.tab !== 'play'){ P3.wander = rnd(3.5, 8); const a = rnd(0, 6.28); P3.tgt = {x:Math.cos(a)*rnd(.2, .8), z:Math.sin(a)*rnd(.1, .7)}; P3.st = 'walk'; } let da = -P3.ry; while (da > 3.14) da -= 6.28; while (da < -3.14) da += 6.28; P3.ry += da*Math.min(1, dt*3); }
+  else if (P3.st === 'walk'){ if (move(P3.tgt)) P3.st = 'idle'; }
+  else if (P3.st === 'chase'){ const b = P3.ball; if (!b){ P3.st = 'idle'; } else { const near = Math.hypot(b.m.position.x - P3.x, b.m.position.z - P3.z) < .75 && b.m.position.y < .5; if (near){ P3.st = 'carry'; b.held = true; sfx('click'); p3Expr('happy'); P3.exprLock = T + 2.2; } else move({x:b.m.position.x, z:b.m.position.z - .1, sp:2.6}); } }
+  else if (P3.st === 'carry'){ const b = P3.ball, w = r.mouthPos(); if (b){ b.m.position.lerp(w, Math.min(1, dt*16)); } if (move({x:0, z:.25, sp:2.2})){ P3.st = 'idle'; if (b){ b.held = false; b.v.set(0, .3, .5); b.free = true; } p3Fetched(); } }
+  else if (P3.st === 'purr' && performance.now() - (P3.rubAt || 0) > 900){ P3.st = 'idle'; P3.exprLock = 0; p3Expr('open'); }
+  else if (P3.st === 'chew'){ P3.chew -= dt; if (P3.chew <= 0){ P3.st = 'idle'; P3.exprLock = 0; p3Expr('open'); } }
+  else if (P3.st === 'talk'){ P3.chew -= dt; if (P3.chew <= 0){ P3.st = 'idle'; } }
+  r.g.position.x = P3.x; r.g.position.z = P3.z; r.g.rotation.y = P3.ry;
+  // 공
+  const b = P3.ball; if (b && !b.held && b.free){ b.v.y -= 9.5*dt; b.m.position.addScaledVector(b.v, dt); if (b.m.position.y < .16){ b.m.position.y = .16; if (b.v.y < 0) b.v.y *= -.58; b.v.x *= .86; b.v.z *= .86; } b.m.rotation.x += b.v.z*dt*5; b.m.rotation.z -= b.v.x*dt*5; const X = 2.4; if (Math.abs(b.m.position.x) > X){ b.m.position.x = Math.sign(b.m.position.x)*X; b.v.x *= -.6; } if (b.m.position.z < -2.4){ b.m.position.z = -2.4; b.v.z *= -.6; } if (b.m.position.z > 1.5){ b.m.position.z = 1.5; b.v.z *= -.6; } if (b.thrown && P3.st !== 'chase' && P3.st !== 'carry'){ P3.st = 'chase'; P3.sleep = false; P3.exprLock = 0; p3Expr('wow'); P3.exprLock = T + 2; } }
+}
+
+// ---------- 손가락 ----------
+function p3Hit(n){ const ray = new THREE.Raycaster(); ray.setFromCamera(n, C3.cam); P3.rig.g.updateMatrixWorld(true); const h = ray.intersectObjects(P3.rig.zones, false); return h.length ? h[0] : null; }
+function p3Wake(){ if (P3.sleep){ P3.sleep = false; P3.exprLock = 0; p3Expr('wow'); P3.exprLock = (P3.t || 0) + .5; P3.idle = 0; p3Say(cfill('{n이} 부스스 눈을 떴다.', P3.c.name, P3.c.sp)); setTimeout(() => { if (P3.on && P3.st === 'idle') p3Expr('open'); }, 500); return true; } return false; }
+function p3Down(n){
+  P3.idle = 0; P3.lastPtr = n.clone(); P3.tLook = c3OnPlane(n, 1) || P3.tLook;
+  if (P3.tab === 'feed' && P3.food){ P3.food.drag = true; p3FoodAt(n); return; }
+  if (P3.tab === 'play' && P3.ball){ const b = P3.ball; if (!b.held){ b.grab = true; b.free = false; b.thrown = false; P3.flick = [{n:n.clone(), t:performance.now()}]; p3BallAt(n); return; } }
+  if (p3Wake()) return;
+  const h = p3Hit(n); P3.downZone = h ? h.object.userData.zone : null; if (P3.downZone === 'tail') p3TailTouch(); else if (P3.downZone){ P3.press = 1; sfx('soft'); }
+}
+function p3Move(n){
+  P3.tLook = c3OnPlane(n, 1) || P3.tLook; if (!P3.lastPtr) return; const d = n.distanceTo(P3.lastPtr); P3.lastPtr = n.clone();
+  if (P3.food && P3.food.drag){ p3FoodAt(n); return; }
+  if (P3.ball && P3.ball.grab){ p3BallAt(n); P3.flick.push({n:n.clone(), t:performance.now()}); if (P3.flick.length > 6) P3.flick.shift(); return; }
+  if (!P3.downZone) return; const h = p3Hit(n); if (!h) return; const z = h.object.userData.zone; P3.downZone = z; if (z === 'tail') return;
+  P3.rubAt = performance.now(); P3.idle = 0;
+  if (P3.st !== 'purr' && !['chase','carry','chew'].includes(P3.st)){ P3.st = 'purr'; p3Expr('purr'); P3.exprLock = (P3.t || 0) + 9999; P3.ry = 0; }
+  P3.lean = clamp(-n.x*1.6, -.32, .32);
+  const fav = z === petSpot(P3.c.sp), gain = d*(fav ? 2.2 : 1); P3.rubGain += gain; P3.mood = Math.min(1, P3.mood + d*(fav ? 1 : .55)); P3.heartAcc = (P3.heartAcc || 0) + gain; if (P3.heartAcc > .32){ P3.heartAcc = 0; p3Hearts(fav ? 2 : 1); if (fav) sfx('soft'); }
+  if (fav && !P3.saidSpot && P3.rubGain > .6){ P3.saidSpot = true; const c = P3.c; p3Say(`${c.name}${pp(c.name,'은','는')} ${SPOT_N[z]} 쓰다듬는 걸 제일 좋아하나 봐요!`, 3400); if (!c.spotKnown){ c.spotKnown = 1; stat('petSpot'); save(); } }
+  if (P3.rubGain > 2.4){ P3.rubGain = 0; p3Reward('pat'); }
+}
+function p3Up(n){
+  P3.downZone = null; P3.lastPtr = null;
+  if (P3.food && P3.food.drag){ P3.food.drag = false; }
+  if (P3.ball && P3.ball.grab){ const b = P3.ball, F = P3.flick || []; b.grab = false; b.free = true; if (F.length >= 2){ const a = F[0], e = F[F.length - 1], dt = Math.max(.016, (e.t - a.t)/1000), dx = e.n.x - a.n.x, dy = e.n.y - a.n.y, dist = Math.hypot(dx, dy), sp = Math.max(dist/dt, dist*7), ux = dx/(dist || 1), uy = dy/(dist || 1); if (dist > .06){ b.v.set(clamp(ux*sp*1.3, -3.6, 3.6), clamp(1.6 + Math.max(0, uy)*sp*.5, 1, 4.6), clamp(-Math.max(.25, uy)*sp*1.8, -5.6, -.9)); b.thrown = true; } else b.v.set(0, 0, 0); } else b.v.set(0, 0, 0); }
+}
+function p3TailTouch(){ const c = P3.c; P3.hop = .5; sfx('page'); p3Expr('wow'); P3.exprLock = (P3.t || 0) + .8; setTimeout(() => { if (P3.on && P3.st !== 'purr') { p3Expr('open'); } }, 800); p3Say(cfill(pick(Math.random, ['{n이} 꼬리를 만지자 깜짝 놀라 폴짝 뛰었다!', '{n이} 고개를 돌려 꼬리를 쳐다본다. "{s}?"', '{n이} 꼬리를 살랑 빼며 장난스럽게 도망쳤다.']), c.name, c.sp)); }
+
+// ---------- 보상: 쿨타임이 끝났으면 compTouch로 친밀도를 올린다 ----------
+function p3Reward(kind, topic){
+  const c = P3.c, left = ((c.cd || {})[kind] || 0) - now();
+  if (left > 0){ const t = pick(Math.random, TR[kind] ? TR[kind][c.bond >= 80 ? 'hi' : c.bond >= 25 ? 'mid' : 'lo'] : ['{n이} 기분 좋아 보인다.']); p3Say(cfill(t, c.name, c.sp)); return; }
+  compTouch(c.id, kind, topic); const say = UI.compSay;
+  if (say && say.id === c.id){ p3Say(`${say.x}${say.g ? ` (친밀도 +${say.g})` : ''}${say.gift ? ` ${itemName(say.gift)}${pp(itemName(say.gift),'을','를')} 물어 왔다!` : ''}${say.up ? ` 「${say.up}」 사이가 되었다!` : ''}`, 3800); if (say.up){ p3Sparks(24); P3.hop = 1; } }
+  P3.mood = Math.min(1, P3.mood + .3); p3Hud();
+}
+function p3Fetched(){ const c = P3.c; P3.hop = 1; p3Hearts(4); stat('petFetch'); P3.exprLock = 0; p3Expr('happy'); P3.exprLock = (P3.t || 0) + 1.4; setTimeout(() => { if (P3.on && P3.st === 'idle') p3Expr('open'); }, 1400); p3Reward('play'); if (P3.ball){ const b = P3.ball; b.thrown = false; b.free = false; c3Anim(.4, k => { b.m.position.lerp(V3(.55, .78, .9), k); }); } }
+
+// ---------- 먹이 ----------
+const c3OnFront = (n, z) => { const ray = new THREE.Raycaster(); ray.setFromCamera(n, C3.cam); const o = new THREE.Vector3(); return ray.ray.intersectPlane(new THREE.Plane(V3(0, 0, 1), -z), o) ? o : null; };
+function p3FoodAt(n){ const p = c3OnFront(n, .8), f = P3.food; if (!p || !f) return; f.m.position.set(p.x, clamp(p.y, .15, 2.6), .8); const w = P3.rig.mouthPos(); if (f.m.position.distanceTo(w) < .62) p3Eat(); else if (!P3.rig.noMouth && f.m.position.distanceTo(w) < 1.3){ P3.rig.mouth.visible = false; P3.rig.mouthO.visible = true; } else if (!P3.rig.noMouth && P3.st !== 'chew'){ P3.rig.mouth.visible = true; P3.rig.mouthO.visible = false; } }
+function p3Eat(){ const f = P3.food; if (!f) return; P3.food = null; const c = P3.c, m = f.m, k = f.k, fav = foodCat(k) === spX(c.sp).fav; c3Anim(.25, q => { m.position.lerp(P3.rig.mouthPos(), q); m.scale.setScalar(Math.max(.01, 1 - q)); }, () => { C3.stage.remove(m); c3Dispose(m); }); feedComp(c.id, k); P3.st = 'chew'; P3.chew = 1.1; p3Expr('chew'); P3.exprLock = (P3.t || 0) + 1.1; sfx('eat'); P3.mood = Math.min(1, P3.mood + (fav ? .7 : .35)); p3Hearts(fav ? 6 : 2); if (fav) p3Sparks(14); p3Say(cfill(fav ? '{n이} 눈을 반짝이며 허겁지겁 먹는다. 제일 좋아하는 맛이다! "{s}!"' : '{n이} 오물오물 맛있게 먹는다.', c.name, c.sp)); setTimeout(() => { if (P3.on) { p3Expr(fav ? 'happy' : 'open'); P3.exprLock = (P3.t || 0) + (fav ? 1 : 0); if (fav) setTimeout(() => { if (P3.on && P3.st === 'idle') p3Expr('open'); }, 1000); } }, 1150); UI.p3Sel = null; p3Hud(); }
+function p3FoodSel(k){ if (P3.food){ C3.stage.remove(P3.food.m); c3Dispose(P3.food.m); P3.food = null; } if (UI.p3Sel === k){ UI.p3Sel = null; return p3Hud(); } UI.p3Sel = k; const base = k.replace('*',''), m = IT[base]?.t === 'fish' ? (() => { const g = new THREE.Group(), f = fishBody(iconSpec(base)[1] || '#7a9ab8', '#f4efe0', .6); g.add(f); return g; })() : mesh(noiseSphere(.16, .12, 3, 14), Mt(iconSpec(base)[1] || '#c8a060', .5)); m.position.set(.62, 1.02, .8); C3.stage.add(m); P3.food = {m, k, drag:false}; P3.idle = 0; if (p3Wake()) {} p3Hud(); }
+function p3BallAt(n){ const p = c3OnFront(n, .9), b = P3.ball; if (p && b) b.m.position.set(clamp(p.x, -2.2, 2.2), clamp(p.y, .16, 2.4), .9); }
+function p3BallEnsure(){ if (P3.ball) return; const g = new THREE.SphereGeometry(.16, 24, 16), m = mesh(g, Mt('#d84a3a', .32), .55, .78, .9), band = new THREE.Mesh(new THREE.TorusGeometry(.162, .018, 8, 26), Mt('#fbf8ee', .4)); m.add(band); C3.stage.add(m); P3.ball = {m, v:V3(0, 0, 0), free:false, held:false, thrown:false, grab:false}; }
+
+// ---------- 화면 ----------
+function p3Hud(){
+  const el = $('#c3hud'); if (!el || !P3.on) return; const c = P3.c, tab = P3.tab, [mood, mcls] = compMood(c), left = k => ((c.cd || {})[k] || 0) - now(), cdTxt = k => left(k) > 0 ? ` <span class="tiny muted">${Math.ceil(left(k)/MIN)}분 뒤</span>` : '';
+  const foods = Object.keys(S.inv).filter(k => cnt(k) > 0 && (['food','fish'].includes(IT[k.replace('*','')]?.t) || k === 'berry') && !FAIL_FOOD[IT[k.replace('*','')]?.r]).slice(0, 30);
+  const x = spX(c.sp), hint = {pat:`${c.spotKnown ? `${esc(c.name)}${pp(c.name,'은','는')} ${SPOT_N[petSpot(c.sp)]} 쓰다듬는 걸 좋아해요.` : '손가락으로 문질러 주세요. 좋아하는 곳을 찾아 보세요!'}`, feed:UI.p3Sel ? '음식을 끌어다 입에 대 주세요.' : `먹일 음식을 고르세요. 좋아하는 맛: ${FAV_N[x.fav] || '-'}`, play:'공을 끌어서 멀리 튕겨 보세요. 물어 옵니다.', talk:'무슨 말을 걸까요?'}[tab];
+  el.innerHTML = `<div class="c3-top"><span class="p3-mini">${art(c.sp)}</span><div class="grow"><b class="small">${esc(c.name)}</b> <span class="tiny muted">Lv.${c.lv}</span> <span class="chip ${mcls}" style="padding:0 6px">${mood}</span><div class="bar gold" style="margin-top:3px;height:6px"><i style="width:${c.bond}%"></i></div><span class="tiny muted">${bondTier(c.bond)} · 친밀도 ${c.bond}/100</span></div><button class="x" data-act="p3Close" aria-label="닫기">×</button></div>
+  <div class="p3-say" id="p3Say" hidden></div>
+  <div class="c3-bot"><div class="c3-hint">${hint}</div>
+    ${tab === 'feed' ? (foods.length ? `<div class="c3-tray" style="margin-bottom:6px">${foods.map(k => `<button class="h-th ${UI.p3Sel === k ? 'b-sel' : ''}" data-act="p3Food" data-k="${esc(k)}">${itemIcon(k)}<span class="tiny">${foodCat(k) === x.fav ? '♥ ' : ''}${esc(itemName(k))} ×${cnt(k)}</span></button>`).join('')}</div>${UI.p3Sel ? '<button class="btn sm seal full" style="margin-bottom:6px" data-act="p3Give">입에 넣어 주기</button>' : ''}` : '<p class="small muted" style="margin:0 0 6px">줄 음식이 없다. 부엌에서 만들어 오자.</p>') : ''}
+    ${tab === 'play' ? `<button class="btn sm ghost full" style="margin-bottom:6px" data-act="p3Throw">던져 주기${cdTxt('play')}</button>` : ''}
+    ${tab === 'talk' ? `<div class="p3-talk">${TALK.map((t, i) => `<button class="btn sm ghost" data-act="p3Talk" data-i="${i}">${esc(t.t)}</button>`).join('')}<button class="btn sm seal" data-act="p3Praise">✨ 칭찬하기${cdTxt('praise')}</button></div>` : ''}
+    <div class="seg p3-tabs">${[['pat','🤚 쓰다듬기'],['feed','🍙 먹이'],['play','🎾 놀기'],['talk','💬 대화']].map(([t, n]) => `<button data-act="p3Tab" data-t="${t}" aria-pressed="${t === tab}">${n}</button>`).join('')}</div></div>`;
+  p3SayPaint();
+}
+async function p3Start(id){
+  const c = S.comps.find(x => x.id === id); if (!c) return;
+  if (typeof errOf === 'function' && errOf(id)) return toast('심부름 중이에요. 돌아오면 같이 놀아요.');
+  if (baseLocked()) return lockToast();
+  const el = $('#cookg'); el.hidden = false; el.innerHTML = '<div class="c3-load">불러오는 중…</div>';
+  const ok = await c3Ensure();
+  if (!ok){ el.hidden = true; el.innerHTML = ''; return toast('이 기기에서는 3D 화면을 열 수 없어요. 아래 교감 버튼을 써 주세요.'); }
+  try { c3Start(); p3Open(id); } catch(e){ console.warn('pet3d', e); c3Stop(); el.hidden = true; el.innerHTML = ''; toast('3D 화면을 열지 못했어요. 아래 교감 버튼을 써 주세요.'); }
+}
+function p3Close(){ P3.on = false; P3.food = null; P3.ball = null; UI.p3Sel = null; C3.input = null; c3Stop(); const el = $('#cookg'); el.hidden = true; el.innerHTML = ''; save(); renderSheet(true); render(); }
+Object.assign(ACT, {
+  p3Start: d => p3Start(d.id), p3Close,
+  p3Tab: d => { P3.tab = d.t; P3.idle = 0; p3Wake(); if (d.t === 'play') p3BallEnsure(); if (d.t !== 'feed' && P3.food){ C3.stage.remove(P3.food.m); c3Dispose(P3.food.m); P3.food = null; UI.p3Sel = null; } if (d.t !== 'play' && P3.ball){ C3.stage.remove(P3.ball.m); c3Dispose(P3.ball.m); P3.ball = null; if (['chase','carry'].includes(P3.st)) P3.st = 'idle'; } p3Hud(); },
+  p3Food: d => p3FoodSel(d.k),
+  p3Give: () => { if (P3.food) p3Eat(); },
+  p3Throw: () => { p3BallEnsure(); const b = P3.ball; if (b.held) return; b.m.position.set(.3, .7, 1); b.free = true; b.thrown = true; b.v.set(rnd(-2.4, 2.4), 3, rnd(-5, -3)); P3.idle = 0; p3Wake(); },
+  p3Talk: d => { P3.idle = 0; p3Wake(); P3.st = 'talk'; P3.chew = 2.2; p3Reward('talk', +d.i); },
+  p3Praise: () => { P3.idle = 0; p3Wake(); P3.hop = 1; p3Sparks(16); p3Hearts(2); p3Expr('happy'); P3.exprLock = (P3.t || 0) + 1.2; setTimeout(() => { if (P3.on && P3.st === 'idle') p3Expr('open'); }, 1200); p3Reward('praise'); },
+});
+
+// ---------- 동료 화면에서 열기 ----------
+const _comp_3d = SHEETS.comp;
+SHEETS.comp = id => { const h = _comp_3d(id), c = S.comps.find(x => x.id === id); if (!c) return h; const btn = `<button class="btn seal full bigtap" style="margin:10px 0 0" data-act="p3Start" data-id="${esc(c.id)}">🐾 ${esc(c.name)}${pp(c.name,'과','와')} 같이 놀기 (3D)</button>`, mark = '<div class="touch-grid">'; return h.includes(mark) ? h.replace(mark, btn + mark) : btn + h; };
+TITLES.push(
+  {id:'petspot', n:'손끝의 달인', d:'동료가 가장 좋아하는 곳을 찾아냈다.', c:S => st_(S,'petSpot') >= 1},
+  {id:'fetch10', n:'공놀이 친구', d:'동료와 공놀이를 10번 했다.', c:S => st_(S,'petFetch') >= 10},
+);
+// ===================== 낚시 3D: 규칙은 p8_main의 낚시 코드 그대로, 물가 풍경과 낚싯대만 3D로 얹는다 =====================
+// cast·hook·startReel·reelEnd·autoFish·pickFish는 고치지 않는다. FG 상태를 읽어 그림만 움직인다. 게이지도 기존 그대로 쓴다.
+// three.js를 못 받거나 WebGL이 없으면 기존 평면 낚시터 그대로다.
+const F3 = {on:false};
+const skyTex = tod => tex('sky_' + tod, () => { const c = document.createElement('canvas'); c.width = 8; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256), S0 = {morning:['#7ab0dc', '#f4d8c0', '#f8c8a8'], day:['#4a96dc', '#a8d4ee', '#e4f2f4'], night:['#0a1030', '#1a2450', '#34406a']}[tod] || []; gr.addColorStop(0, S0[0]); gr.addColorStop(.42, S0[1]); gr.addColorStop(.52, S0[2]); gr.addColorStop(1, S0[2]); g.fillStyle = gr; g.fillRect(0, 0, 8, 256); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; });
+const F3_LOOK = {
+  river:{water:{morning:'#4a8a94', day:'#2e8096', night:'#142c48'}, amp:.018, flow:1},
+  sea:{water:{morning:'#3a7c9c', day:'#1a68a0', night:'#0c203e'}, amp:.075, flow:0},
+  lake:{water:{morning:'#4e9498', day:'#2e8c90', night:'#122c48'}, amp:.008, flow:0},
+};
+function f3Scene(spot){
+  const G = c3Clear(), tod = fishTime(), L = F3_LOOK[spot] || F3_LOOK.river, night = tod === 'night', sc = C3.sc;
+  F3.spot = spot; F3.tod = tod; F3.L = L; C3.counter.visible = false; C3.wall.visible = false; fSeed = 9;
+  const hor = {morning:'#f8c8a8', day:'#e4f2f4', night:'#34406a'}[tod] || '#e4f2f4';
+  sc.background = new THREE.Color(hor); sc.fog = new THREE.Fog(hor, 22, 46);
+  C3.sun.intensity = night ? .28 : tod === 'morning' ? .78 : .86; C3.sun.color.set(night ? '#a8b8e8' : tod === 'morning' ? '#ffd8b0' : '#fff4e0'); C3.sun.position.set(night ? -4 : 5, 9, 3); C3.hemi.intensity = night ? .3 : .46;
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(38, 24, 16), new THREE.MeshBasicMaterial({map:skyTex(tod), side:THREE.BackSide, fog:false})); G.add(dome);
+  if (night){ const m = new THREE.Mesh(new THREE.SphereGeometry(1.2, 20, 14), new THREE.MeshBasicMaterial({color:'#f6ecc0', fog:false})); m.position.set(7, 12, -28); G.add(m); const pos = []; fi(160, () => { const a = fr(-1.3, 1.3), h = fr(.12, .9); pos.push(Math.sin(a)*30, h*26 + 2, -Math.cos(a)*30); }); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); G.add(new THREE.Points(g, new THREE.PointsMaterial({color:'#ffffff', size:.13, fog:false}))); }
+  else { const m = new THREE.Mesh(new THREE.SphereGeometry(tod === 'morning' ? 2 : 1.4, 20, 14), new THREE.MeshBasicMaterial({color:tod === 'morning' ? '#ffd8a0' : '#fff8e0', fog:false})); m.position.set(tod === 'morning' ? -10 : 8, tod === 'morning' ? 4.5 : 17, -30); G.add(m); fi(5, i => { const cl0 = new THREE.Group(); fi(4, k => { const q = new THREE.Mesh(new THREE.SphereGeometry(1 + k*.3, 10, 8), new THREE.MeshBasicMaterial({color:'#fff', transparent:true, opacity:.8, fog:false})); q.position.set(k*1.3 - 2, 0, 0); q.scale.y = .42; cl0.add(q); }); cl0.position.set(-16 + i*8, 9 + (i % 3)*3, -32); G.add(cl0); }); }
+  // 물
+  const wg = new THREE.PlaneGeometry(46, 46, 44, 44); wg.rotateX(-Math.PI/2); const water = new THREE.Mesh(wg, new THREE.MeshStandardMaterial({color:L.water[tod] || L.water.day, roughness:.34, metalness:0, envMapIntensity:.22, transparent:true, opacity:.96})); water.receiveShadow = true; G.add(water); F3.water = water; F3.pos0 = wg.attributes.position.array.slice();
+  // 땅과 풍경
+  const grass = Mt('#ffffff', .92, 0, {map:grassTex()}), rock = Mt('#8a8a90', .85), dark = night ? .7 : 1;
+  const hill = (x, y, z, r, col, sy = .5) => { const h = mesh(new THREE.SphereGeometry(r, 22, 12), Mt(col, .92), x, y, z); h.scale.y = sy; h.castShadow = false; G.add(h); return h; };
+  const pine = (x, z, s = 1) => { const T = new THREE.Group(); T.add(mesh(new THREE.CylinderGeometry(.12, .16, 1.1, 8), Mt('#5a3a22', .8), 0, .5, 0)); fi(3, i => T.add(mesh(new THREE.ConeGeometry(.82 - i*.2, 1.1, 10), Mt(night ? '#1e4030' : '#3a6a42', .85), 0, 1.25 + i*.62, 0))); T.position.set(x, .1, z); T.scale.setScalar(s); G.add(T); };
+  const reed = (x, z) => fi(4, i => { const r = mesh(new THREE.CylinderGeometry(.012, .018, 1 + i*.14, 5), Mt('#7a9a4a', .7), x + i*.07, .46, z + (i % 2)*.05); r.rotation.z = fr(-.12, .12); G.add(r); const h = mesh(new THREE.CylinderGeometry(.034, .034, .15, 8), Mt('#6a4a2a', .7), x + i*.07, 1 + i*.07, z + (i % 2)*.05); G.add(h); });
+  // 앞쪽 물가 (손에 낚싯대를 든 자리)
+  if (spot === 'sea'){ const P = Mt('#9a7a52', .82); fi(9, i => { const b = mesh(new THREE.BoxGeometry(5.6, .12, .46), P, 0, .62, 7.2 - i*.5); G.add(b); }); [[-2.5, 3.6], [2.5, 3.6], [-2.5, 6], [2.5, 6]].forEach(([x, z]) => G.add(mesh(new THREE.CylinderGeometry(.13, .15, 2, 10), Mt('#5a4632', .9), x, -.3, z))); hill(6.5, -.6, -27, 6, night ? '#26384a' : '#5a7a70', .55); hill(-8, -.6, -29, 8, night ? '#223244' : '#6a8a80', .5); const boat = new THREE.Group(); boat.add(mesh(new THREE.BoxGeometry(1.6, .24, .5), Mt('#7a5a3a', .7), 0, .1, 0)); boat.add(mesh(new THREE.CylinderGeometry(.02, .02, 1.5, 6), Mt('#5a4632', .7), 0, .86, 0)); const sail = mesh(new THREE.BoxGeometry(.7, 1, .012), Mt('#f4efe0', .7, 0), .1, 1, 0); boat.add(sail); boat.position.set(-1.8, 0, -13); G.add(boat); F3.boat = boat; }
+  else { const bank = mesh(new THREE.BoxGeometry(40, 2, 8), grass, 0, -.84, 6.8); G.add(bank); [-1.9, 1.8, 1, -1.1].forEach((x, i) => reed(x, 2.86 + (i % 2)*.06)); [[-1.6, 3.1, .3], [1.7, 3.2, .34], [.5, 3, .18]].forEach(([x, z, r]) => { const m = mesh(noiseSphere(r, .14, x + 8, 12), rock, x, .14, z); m.scale.y = .7; G.add(m); }); }
+  if (spot === 'river'){ [-1, 1].forEach(sd => { const b = mesh(new THREE.BoxGeometry(14, 2, 42), grass, sd*(2.5 + 7), -.82, -10); G.add(b); fi(4, i => { const m = mesh(noiseSphere(fr(.2, .4), .14, i + 2, 12), rock, sd*(fr(2.3, 2.8)), .08, 1 - i*3.4); m.scale.y = .7; G.add(m); }); fi(9, i => pine(sd*fr(3.1, 6), 1 - i*2.6, fr(.8, 1.3))); }); hill(0, -1, -30, 14, night ? '#1e3040' : '#5a8a62', .34); fi(3, i => { const r = mesh(noiseSphere(fr(.2, .34), .1, i + 6, 12), rock, fr(-1.8, 1.8), .05, -6 - i*3); r.scale.y = .55; G.add(r); }); F3.foam = c3Parts({n:40, size:.1, color:'#ffffff', op:.75}); }
+  if (spot === 'lake'){ hill(-13, -1, -24, 11, night ? '#26344c' : '#6a90a0', .92); hill(9, -1, -26, 13, night ? '#22304a' : '#7aa0ae', 1.05); hill(0, -1, -21, 9, night ? '#1e3a38' : '#5a8a62', .45); const cap = mesh(new THREE.SphereGeometry(4.4, 18, 10, 0, 6.3, 0, .8), Mt('#f4f6fa', .6), 9, 11.4, -26); G.add(cap); fi(5, i => pine(-7 + i*3.4, -16 + (i % 2), fr(.9, 1.4))); fi(9, i => { const a = fr(0, 6.28), r = fr(.5, 2.2), pad = mesh(new THREE.CylinderGeometry(.26, .26, .012, 16), Mt('#3e7e3e', .6), -1 + Math.cos(a)*r, .03, -3.2 + Math.sin(a)*r*.7); G.add(pad); if (i % 3 === 0) G.add(mesh(new THREE.SphereGeometry(.07, 10, 8), Mt('#f4a8c0', .5), pad.position.x, .09, pad.position.z)); }); const tor = new THREE.Group(), red = Mt('#c8402a', .5); [-.7, .7].forEach(x => tor.add(mesh(new THREE.CylinderGeometry(.07, .08, 1.8, 10), red, x, .9, 0))); tor.add(mesh(new THREE.BoxGeometry(2.1, .12, .16), red, 0, 1.78, 0)); tor.add(mesh(new THREE.BoxGeometry(1.7, .08, .1), red, 0, 1.46, 0)); tor.position.set(-2.5, 0, -11); G.add(tor); }
+  // 밤에는 등불
+  if (night){ const lamp = new THREE.PointLight('#ffc878', .8, 8); lamp.position.set(3.1, 1.5, 4.1); G.add(lamp); const pole = mesh(new THREE.CylinderGeometry(.04, .05, 1.5, 8), Mt('#3a2a20', .7), 3.1, .75, 4.1); G.add(pole); G.add(new THREE.Mesh(new THREE.SphereGeometry(.16, 14, 12), new THREE.MeshBasicMaterial({color:'#ffd890'}))).children.at(-1).position.set(3.1, 1.56, 4.1); }
+  // 낚싯대·찌·물고기 그림자
+  F3.rodM = Mt('#6a4628', .5); F3.rod = null; F3.bend = 0; f3Rod(0);
+  const handle = mesh(new THREE.CylinderGeometry(.03, .04, .52, 10), Mt('#2a1c14', .7), 1.5, 1.05, 5.05); handle.rotation.x = .65; handle.rotation.z = .24; G.add(handle);
+  F3.line = new THREE.Line(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(16*3), 3)), new THREE.LineBasicMaterial({color:night ? '#d8d8e8' : '#f4f4f4', transparent:true, opacity:.75})); F3.line.frustumCulled = false; G.add(F3.line);
+  const B = new THREE.Group(); B.add(mesh(new THREE.SphereGeometry(.085, 14, 10), Mt('#c8402a', .3), 0, .09, 0)); B.add(mesh(new THREE.SphereGeometry(.085, 14, 10), Mt('#fbf6e9', .3), 0, -.01, 0)); B.add(mesh(new THREE.CylinderGeometry(.008, .008, .14, 6), Mt('#2a1c14', .4), 0, .21, 0)); B.children.forEach(m => { m.castShadow = false; }); F3.bob = B; G.add(B);
+  F3.shadow = new THREE.Mesh(new THREE.CircleGeometry(.5, 20), new THREE.MeshBasicMaterial({color:'#0a1420', transparent:true, opacity:0, depthWrite:false})); F3.shadow.rotation.x = -Math.PI/2; F3.shadow.position.y = .03; F3.shadow.scale.set(1.5, .55, 1); G.add(F3.shadow);
+  F3.rings = []; fi(5, () => { const r = new THREE.Mesh(new THREE.RingGeometry(.92, 1, 28), new THREE.MeshBasicMaterial({color:'#ffffff', transparent:true, opacity:0, depthWrite:false, side:THREE.DoubleSide})); r.rotation.x = -Math.PI/2; r.position.y = .05; G.add(r); F3.rings.push({r, t:9}); });
+  F3.spray = c3Parts({n:70, size:.1, color:'#ffffff', op:.9, g:-6, stop:-.1}); F3.spark = c3Parts({n:40, size:.15, color:'#ffe080', op:1, g:-1.5, add:true});
+  F3.amb = []; fi(3, i => { const m = new THREE.Mesh(new THREE.CircleGeometry(.3, 14), new THREE.MeshBasicMaterial({color:'#0a1420', transparent:true, opacity:.12, depthWrite:false})); m.rotation.x = -Math.PI/2; m.scale.set(1.6, .5, 1); m.position.set(fr(-2.4, 2.4), .025, fr(-9, 0)); G.add(m); F3.amb.push({m, a:fr(0, 6.28), s:fr(.2, .45)}); });
+  F3.bx = 0; F3.bz = -2.2; F3.pose = 'rest'; F3.fish = null; F3.st = null; F3.T = 0; F3.caught = null;
+  C3.upd.push(f3Tick); c3View([0, 3.05, 7.4], [0, .55, -1.6], true);
+}
+const F3_TIP = () => V3(.45 + F3.bend*.34, 2.72 - F3.bend*.88, 2.46 - F3.bend*.2);
+function f3Rod(bend){ F3.bend = bend; const G = C3.stage; if (F3.rod){ G.remove(F3.rod); F3.rod.geometry.dispose(); } const t = F3_TIP(), base = V3(1.5, 1.05, 5.05), mid = V3(1.05, 2.25 - bend*.22, 3.8), c = new THREE.CatmullRomCurve3([base, mid, t]), g = new THREE.TubeGeometry(c, 14, .022, 6); F3.rod = new THREE.Mesh(g, F3.rodM); F3.rod.castShadow = true; G.add(F3.rod); }
+function f3LineTo(p, slack = .5){ const t = F3_TIP(), A = F3.line.geometry.attributes.position; for (let i = 0; i < 16; i++){ const k = i/15, s = Math.sin(k*Math.PI)*slack; A.setXYZ(i, lerp(t.x, p.x, k), lerp(t.y, p.y, k) - s, lerp(t.z, p.z, k)); } A.needsUpdate = true; }
+function f3Ring(x, z, s = 1){ const q = F3.rings.reduce((a, b) => b.t > a.t ? b : a); q.t = 0; q.s = s; q.r.position.x = x; q.r.position.z = z; }
+function f3Splash(x, z, n = 12, pow = 1){ fi(n, () => c3Emit(F3.spray, x + rnd(-.1, .1), .05, z + rnd(-.1, .1), rnd(-1, 1)*pow, rnd(1.4, 3.2)*pow, rnd(-1, 1)*pow, 1)); f3Ring(x, z, pow); }
+function f3FishModel(f){ fSeed = 7; const sp = iconSpec(f.id), W = new THREE.Group(), body = fishBody(sp[1] || '#7a9ab8', sp[2] || '#e8e0d0', .62 + (f.d || 1)*.2); W.add(body); if (f.id === 'eel') W.scale.set(1.5, .55, .6); C3.stage.add(W); return W; }
+function f3Pace(){
+  const n = performance.now(), ms = Math.min(250, n - (F3.pt || n)); F3.pt = n; F3.ema = (F3.ema || 16)*.9 + ms*.1;
+  if (n > (F3.pn || 0)){ F3.pn = n + 500;
+    if (F3.ema > 40 && (F3.ratio === undefined || F3.ratio > .6)){ F3.ratio = Math.max(.6, (F3.ratio === undefined ? C3.r.getPixelRatio() : F3.ratio)*.8); C3.fw = 0; C3.r.setPixelRatio(F3.ratio); C3.fit(); }
+    const reel = FG && FG.st === 'reel'; F3.skipN = !reel ? 0 : F3.ema > 34 ? Math.min(5, (F3.skipN || 0) + 1) : F3.ema < 22 ? Math.max(0, (F3.skipN || 0) - 1) : (F3.skipN || 0); }
+  if (!F3.skipN) return false; F3.sk = ((F3.sk || 0) + 1) % (F3.skipN + 1); return F3.sk !== 0;
+}
+function f3Tick(dt){
+  if (!F3.on || !FG) return false; const T = (F3.T += dt), L = F3.L, st = FG.st, Hm = (() => { const m = $('#meter'); return m ? m.clientHeight - 6 : 100; })();
+  // 물결
+  const P = F3.water.geometry.attributes.position, N = F3.water.geometry.attributes.normal, b0 = F3.pos0, A = L.amp, flow = L.flow; for (let i = 0; i < P.count; i++){ const x = b0[i*3], z = b0[i*3 + 2], w1 = .9, w2 = 1.7, ph = T*(flow ? 2.2 : 1.1), s1 = Math.sin(x*w1 + z*.6 + ph), s2 = Math.sin(z*w2 - x*.4 + ph*1.3 + (flow ? T*1.5 : 0)), h = (s1 + s2*.5)*A; P.setY(i, h); const dx = Math.cos(x*w1 + z*.6 + ph)*w1*A - Math.cos(z*w2 - x*.4 + ph*1.3 + (flow ? T*1.5 : 0))*.2*A, dz = Math.cos(x*w1 + z*.6 + ph)*.6*A + Math.cos(z*w2 - x*.4 + ph*1.3 + (flow ? T*1.5 : 0))*w2*.5*A, n = 1/Math.hypot(dx*4, 1, dz*4); N.setXYZ(i, -dx*4*n, n, -dz*4*n); } P.needsUpdate = true; N.needsUpdate = true;
+  if (F3.foam && Math.random() < .3) c3Emit(F3.foam, rnd(-2.2, 2.2), .04, -12, rnd(-.05, .05), 0, 1.5, 9);
+  if (F3.boat){ F3.boat.position.y = Math.sin(T*1.1)*.05; F3.boat.rotation.z = Math.sin(T*.9)*.05; F3.boat.position.x = -1.8 + Math.sin(T*.05)*1.2; }
+  F3.amb.forEach(a => { a.a += dt*a.s*.5; a.m.position.x += Math.cos(a.a)*dt*a.s; a.m.position.z += Math.sin(a.a)*dt*a.s; a.m.rotation.z = -a.a; if (Math.abs(a.m.position.x) > 3) a.a += 3; if (a.m.position.z > 1 || a.m.position.z < -11) a.a += 3; });
+  F3.rings.forEach(q => { if (q.t < 1.3){ q.t += dt; const k = q.t/1.3, s = (.12 + k*1.1)*(q.s || 1); q.r.scale.set(s, s, 1); q.r.material.opacity = (1 - k)*.7; } else q.r.material.opacity = 0; });
+  // 상태가 바뀌는 순간
+  if (st !== F3.st){ const was = F3.st; F3.st = st; F3.stT = 0;
+    if (st === 'wait' || st === 'auto'){ if (F3.fish){ C3.stage.remove(F3.fish); c3Dispose(F3.fish); F3.fish = null; } F3.bx = rnd(-1, 1); F3.bz = rnd(-3.6, -1.6); F3.pose = 'fly'; F3.flyT = 0; }
+    if (st === 'reel' && !F3.fish){ F3.fish = f3FishModel(FG.fish); F3.fish.visible = false; }
+    if (st === 'done' && F3.last && F3.last.fresh){ const last = F3.last; last.fresh = false; if (last.win){ if (!F3.fish) F3.fish = f3FishModel(last.f); F3.pose = 'catch'; F3.flyT = 0; if (F3.fish){ F3.fish.visible = true; f3Splash(F3.bx, F3.bz, 24, 1.3); } } else { F3.pose = 'snap'; F3.flyT = 0; f3Splash(F3.bx, F3.bz, 10, .8); if (F3.fish){ C3.stage.remove(F3.fish); c3Dispose(F3.fish); F3.fish = null; } } }
+    else if (st === 'done' && was !== 'reel'){ F3.pose = 'pull'; F3.flyT = 0; }
+    else if (st === 'idle') F3.pose = 'rest';
+  }
+  F3.stT = (F3.stT || 0) + dt;
+  // 찌와 줄
+  const wy = Math.sin(F3.bx*.9 + F3.bz*.6 + T*1.1)*A, tip = F3_TIP(); let bend = .04;
+  if (F3.pose === 'rest'){ F3.bob.visible = true; const s = Math.sin(T*1.5)*.04; F3.bob.position.set(tip.x + s, tip.y - 1.05, tip.z + .02); f3LineTo(F3.bob.position, 0); }
+  else if (F3.pose === 'fly'){ F3.flyT += dt/.55; const k = Math.min(1, F3.flyT), o = V3(tip.x, tip.y - 1.05, tip.z); F3.bob.position.set(lerp(o.x, F3.bx, k), lerp(o.y, wy, k) + Math.sin(k*Math.PI)*1.6, lerp(o.z, F3.bz, k)); bend = k < .3 ? .35 : .02; f3LineTo(F3.bob.position, .25); if (k >= 1){ F3.pose = 'float'; f3Splash(F3.bx, F3.bz, 8, .7); } }
+  else if (F3.pose === 'float'){ F3.bob.visible = true; let y = wy + Math.sin(T*2.6)*.012; if (st === 'bite'){ y = wy - .02 - Math.abs(Math.sin(T*22))*.11; F3.bob.position.x = F3.bx + Math.sin(T*30)*.03; if (Math.random() < dt*14) f3Ring(F3.bx, F3.bz, .9); if (Math.random() < dt*22) c3Emit(F3.spray, F3.bx, .05, F3.bz, rnd(-.6, .6), rnd(.8, 1.6), rnd(-.6, .6), .7); F3.shadow.material.opacity = .36; bend = .14; } else { F3.bob.position.x = F3.bx; const ap = Math.min(1, (F3.stT || 0)/3); F3.shadow.material.opacity = st === 'wait' ? ap*.2 : 0; if (st === 'reel') F3.pose = 'fight'; }
+    F3.bob.position.y = y; F3.bob.position.z = F3.bz; const q = st === 'wait' ? 1 - Math.min(1, (F3.stT || 0)/3.2) : 0; F3.shadow.position.x = F3.bx - .5 - q*1.8; F3.shadow.position.z = F3.bz + .15 + q*1.3; f3LineTo(F3.bob.position, .3); }
+  if (F3.pose === 'fight'){ const prog = clamp(FG.prog ?? 30, 0, 100)/100, f = Hm ? clamp((FG.f ?? 0)/Hm, 0, 1) : .5, tx = (f - .5)*4.6, tz = lerp(-4.6, .6, prog); F3.bx = lerp(F3.bx, tx, Math.min(1, dt*2.6)); F3.bz = lerp(F3.bz, tz, Math.min(1, dt*2)); F3.bob.visible = false; const p = V3(F3.bx, -.02, F3.bz); f3LineTo(p, .02); F3.shadow.material.opacity = .46; F3.shadow.position.x = F3.bx; F3.shadow.position.z = F3.bz; F3.shadow.rotation.z = Math.sin(T*5)*.7; bend = FG.hold ? .95 : .5; const inZ = (FG.f >= FG.z) && Hm && (FG.f <= FG.z + Hm*zoneFrac()); if (Math.random() < dt*(inZ ? 16 : 6)) c3Emit(F3.spray, F3.bx + rnd(-.3, .3), .05, F3.bz + rnd(-.2, .2), rnd(-.7, .7), rnd(.9, 2.2), rnd(-.5, .5), .8); if (Math.random() < dt*3) f3Ring(F3.bx, F3.bz, .9); if (F3.fish){ const jump = Math.random() < dt*.35 && !F3.jumpT; if (jump){ F3.jumpT = .001; f3Splash(F3.bx, F3.bz, 12, .9); } if (F3.jumpT){ F3.jumpT += dt/.7; const k = Math.min(1, F3.jumpT); F3.fish.visible = true; F3.fish.position.set(F3.bx, Math.sin(k*Math.PI)*1.25, F3.bz); F3.fish.rotation.set(0, T*2, Math.sin(k*Math.PI)*.9 - .45); if (k >= 1){ F3.jumpT = 0; F3.fish.visible = false; f3Splash(F3.bx, F3.bz, 12, .8); } } } }
+  else if (F3.pose === 'catch'){ F3.flyT += dt/.8; const k = Math.min(1, F3.flyT), end = V3(tip.x, tip.y - 1.4, tip.z + .5), p = V3(lerp(F3.bx, end.x, k), lerp(0, end.y, k) + Math.sin(k*Math.PI)*1.3, lerp(F3.bz, end.z, k)); F3.shadow.material.opacity = 0; F3.bob.visible = false; if (F3.fish){ F3.fish.position.copy(p); F3.fish.rotation.set(Math.sin(T*9)*.25, T*.9, 1.45 + Math.sin(T*7)*.12); } f3LineTo(V3(p.x, p.y + .3, p.z), 0); bend = k < 1 ? .9 : .3 + Math.sin(T*7)*.03; if (k >= 1 && Math.random() < dt*6) c3Emit(F3.spark, p.x + rnd(-.5, .5), p.y + rnd(-.5, .5), p.z, rnd(-.4, .4), rnd(.2, .9), 0, .8); }
+  else if (F3.pose === 'snap'){ F3.flyT += dt/.5; const k = Math.min(1, F3.flyT); F3.shadow.material.opacity = 0; F3.bob.visible = true; F3.bob.position.set(lerp(F3.bx, tip.x, k), lerp(0, tip.y - 1.05, k) + Math.sin(k*Math.PI)*.7, lerp(F3.bz, tip.z, k)); f3LineTo(F3.bob.position, .5*(1 - k)); bend = Math.sin(k*10)*.14*(1 - k) + .02; if (k >= 1) F3.pose = 'rest'; }
+  else if (F3.pose === 'pull'){ F3.flyT += dt/.45; const k = Math.min(1, F3.flyT); F3.shadow.material.opacity = 0; F3.bob.position.set(lerp(F3.bx, tip.x, k), lerp(wy, tip.y - 1.05, k) + Math.sin(k*Math.PI)*.6, lerp(F3.bz, tip.z, k)); f3LineTo(F3.bob.position, .25*(1 - k)); bend = .3*(1 - k); if (k >= 1) F3.pose = 'rest'; }
+  else if (F3.pose === 'rest') F3.shadow.material.opacity = 0;
+  const nb = lerp(F3.bend, bend, Math.min(1, dt*9)); if (Math.abs(nb - F3.bend) > .006) f3Rod(nb);
+}
+// ---------- 기존 낚시터에 얹기 ----------
+const f3Box = () => document.getElementById('water');
+async function f3Start(){
+  const ok = await c3Ensure(); if (!ok || !FG || F3.on) return;
+  try { F3.cv = document.createElement('canvas'); F3.cv.id = 'f3c'; c3Start({canvas:F3.cv, box:f3Box}); C3.noFar = true; C3.input = {}; C3.skip = f3Pace; F3.ratio = undefined; F3.pt = 0; F3.pn = 0; F3.ema = 16; F3.skipN = 0; F3.on = true; f3Attach(); f3Scene(FG.spot); C3.fit(); }
+  catch(e){ console.warn('fish3d', e); F3.on = false; try { c3Stop(); } catch(x){} if (F3.cv) F3.cv.remove(); }
+}
+function f3Attach(){ const w = f3Box(); if (!w || !F3.cv) return; w.classList.add('f3'); if (F3.cv.parentNode !== w) w.insertBefore(F3.cv, w.firstChild); }
+const _openFish_f3 = openFish;
+openFish = () => { _openFish_f3(); f3Start(); };
+const _closeFish_f3 = closeFish;
+closeFish = () => { if (F3.on){ F3.on = false; C3.skip = null; c3Stop(); if (F3.cv) F3.cv.remove(); F3.cv = null; } _closeFish_f3(); };
+const _renderFish_f3 = renderFish;
+renderFish = () => { _renderFish_f3(); if (!F3.on) return; f3Attach(); C3.fit(); if (FG && FG.spot !== F3.spot) f3Scene(FG.spot); };
+const _reelEnd_f3 = reelEnd;
+reelEnd = win => { F3.last = {win, f:FG && FG.fish, fresh:true}; _reelEnd_f3(win); };
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
