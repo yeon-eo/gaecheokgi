@@ -573,6 +573,11 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .c3-tray{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; } .c3-tray .h-th{ flex:0 0 5.2rem; color:#2b241b; background:#fff8ea; }
 .c3-res{ margin-top:auto; max-height:62%; overflow:auto; background:rgba(255,250,240,.95); color:#2b241b; border-radius:16px; padding:12px; display:flex; flex-direction:column; }
 .c3-res .list{ width:100%; }
+/* 선물 상자 */
+.gb-step{ display:flex; align-items:center; gap:4px; flex:none; flex-wrap:wrap; justify-content:flex-end; max-width:9.6rem; } .gb-step .btn{ min-height:34px; min-width:34px; padding:0 8px; } .gb-step b{ min-width:1.6em; text-align:center; }
+.gb-bar{ position:sticky; bottom:-1px; margin:10px -4px 0; padding:8px; background:var(--paper-2); border:1px solid var(--line); border-radius:12px; box-shadow:0 -6px 16px rgba(0,0,0,.1); z-index:3; }
+.gb-chips{ display:flex; gap:4px; overflow-x:auto; margin-bottom:6px; padding-bottom:2px; }
+.gb-chip{ flex:none; display:inline-flex; align-items:center; gap:2px; padding:2px 8px; border:1px solid var(--line); border-radius:999px; background:var(--card); color:var(--ink); white-space:nowrap; } .gb-chip .iic.sm{ margin:0 2px 0 0; } .gb-chip i{ font-style:normal; color:var(--ink-3); margin-left:2px; }
 /* 동료 도감 */
 .cd-pic{ width:56px; height:56px; flex:none; display:block; } .cd-pic .crit{ width:100%; height:100%; }
 .cd-pic.un .crit{ filter:brightness(0) invert(.55); opacity:.6; }
@@ -8990,6 +8995,58 @@ CG_T.dfry3 = {
 };
 // 3D 시작할 때 이 순서를 쓴다
 CQ.push({id:'bitter', n:'한약 달이는 사람', h:'차를 너무 오래 우리면…?', line:'쓴맛에 눈이 번쩍 뜨인다.', run:x => x.flags.bitter}, {id:'thick', n:'튀김옷 장인', h:'튀김옷을 두껍게 입히면…?', line:'재료는 어디 갔을까.', run:x => x.flags.thick});
+// ===================== 선물 상자: 우편 한 통에 여러 물건을 담아 보낸다 =====================
+// 받는 쪽(postbox·우편함)은 원래 여러 물건을 받을 수 있다. 보내는 화면과 giftMany만 새로 만든다.
+const GIFT_KINDS = 10; // 한 통에 담는 종류 수
+const giftBox = o => { if (!UI.giftBox || UI.giftBox.o !== o) UI.giftBox = {o, items:{}}; return UI.giftBox; };
+const giftFree = k => cnt(k) - equippedN(k);
+function giftSet(o, k, n){
+  const B = giftBox(o); if (!IT[String(k).replace('*','')]) return;
+  if (document.activeElement && document.activeElement.id === 'giftMsg') document.activeElement.blur(); // 입력 중이면 화면이 다시 그려지지 않는다
+  n = clamp(n, 0, giftFree(k));
+  if (n > 0 && !B.items[k] && Object.keys(B.items).length >= GIFT_KINDS) return toast(`한 통에 ${GIFT_KINDS}종까지 담을 수 있어요.`);
+  if (n > 0) B.items[k] = n; else delete B.items[k];
+  sfx('click'); renderSheet(true);
+}
+let giftBusy = false;
+async function giftMany(o, msg){
+  if (giftBusy) return;
+  if (!PL[o]) return toast('상대 정보를 불러오는 중입니다.', 'warn');
+  const B = giftBox(o), list = Object.entries(B.items).map(([k, n]) => [k, Math.min(n, giftFree(k))]).filter(([, n]) => n > 0);
+  if (!list.length) return toast('보낼 물건을 담아 주세요.');
+  giftBusy = true;
+  const met = !meetBlock(o), liked0 = PL[o]?.likes || [];
+  list.forEach(([k, n]) => takeItem(k, n)); save();
+  const defs = {}; list.forEach(([k]) => { const b = k.replace('*',''); if (b.startsWith('c_') && S.customs && S.customs[b]) defs[b] = S.customs[b]; });
+  const r = await postSend(o, 'gift', {items:list, msg:(msg || '').trim().slice(0, 100), ...(Object.keys(defs).length ? {defs} : {})});
+  giftBusy = false;
+  if (!r){ list.forEach(([k, n]) => addItem(k, n)); save(); renderSheet(true); return; } // 못 보냈으면 물건을 돌려놓는다 (안내는 sendEv가 띄운다)
+  stat('gift'); stat('giftItems', list.length);
+  const first = `${itemName(list[0][0])} ×${list[0][1]}`, what = list.length > 1 ? `${first} 외 ${list.length - 1}종` : first;
+  postSent(r, o, what);
+  // 호감도는 종류마다 예전 한 번 선물만큼. 하루 상한은 addAff가 지킨다
+  let pts = 0, anyLiked = false;
+  list.forEach(([k]) => { const base = k.replace('*',''), it = IT[base], mult = it.r && foodRec(it.r)?.b?.gift ? 2 : 1, liked = liked0.includes(base); if (liked) anyLiked = true; pts += (['food','weapon','armor','acc'].includes(it.t) ? 3 : 2)*mult*(liked ? 2 : 1); });
+  const g = met ? await addAff(o, pts, true) : 0;
+  UI.giftBox = null; sfx('coin');
+  toast(`${PL[o]?.name || '상대'}님의 우편함으로 보냈습니다: ${what}.${g ? ` 호감도 +${g}${anyLiked ? ' (좋아하는 물건이 있어요!)' : ''}` : met ? '' : ' (멀리서 보낸 선물이라 호감도는 오르지 않아요)'}`);
+  closeSheet(); render();
+}
+const _gift_box = SHEETS.gift;
+SHEETS.gift = o => {
+  const B = giftBox(o);
+  for (const k of Object.keys(B.items)) if (giftFree(k) <= 0) delete B.items[k]; else if (B.items[k] > giftFree(k)) B.items[k] = giftFree(k);
+  const ent = Object.entries(B.items), total = ent.reduce((a, [, n]) => a + n, 0);
+  const u = esc(o);
+  let h = _gift_box(o).replace(/<div class="acts"><button class="btn sm" data-act="gift" data-u="[^"]*" data-k="([^"]*)"[^>]*>보내기<\/button>(?:<button[^>]*>5개<\/button>)?<\/div>/g, (m, k) => { const n = B.items[k] || 0, free = giftFree(k);
+    return n ? `<div class="gb-step"><button class="btn sm ghost" data-act="gbSet" data-u="${u}" data-k="${k}" data-n="${n - 1}" aria-label="하나 빼기">−</button><b class="num">${n}</b><button class="btn sm ghost" data-act="gbSet" data-u="${u}" data-k="${k}" data-n="${n + 1}" aria-label="하나 더" ${n >= free ? 'disabled' : ''}>＋</button>${free > n ? `<button class="btn sm ghost" data-act="gbSet" data-u="${u}" data-k="${k}" data-n="${free}">전부</button>` : ''}</div>` : `<button class="btn sm" data-act="gbSet" data-u="${u}" data-k="${k}" data-n="1">담기</button>`; });
+  const bar = `<div class="gb-bar">${ent.length ? `<div class="gb-chips">${ent.map(([k, n]) => `<button class="gb-chip" data-act="gbSet" data-u="${u}" data-k="${k}" data-n="0" aria-label="${esc(itemName(k))} 빼기">${itemIcon(k, 'sm')}<span class="tiny">${esc(itemName(k))} ×${n}</span><i>×</i></button>`).join('')}</div>` : '<p class="tiny muted" style="margin:0 0 6px;text-align:center">아래 목록에서 물건을 담으세요. 한 통에 ' + GIFT_KINDS + '종까지.</p>'}<button class="btn seal full" data-act="gbSend" data-u="${u}" ${ent.length ? '' : 'disabled'}>${ent.length ? `📮 ${ent.length}종 ${total}개 보내기` : '담은 물건 없음'}</button></div>`;
+  return h + bar;
+};
+Object.assign(ACT, {
+  gbSet: d => giftSet(d.u, d.k, +d.n),
+  gbSend: d => giftMany(d.u, ($('#giftMsg')?.value || '').trim().slice(0, 80)),
+});
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
