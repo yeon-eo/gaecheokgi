@@ -1,5 +1,5 @@
 // 개척기 서비스 워커 — 앱처럼 설치하고, 인터넷이 약해도 화면을 띄운다.
-const VERSION = '20261104005742';
+const VERSION = '20261104132200';
 const SHELL = 'gc-shell-' + VERSION;
 const LIBS = 'gc-libs-v1';
 const SHELL_FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './firebase-config.js'];
@@ -26,7 +26,7 @@ self.addEventListener('fetch', e => {
     return;
   }
   // 파이어베이스 라이브러리·글꼴: 한 번 받으면 보관본 사용
-  if (/gstatic\.com\/firebasejs|cdnjs\.cloudflare\.com\/ajax\/libs\/firebase|fonts\.(googleapis|gstatic)\.com/.test(req.url)){
+  if (/gstatic\.com\/firebasejs|cdnjs\.cloudflare\.com\/ajax\/libs\/(firebase|three\.js)|fonts\.(googleapis|gstatic)\.com/.test(req.url)){
     e.respondWith(caches.open(LIBS).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok || r.type === 'opaque') c.put(req, r.clone()); return r; }))));
   }
   // 그 밖(게임 데이터 서버, 유튜브 등)은 그대로 통과
