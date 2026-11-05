@@ -2521,6 +2521,7 @@ function answerTravel(yes){
   save(); pubDirty(); closeSheet(); render();
 }
 function travelAskTick(){
+  if (S && S.readyAt){ const P = myParty(), g = P && P.gather; if (!g || g.id !== S.readyAt) S.readyAt = null; else if (!travelState()){ S.readyAt = null; if (S.loc === g.region) partyReady(); } }
   const A = S && S.travelAsk; if (!A) return;
   if (now() >= A.deadline){ S.travelAsk = null; leaveParty(true); notify('social', '조사대 해산', '5분 동안 답하지 않아 조사대에서 빠졌습니다.'); if (SHEET && SHEET.k === 'travelAsk') closeSheet(); save(); render(); }
 }
@@ -2540,6 +2541,14 @@ let PARTIES = {}, partiesLoaded = false;
 const myParty = () => { const P = S && S.party && PARTIES[S.party]; return P && (P.members || []).includes(ST.uid) ? P : null; };
 const allyInfo = () => { const st = effStats(); return {name:S.char.name, atk:+atkOf(st).toFixed(1), job:S.job, agi:st.AGI}; };
 const nameOf = u => u === ST.uid ? S.char.name : (PL[u]?.name || '누군가');
+// 뒤처진 대원이 일행에게 걸어간다 (조사대에 합류할 때와 같은 걸음)
+const _settleExp_party = settleExp;
+settleExp = kind => { _settleExp_party(kind); partySync(); };
+function partyCatchUp(to, P){
+  if (to == null || !REG[to] || to === S.loc || S.exp || S.hard || S.travel) return false;
+  S.travel = {from:S.loc, to, start:now(), arrive:now() + travelMin(S.loc, to)*MIN/SPD(), seed:(Math.random()*2**31)|0, with:[], join:nameOf(P.leader)};
+  return true;
+}
 function partySync(){
   if (!S || !S.char || !partiesLoaded) return;
   const P = myParty();
@@ -2561,9 +2570,14 @@ function partySync(){
     S.travel = null; UI.region = S.loc; notify('social', '되돌아감', '대장이 발길을 돌렸다. 일행과 함께 돌아왔다.'); save(); pubDirty(); render();
   }
   if (P.travelCancel && S.travelAsk && S.travelAsk.start === P.travelCancel){ S.travelAsk = null; if (SHEET && SHEET.k === 'travelAsk') closeSheet(); toast('대장이 발길을 돌렸다.'); save(); }
-  if (P.travel && P.travel.start > (S.lastPT || 0)){
+  if (P.gather && P.gather.region == null && P.leader === ST.uid) ST.db.doc('parties/' + P.id).update({gather:null}).catch(() => {});
+  const busy = S.exp || S.hard;
+  if (P.travel && P.travel.start > (S.lastPT || 0) && !(busy && P.leader !== ST.uid)){
     S.lastPT = P.travel.start;
-    if (!S.exp && now() < P.travel.arrive){
+    if (P.leader !== ST.uid && now() >= P.travel.arrive){
+      if (!travelState() && S.loc !== P.travel.to && partyCatchUp(P.travel.to, P)){ notify('social', '일행 따라가기', `조사대가 ${josa(REG[P.travel.to].n,'으로','로')} 옮겨 갔습니다. 일행이 있는 곳으로 걸어갑니다.`); save(); pubDirty(); render(); }
+      else save();
+    } else if (!S.exp && now() < P.travel.arrive){
       if (P.leader === ST.uid){
         S.travel = {...P.travel, with:others};
         notify('social', '함께 이동', `${others.join(', ')}${pp(others[others.length-1]||'','과','와')} 손을 잡고 함께 걷기로 했다.`);
@@ -2571,7 +2585,7 @@ function partySync(){
         // 대원에게는 함께 갈지 묻는다. 5분 안에 답하지 않으면 조사대에서 빠진다
         S.travelAsk = {start:P.travel.start, from:P.travel.from, to:P.travel.to, dur:P.travel.arrive - P.travel.start, seed:P.travel.seed, leader:P.leader, deadline:now() + 5*MIN};
         notify('social', '조사대 이동', `대장 ${nameOf(P.leader)}님이 ${josa(REG[P.travel.to].n,'으로','로')} 떠납니다. 함께 가시겠어요? (5분 안에 답해 주세요)`);
-        openSheet('travelAsk');
+        if (!SHEET) openSheet('travelAsk');
       }
       save(); pubDirty();
     }
@@ -2581,7 +2595,7 @@ function partySync(){
 function applyGo(P){
   const g = P.go; S.goDone[g.id] = 1;
   const ks = Object.keys(S.goDone); if (ks.length > 20) delete S.goDone[ks[0]];
-  if (S.exp || travelState() || S.loc !== g.region){ toast('조사대 탐사에 함께하지 못했습니다. (다른 일을 하는 중)', 'warn'); save(); return; }
+  if (S.exp || S.hard || travelState() || S.loc !== g.region){ toast('조사대 탐사에 함께하지 못했습니다. (다른 일을 하는 중)', 'warn'); save(); return; }
   const list = [];
   for (const k of ['pot2','pot1']){ const n = Math.min(UI['p_'+k] ?? (k==='pot1'?2:0), cnt(k)); for (let i=0;i<n;i++) list.push(k); }
   list.forEach(k => takeItem(k));
@@ -2642,9 +2656,16 @@ async function partyGather(hours){
   try { await ST.db.doc('parties/' + P.id).update({gather:{id:uid36(), region:S.loc, hours, at:now(), ready:{[ST.uid]:allyInfo()}}}); toast('조사대원에게 함께 떠나자고 알렸습니다.'); } catch(e){ toast('모집하지 못했습니다.', 'warn'); }
 }
 async function partyReady(){
-  const P = myParty(); if (!P || !P.gather) return;
-  if (S.exp || travelState()) return toast('지금은 함께할 수 없습니다.');
-  if (S.loc !== P.gather.region) return toast(`${REG[P.gather.region].n}에 있어야 함께 떠날 수 있습니다.`);
+  const P = myParty(), g = P && P.gather; if (!g || g.region == null) return;
+  if (S.exp || S.hard) return toast('지금은 함께할 수 없습니다.');
+  const walking = travelState();
+  if (walking && walking.to !== g.region && S.travel.to !== g.region) return toast('길을 걷는 중이라 지금은 함께할 수 없습니다.');
+  if (S.travel || S.loc !== g.region){
+    if (!S.travel && !partyCatchUp(g.region, P)) return toast('지금은 함께할 수 없습니다.');
+    S.readyAt = g.id; save(); pubDirty(); render();
+    return toast(`${josa(REG[g.region].n,'으로','로')} 걸어갑니다. 도착하면 자동으로 준비 완료가 됩니다.`, 'good');
+  }
+  S.readyAt = null;
   try { await ST.db.doc('parties/' + P.id).update({gather:{ready:{[ST.uid]:allyInfo()}}}); toast('준비 완료! 대장이 출발하면 함께 떠납니다.', 'good'); sfx('click'); } catch(e){ toast('알리지 못했습니다.', 'warn'); }
 }
 async function partyGo(){
@@ -2652,7 +2673,7 @@ async function partyGo(){
   const g = P.gather, roster = g.ready || {};
   if (Object.keys(roster).length < 2) return toast('아직 준비된 조사대원이 없습니다.');
   const go = {id:g.id, region:g.region, start:now(), dur:g.hours*H/SPD(), tick:NT/SPD(), nt:NT, v:6, seed:(Math.random()*2**31)|0, roster};
-  try { await ST.db.doc('parties/' + P.id).update({go, gather:null}); } catch(e){ toast('출발하지 못했습니다.', 'warn'); }
+  try { await ST.db.doc('parties/' + P.id).update({go:null}); await ST.db.doc('parties/' + P.id).update({go, gather:null}); } catch(e){ toast('출발하지 못했습니다.', 'warn'); }
 }
 // 조사대장 넘기기: 대장이 대원 한 명을 골라 넘긴다. 모집 중이던 탐사는 취소된다
 async function partyHandover(u){
@@ -2667,7 +2688,7 @@ async function partyHandover(u){
 async function partyCancel(){ const P = myParty(); if (!P || P.leader !== ST.uid) return; try { await ST.db.doc('parties/' + P.id).update({gather:null}); } catch(e){} }
 function partyCard(){
   const P = myParty(); if (!P) return '';
-  const lead = P.leader === ST.uid, g = P.gather;
+  const lead = P.leader === ST.uid, g = P.gather && P.gather.region != null ? P.gather : null;
   const mem = P.members.map(u => { const p = u === ST.uid ? null : PL[u]; const where = u === ST.uid ? (S.travel && now() < S.travel.arrive ? `${josa(REG[S.travel.to].n,'으로','로')} 이동 중` : REG[S.loc].n) : p ? (p.travel && p.travel.arrive > now() ? `${josa(REG[p.travel.to].n,'으로','로')} 이동 중` : p.exp ? '탐사 중' : REG[p.loc ?? 0]?.n) : ''; return `<span class="chip ${u===P.leader?'gold':''}">${u===P.leader?'👑 ':''}${esc(nameOf(u))}${u===P.leader?' · 대장':''} · ${esc(where||'')}</span>`; }).join(' ');
   const hand = lead && P.members.length > 1 ? `<details class="sub" style="margin-top:8px"><summary class="small">조사대장 넘기기</summary><div class="row wrapf" style="gap:6px;margin-top:6px">${P.members.filter(u => u !== ST.uid).map(u => `<button class="btn sm ghost" data-act="partyLead" data-u="${esc(u)}">👑 ${esc(nameOf(u))}에게</button>`).join('')}</div><p class="tiny muted" style="margin:4px 0 0">넘기면 이동과 조사대 탐사 모집은 새 대장이 정합니다. 모집 중인 탐사는 취소됩니다.</p></details>` : '';
   let gat = '';
@@ -2675,7 +2696,7 @@ function partyCard(){
     const ready = Object.keys(g.ready || {});
     gat = `<div class="card" style="padding:10px;margin-top:8px"><b class="small">조사대 탐사 모집 · ${REG[g.region].n} ${g.hours}시간</b><p class="tiny muted" style="margin:2px 0 6px">준비: ${ready.map(nameOf).map(esc).join(', ')}</p>
       ${!S.exp ? `<div style="margin-bottom:8px">${toolSel()}</div>` : ''}
-      ${lead ? `<div class="row"><button class="btn sm seal" data-act="partyGo" ${ready.length < 2 ? 'disabled' : ''}>함께 출발</button><button class="btn sm ghost" data-act="partyCancel">모집 취소</button></div>` : ready.includes(ST.uid) ? '<span class="chip good">준비 완료</span>' : `<button class="btn sm seal" data-act="partyReady">함께 가기</button>`}</div>`;
+      ${lead ? `<div class="row"><button class="btn sm seal" data-act="partyGo" ${ready.length < 2 ? 'disabled' : ''}>함께 출발</button><button class="btn sm ghost" data-act="partyCancel">모집 취소</button></div>` : ready.includes(ST.uid) ? '<span class="chip good">준비 완료</span>' : S.readyAt === g.id ? '<span class="chip">일행에게 걸어가는 중 · 도착하면 준비 완료</span>' : `<button class="btn sm seal" data-act="partyReady">${S.loc !== g.region ? `${REG[g.region].n}까지 걸어가 함께 가기` : '함께 가기'}</button>`}</div>`;
   }
   return `<div class="card" style="margin-bottom:10px"><div class="row"><h3 class="grow">우리 조사대 ${P.members.length}/4</h3><button class="btn sm ghost" data-act="leaveParty">조사대 나가기</button></div><div class="row wrapf" style="gap:6px;margin-top:6px">${mem}</div>${hand}${P.members.length < 2 ? '<p class="tiny muted" style="margin:6px 0 0">다른 개척자의 프로필에서 \'함께 가기\'를 누르면 조사대원이 됩니다.</p>' : ''}${gat}</div>`;
 }
@@ -3333,7 +3354,7 @@ TABS.explore = () => {
   const potSel = k => { const v = Math.min(UI['p_'+k] ?? (k==='pot1'?2:0), cnt(k)); return `<div class="row"><span class="grow">${IT[k].n} <span class="muted small">보유 ${cnt(k)}</span></span><button class="btn sm ghost" data-act="potN" data-k="${k}" data-d="-1" aria-label="${IT[k].n} 줄이기">−</button><b class="num" style="min-width:1.5em;text-align:center">${v}</b><button class="btn sm ghost" data-act="potN" data-k="${k}" data-d="1" aria-label="${IT[k].n} 늘리기">+</button></div>`; };
   const fb = foodActive(), hours = UI.hours || 1, cleared = !!S.bosses[ri];
   const tmin = travelMin(S.loc, ri);
-  const g = P && P.gather;
+  const g = P && P.gather && P.gather.region != null ? P.gather : null;
   let act = '';
   if (here){
     act = `<hr class="rule" style="margin:2px 0">
