@@ -580,6 +580,11 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .c3-res{ margin-top:auto; max-height:62%; overflow:auto; background:rgba(255,250,240,.95); color:#2b241b; border-radius:16px; padding:12px; display:flex; flex-direction:column; }
 .c3-res .list{ width:100%; }
 .c3-res > .row:last-child{ position:sticky; bottom:-12px; margin:0 -12px -12px; padding:8px 12px 12px; background:#fbf5e8; z-index:2; flex:none; }
+/* 맨 위로 */
+.totop{ position:fixed; z-index:26; right:max(14px, calc((100vw - 560px)/2 + 14px), env(safe-area-inset-right,0px)); bottom:calc(88px + env(safe-area-inset-bottom,0px)); min-height:44px; padding:6px 14px; border:1px solid var(--line); border-radius:22px; background:var(--card); color:var(--ink); font:inherit; font-size:.86rem; font-weight:700; box-shadow:0 3px 12px var(--shade); cursor:pointer; }
+.totop span{ font-size:.72rem; margin-right:3px; }
+#sheet .totop{ position:absolute; z-index:2; bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+.totop:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
 /* 탐사 3D */
 .x3b{position:relative;border-radius:10px;overflow:hidden;background:#cfe0dc;border:1px solid var(--line)}
 #x3v{height:clamp(170px,44vw,250px)}
@@ -919,6 +924,7 @@ const ANIMALS = {
   cow:{n:'일소',k:'牛',buy:900,feed:['cabbage','barley','radish'],h:6,out:['compost',2,3],f:'밭을 갈던 순한 소. 채소를 주면 퇴비를 남긴다.'},
 };
 const PEN_MAX = 4;
+const penMax = () => PEN_MAX + 2*((S && S.penLv) || 0); // 축사 넓히기마다 2칸
 // 몬스터: L=레벨, t: a 야생동물 / y 요괴
 const MON = {
   crab:{n:'겹쳐진집게',t:'a',L:1,hm:1,am:.9,gm:.6,dr:[['clam',.5],['bone',.3]],w:'요괴 아님, 등껍질이 단단하다'},
@@ -3257,13 +3263,13 @@ TABS.home = () => {
     ${festOn() ? `<button class="tile fest-tile" data-act="sheet" data-s="matsuri"><span class="ic">🏮</span><b>마츠리</b><span class="st on">축제 중 · <span class="num" data-cd="${festEnd()}"></span> 남음</span></button>` : ''}
     ${tile('sheet', 'kitchen', '부엌', `<span class="st ${canCook?'on':''}">${canCook ? `지금 만들 수 있는 요리 ${canCook}` : `아는 레시피 ${knownRecipes().length}`}</span>`, 'data-s="kitchen"')}
     ${tile('sheet', 'farm', '논밭', `<span class="st ${ready?'on':''}">${ready ? `수확 가능 ${ready}` : growing ? `자라는 중 ${growing}/4` : '빈 밭 4칸'}</span>`, 'data-s="farm"')}
-    ${tile('sheet', 'pen', '축사', `<span class="st ${penReady()?'on':''}">${penReady() ? `수확 가능 ${penReady()}` : S.pen.length ? `가축 ${S.pen.length}/${PEN_MAX}${penHungry() ? ` · 먹이 필요 ${penHungry()}` : ''}` : '닭·누에·꿀벌·일소'}</span>`, 'data-s="pen"')}
+    ${tile('sheet', 'pen', '축사', `<span class="st ${penReady()?'on':''}">${penReady() ? `수확 가능 ${penReady()}` : S.pen.length ? `가축 ${S.pen.length}/${penMax()}${penHungry() ? ` · 먹이 필요 ${penHungry()}` : ''}` : '닭·오리·누에·꿀벌·소·산양·양'}</span>`, 'data-s="pen"')}
     ${tile('sheet', 'nest', '둥지', `<span class="st ${nestReady?'on':''}">${nestReady ? '알이 움직인다!' : S.nest ? `부화까지 <span class="num" data-cd="${S.nest.at+S.nest.dur}"></span>` : S.eggs.length ? `품을 알 ${S.eggs.length}` : `동료 ${S.comps.length}마리`}</span>`, 'data-s="nest"')}
     ${tile('sheet', 'craft', '공방', '<span class="st">대장간 · 세공소 · 약방</span>', 'data-s="craft"')}
     ${tile('sheet', 'task', '뒷산 일터', taskTxt, 'data-s="tasks"')}
     ${tile('openFish', 'fishing', '강가 낚시터', `<span class="st">강 · 바다 · 호수 · 지금은 ${tod}</span>`)}
     ${tile('sheet', 'rest', '온천 (휴식)', `<span class="st ${restActive() ? 'on' : ''}">${restActive() ? `휴식 중 · <span class="num" data-cd="${S.rest.until}"></span>` : curHP() < maxHP() ? `체력 회복 5배 · ${Math.floor(curHP())}/${maxHP()}` : '체력이 가득하다'}</span>`, 'data-s="rest"')}
-    ${tile('sheet', 'shop', '잡화점', '<span class="st">사고팔기 · 씨앗 · 가축</span>', 'data-s="shop"')}
+    ${tile('sheet', 'shop', '잡화점', '<span class="st">사고팔기 · 씨앗 · 축사 먹이</span>', 'data-s="shop"')}
     ${tile('sheet', 'board', '게시판', `<span class="st ${dn?'on':''}">${dn ? `구조 요청 ${dn}` : ST.mode==='cloud' ? '구조 요청 · 토벌대 · 소식' : '마을 소식'}</span>`, 'data-s="board"')}
     ${tile('sheet', 'sub', '신사 (서브 직업)', `<span class="st">${SUBS[S.sub].n}${syn()?' · <b style="color:var(--moss)">궁합 보너스</b>':''}</span>`, 'data-s="subjob"')}
   </div>
@@ -3740,7 +3746,7 @@ SHEETS.shop = () => {
   const sellable = Object.keys(S.inv).filter(k => cnt(k) - equippedN(k) > 0 && IT[k.replace('*','')] && sellPrice(k) > 0 && !['ticket','ring'].includes(k))
     .sort((a,b) => IT[a.replace('*','')].t.localeCompare(IT[b.replace('*','')].t) || itemName(a).localeCompare(itemName(b), 'ko'));
   const bRow = k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">보유 ${cnt(k)}</span></b>${IT[k].f ? `<span class="flav">${esc(IT[k].f)}</span>` : ''}<span>${esc(IT[k].d || '')}</span></div><div class="acts"><button class="btn sm" data-act="buy" data-k="${k}" data-n="1" ${S.gold<IT[k].p?'disabled':''}>${IT[k].p}${CUR}</button>${IT[k].p <= 30 ? `<button class="btn sm ghost" data-act="buy" data-k="${k}" data-n="5" ${S.gold<IT[k].p*5?'disabled':''}>5개</button>` : ''}</div></div>`;
-  const bGroups = [...Object.keys(TAG_N).map(t => [`요리 재료 · ${TAG_N[t]}`, SHOP.filter(k => IT[k].t === 'mat' && ingTag(k) === t)]), ['씨앗', SHOP.filter(k => IT[k].t === 'seed')], ['약 · 특수', SHOP.filter(k => !['mat','seed'].includes(IT[k].t))]];
+  const bGroups = [...Object.keys(TAG_N).map(t => [`요리 재료 · ${TAG_N[t]}`, SHOP.filter(k => IT[k].t === 'mat' && ingTag(k) === t)]), ['축사 먹이', SHOP.filter(k => IT[k].fd)], ['씨앗', SHOP.filter(k => IT[k].t === 'seed')], ['약 · 특수', SHOP.filter(k => !['mat','seed'].includes(IT[k].t))]];
   const buyList = bGroups.filter(([, ks]) => ks.length).map(([n, ks]) => `<h3 class="shop-h">${n}</h3><div class="list">${ks.map(bRow).join('')}</div>`).join('');
   const sellList = sellable.length ? `<div class="list">${sellable.map(k => { const free = cnt(k) - equippedN(k); return `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))} <span class="cntx">×${free}</span></b><span>한 개 ${sellPrice(k)}${CUR}${equippedN(k) ? ' · 장착 중인 것은 제외' : ''}</span></div><div class="acts"><button class="btn sm" data-act="sell" data-k="${k}">팔기</button>${free > 1 ? `<button class="btn sm ghost" data-act="sellAll" data-k="${k}">모두 ${sellPrice(k)*free}${CUR}</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="muted">팔 수 있는 물건이 없다.</p>';
   return sheetHead('잡화점', `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`) + `
@@ -9760,6 +9766,156 @@ c3Stop = () => { _c3Stop_x3(); if (!X3.own) setTimeout(x3Sync, 80); };
 render = () => { _render_x3(); x3Sync(); };
 Object.assign(ACT, {x3Toggle(){ const off = !x3Off(); try { localStorage.setItem(X3_OFFK, off ? '1' : '0'); } catch(e){} x3Sync(); }});
 setInterval(() => { if (document.hidden || typeof SCREEN === 'undefined' || SCREEN !== 'game') return; x3Sync(); }, 1800);
+// ===================== 축사 확장 · 맨 위로 버튼 =====================
+// 잡화점 사료, 새 가축 3종, 쓰다듬기와 애정도, 고급 사료, 먹이통, 축사 넓히기, 모두 거두기.
+// ---------- 새 물건 ----------
+const RANCH_IT = {
+  feed:{n:'배합 사료', p:8, ic:['sack','#d8c08a','#8a6a3a'], fd:1, f:'곡식과 겨를 섞은 사료. 꿀벌통 말고는 축사의 어떤 가축이든 잘 먹는다.'},
+  feed2:{n:'고급 사료', p:30, ic:['sack','#e8b860','#a0402a'], fd:1, f:'콩깻묵과 약초를 섞은 사료. 먹은 가축은 산물을 더 빨리, 하나 더 낸다.'},
+  milk:{n:'산양젖', p:14, tag:'sweet', ic:['bottle','#fbf8f0','#9ab8c8'], f:'산양에게서 짠 진한 젖. 요리에 넣으면 고소한 단맛이 돈다.'},
+  wool:{n:'양털', p:18, ic:['cotton','#f6f2e6','#c8bca4'], f:'갓 깎은 폭신한 양털. 잡화점에서 값을 잘 쳐준다.'},
+  egg_gold:{n:'금빛 달걀', p:150, ic:['egg','#f4d060','#c8902a'], f:'아주 아끼는 닭이 가끔 낳는 금빛 달걀. 귀한 값에 팔린다.'},
+  silk_fine:{n:'상등 생사', p:140, ic:['spool','#fff8e8','#e0b860'], f:'정성껏 키운 누에가 뽑은 윤기 나는 실.'},
+  royal:{n:'로열젤리', p:160, ic:['jar','#fbeec0','#d8a83a'], f:'벌들이 여왕벌에게만 먹이는 귀한 젤리.'},
+  wool_fine:{n:'고운 양털', p:120, ic:['cotton','#fffdf6','#e0c8a0'], f:'아끼는 양에게서 얻은 비단 같은 털.'},
+};
+for (const k in RANCH_IT){ const m = RANCH_IT[k]; IT[k] = {n:m.n, t:'mat', p:m.p, f:m.f, ...(m.fd ? {fd:1} : {})}; if (m.tag) ING[k] = m.tag; ICON[k] = m.ic; }
+IT.mulberry.fd = 1;
+SHOP.push('feed', 'feed2', 'mulberry');
+Object.assign(ANIMALS, {
+  duck:{n:'오리', k:'鴨', buy:350, feed:['rice','barley','bean','buckwheat'], h:4, out:['egg',1,2], bonus:['feather',.35], f:'뒤뚱뒤뚱 물웅덩이를 좋아하는 오리. 알을 낳고 가끔 깃털도 떨군다.'},
+  goat:{n:'산양', k:'羊', buy:700, feed:['cabbage','radish','sansai'], h:6, out:['milk',1,2], f:'고집 센 산양. 채소와 산나물을 먹고 진한 젖을 낸다.'},
+  sheep:{n:'양', k:'綿', buy:800, feed:['cabbage','barley','sansai'], h:8, out:['wool',1,2], f:'털이 복슬복슬한 양. 쓰다듬으면 눈을 가늘게 뜬다.'},
+});
+// 애정도가 가득하면 가끔 나오는 귀한 산물
+const RANCH_RARE = {chick:['egg_gold',1], duck:['feather',3], silkworm:['silk_fine',1], bee:['royal',1], cow:['compost',3], goat:['milk',2], sheep:['wool_fine',1]};
+const PEN_UP = [{g:3000, need:[['wood',10]]}, {g:8000, need:[['wood',20],['ore',5]]}];
+const PAT_GAP = 4*H, FEEDER_COST = 1500;
+const love = a => clamp(a.love || 0, 0, 100);
+const loveUp = (a, n) => { a.love = clamp((a.love || 0) + n, 0, 100); };
+const feedsFor = A => A.feed ? [...A.feed, 'feed', 'feed2'] : [];
+const natFeed = A => A.feed ? A.feed.find(k => cnt(k) > 0) || (cnt('feed') ? 'feed' : null) : null;
+
+// ---------- 행동 ----------
+function buyAnimal(kind){
+  if (baseLocked()) return lockToast();
+  const A = ANIMALS[kind]; if (!A) return;
+  if (S.pen.length >= penMax()) return toast(`축사에는 ${penMax()}마리까지 기를 수 있습니다.`);
+  if (S.gold < A.buy) return toast('엽전이 부족합니다.', 'warn');
+  S.gold -= A.buy;
+  S.pen.push({id:uid36(), kind, name:A.n, readyAt: A.feed ? 0 : now() + animalDur(kind), fed: !A.feed, love:0});
+  sfx('coin'); save(); toast(`${A.n}${pp(A.n,'을','를')} 축사에 들였다.${A.feed ? ' 먹이를 주면 생산을 시작합니다.' : ''}`, 'good'); renderSheet(); render();
+}
+function feedAnimalWith(a, k){
+  const A = ANIMALS[a.kind]; if (!A.feed || a.fed || !feedsFor(A).includes(k) || !takeItem(k)) return false;
+  a.fed = true; a.boost = k === 'feed2'; a.readyAt = now() + animalDur(a.kind)*(a.boost ? .7 : 1); loveUp(a, a.boost ? 5 : 2); return true;
+}
+function feedAnimal(id, k){
+  if (baseLocked()) return lockToast();
+  const a = S.pen.find(x => x.id === id); if (!a) return; const A = ANIMALS[a.kind]; if (!A.feed || a.fed) return;
+  k = k || natFeed(A); if (!k) return toast(`먹이가 없습니다. (${A.feed.map(x => IT[x].n).join('·')} 또는 배합 사료)`);
+  if (!feedAnimalWith(a, k)) return toast('그 먹이는 먹지 않아요.');
+  sfx('eat'); save(); toast(`${a.name}에게 ${IT[k].n}${pp(IT[k].n,'을','를')} 주었다.${a.boost ? ' 기운이 넘친다!' : ''}`); renderSheet(); render();
+}
+function collectOne(a){
+  const A = ANIMALS[a.kind]; if (!a.fed || now() < a.readyAt) return null;
+  const [it, lo, hi] = A.out, got = {};
+  let n = lo + Math.floor(Math.random()*(hi - lo + 1)) + (S.sub === 'herder' ? 1 : 0) + (a.boost ? 1 : 0) + (love(a) >= 50 && Math.random() < .5 ? 1 : 0);
+  got[it] = n;
+  if (A.bonus && Math.random() < A.bonus[1]) got[A.bonus[0]] = (got[A.bonus[0]] || 0) + 1;
+  const rare = RANCH_RARE[a.kind]; if (rare && love(a) >= 100 && Math.random() < .15) got[rare[0]] = (got[rare[0]] || 0) + rare[1];
+  for (const k in got) addItem(k, got[k]);
+  addProf('herder', 2); stat('ranch'); loveUp(a, 1);
+  a.boost = false; if (A.feed){ a.fed = false; a.readyAt = 0; if (S.feederOn && S.feeder){ const k = natFeed(A); if (k) feedAnimalWith(a, k); } } else a.readyAt = now() + animalDur(a.kind);
+  return got;
+}
+const gotTxt = got => Object.entries(got).map(([k, n]) => `${IT[k].n} ${n}`).join(', ');
+function collectAnimal(id){
+  if (baseLocked()) return lockToast();
+  const a = S.pen.find(x => x.id === id); if (!a) return; const got = collectOne(a); if (!got) return;
+  const xp = addXP(3), rare = Object.keys(got).some(k => IT[k].p >= 100);
+  sfx(rare ? 'rare' : 'win'); save(); toast(`${a.name}에게서 ${gotTxt(got)}${pp(gotTxt(got),'을','를')} 얻었다.${rare ? ' 귀한 산물이다!' : ''} 경험치 +${xp}`, 'good'); renderSheet(); render();
+}
+function collectAll(){
+  if (baseLocked()) return lockToast();
+  const all = {}; let c = 0; S.pen.forEach(a => { const g = collectOne(a); if (g){ c++; for (const k in g) all[k] = (all[k] || 0) + g[k]; } });
+  if (!c) return toast('아직 거둘 것이 없어요.');
+  const xp = addXP(3*c); sfx('win'); save(); toast(`${c}마리에게서 ${gotTxt(all)} · 경험치 +${xp}`, 'good'); renderSheet(); render();
+}
+function feedAll(){
+  if (baseLocked()) return lockToast();
+  let c = 0, miss = 0; S.pen.forEach(a => { const A = ANIMALS[a.kind]; if (!A.feed || a.fed) return; const k = natFeed(A); if (k && feedAnimalWith(a, k)) c++; else miss++; });
+  if (!c) return toast(miss ? '줄 먹이가 없어요. 잡화점에서 배합 사료를 살 수 있어요.' : '배고픈 가축이 없어요.');
+  sfx('eat'); save(); toast(`${c}마리에게 먹이를 주었다.${miss ? ` (${miss}마리는 먹이가 없어요)` : ''}`); renderSheet(); render();
+}
+const PAT_SAY = ['꼬리를 살랑 흔든다.', '코를 비비며 다가온다.', '눈을 가늘게 뜨고 기분 좋아한다.', '작게 울며 손에 머리를 기댄다.', '폴짝 뛰며 반긴다.'];
+function patAnimal(id){
+  if (baseLocked()) return lockToast();
+  const a = S.pen.find(x => x.id === id); if (!a) return;
+  if (now() - (a.patAt || 0) < PAT_GAP/SPD()) return toast(`${a.name}${pp(a.name,'은','는')} 조금 전에 쓰다듬었어요.`);
+  a.patAt = now(); loveUp(a, 8); stat('ranchPat'); sfx('soft'); save();
+  toast(`${a.name}${pp(a.name,'이','가')} ${pick(Math.random, PAT_SAY)} (애정 ${love(a)})`, love(a) >= 100 ? 'good' : ''); renderSheet();
+}
+function renameAnimal(id){
+  const a = S.pen.find(x => x.id === id), el = $('#an_' + id); if (!a || !el) return;
+  const v = el.value.trim().slice(0, 10); if (!v) return toast('이름을 적어 주세요.'); a.name = v; save(); toast(`이제 이 아이의 이름은 ${v}입니다.`, 'good'); renderSheet();
+}
+function penUpgrade(){
+  if (baseLocked()) return lockToast();
+  const lv = S.penLv || 0, u = PEN_UP[lv]; if (!u) return;
+  if (S.gold < u.g || !needOk(u.need)) return toast('재료나 엽전이 모자라요.', 'warn');
+  S.gold -= u.g; needTake(u.need); S.penLv = lv + 1; sfx('rare'); save(); toast(`축사를 넓혔다! 이제 ${penMax()}마리까지 기를 수 있어요.`, 'good'); renderSheet(); render();
+}
+function buyFeeder(){
+  if (baseLocked()) return lockToast();
+  if (S.feeder) return; if (S.gold < FEEDER_COST) return toast('엽전이 부족합니다.', 'warn');
+  S.gold -= FEEDER_COST; S.feeder = 1; S.feederOn = 1; sfx('coin'); save(); toast('먹이통을 달았다. 거둘 때 알아서 먹이를 채워 줘요.', 'good'); renderSheet();
+}
+Object.assign(ACT, {
+  feedAnimal: d => feedAnimal(d.id, d.k), collectAnimal: d => collectAnimal(d.id), buyAnimal: d => buyAnimal(d.k),
+  patAnimal: d => patAnimal(d.id), renameAnimal: d => renameAnimal(d.id), penCollectAll: collectAll, penFeedAll: feedAll, penUpgrade, buyFeeder,
+  feederToggle(){ S.feederOn = S.feederOn ? 0 : 1; save(); renderSheet(); },
+});
+TITLES.push({id:'ranchLove', n:'가축의 단짝', d:'가축 한 마리의 애정을 가득 채웠다.', c:S => (S.pen || []).some(a => (a.love || 0) >= 100)});
+
+// ---------- 축사 화면 ----------
+SHEETS.pen = () => {
+  const free = penMax() - S.pen.length, lv = S.penLv || 0, up = PEN_UP[lv];
+  const ready = S.pen.filter(a => a.fed && now() >= a.readyAt).length, hungry = S.pen.filter(a => ANIMALS[a.kind].feed && !a.fed).length;
+  const card = a => { const A = ANIMALS[a.kind], rd = a.fed && now() >= a.readyAt, dur = animalDur(a.kind)*(a.boost ? .7 : 1), pct = a.fed ? clamp(100 - (a.readyAt - now())/dur*100, 0, 100) : 0, L = love(a), patOk = now() - (a.patAt || 0) >= PAT_GAP/SPD();
+    const opts = A.feed ? feedsFor(A).filter(k => cnt(k) > 0) : [];
+    return `<div class="card"><div class="row"><span class="stamp" style="width:2rem;height:2rem;font-size:1rem">${A.k}</span><div class="grow"><b>${esc(a.name)}</b> <span class="small" aria-label="애정 ${L}">${'♥'.repeat(Math.floor(L/20))}<span class="muted">${'♡'.repeat(5 - Math.floor(L/20))}</span></span><br><span class="small muted">${rd ? `${IT[A.out[0]].n}${pp(IT[A.out[0]].n,'이','가')} 생겼다!` : a.fed ? `<span class="num" data-cd="${a.readyAt}"></span> 뒤 ${IT[A.out[0]].n}${a.boost ? ' · 고급 사료 먹음' : ''}` : '배고파 보인다'}</span></div>
+      ${rd ? `<button class="btn sm seal" data-act="collectAnimal" data-id="${a.id}">거두기</button>` : ''}</div>
+      ${a.fed ? `<div class="bar green" style="margin-top:8px"><i style="width:${pct}%"></i></div>` : ''}
+      ${!a.fed && A.feed ? `<div class="row wrapf" style="gap:6px;margin-top:8px">${opts.length ? opts.map(k => `<button class="btn sm ${k === 'feed2' ? 'seal' : ''}" data-act="feedAnimal" data-id="${a.id}" data-k="${k}">${esc(IT[k].n)} ${cnt(k)}</button>`).join('') : `<span class="small muted">먹이가 없어요 · ${A.feed.map(k => IT[k].n).join('·')} 또는 배합 사료</span>`}</div>` : ''}
+      <div class="row wrapf" style="gap:6px;margin-top:8px"><button class="btn sm ghost" data-act="patAnimal" data-id="${a.id}" ${patOk ? '' : 'disabled'}>${patOk ? '쓰다듬기' : '쓰다듬음 <span class="num" data-cd="' + ((a.patAt || 0) + PAT_GAP/SPD()) + '"></span>'}</button>
+      <details class="sub"><summary class="small">이름·보내기</summary><div class="row" style="gap:6px;margin-top:6px"><input id="an_${a.id}" maxlength="10" value="${esc(a.name)}" aria-label="${esc(a.name)} 새 이름" style="flex:1;min-width:0"><button class="btn sm" data-act="renameAnimal" data-id="${a.id}">바꾸기</button></div><button class="btn sm ghost" style="margin-top:6px" data-act="releaseAnimal" data-id="${a.id}">떠나보내기</button></details></div></div>`; };
+  return sheetHead('축사', `<span class="chip">목축 숙련도 ${prof('herder')}</span>`) + `
+  <p class="small muted" style="margin-top:0">가축은 ${penMax()}마리까지. 먹이를 주면 시간이 지나 산물을 낸다. 날마다 쓰다듬으면 애정이 쌓여 산물이 늘고, 애정이 가득하면 가끔 귀한 산물을 낸다.${S.sub==='herder'?' 목동이라 더 빨리, 더 많이 거둔다.':''}</p>
+  ${S.pen.length ? `<div class="row wrapf" style="gap:6px;margin-bottom:10px"><button class="btn sm seal" data-act="penCollectAll" ${ready ? '' : 'disabled'}>모두 거두기${ready ? ` ${ready}` : ''}</button><button class="btn sm" data-act="penFeedAll" ${hungry ? '' : 'disabled'}>모두 먹이 주기${hungry ? ` ${hungry}` : ''}</button>${S.feeder ? `<button class="btn sm ghost" data-act="feederToggle" aria-pressed="${!!S.feederOn}">먹이통 ${S.feederOn ? '켬' : '끔'}</button>` : ''}</div>
+  <div class="stack">${S.pen.map(card).join('')}</div>` : '<p>축사가 텅 비어 있다. 짚 냄새만 남았다.</p>'}
+  <h3 style="margin-top:14px">축사 손보기</h3>
+  <div class="list">
+    <div class="li"><span class="stamp" style="width:2rem;height:2rem;font-size:1rem">廣</span><div class="t"><b>축사 넓히기 ${lv}/${PEN_UP.length}</b><span>${up ? `${penMax() + 2}마리까지 · ${up.g.toLocaleString()}${CUR} · ${up.need.map(([k, n]) => `${IT[k].n} ${n} (보유 ${cnt(k)})`).join(' · ')}` : '더 넓힐 수 없을 만큼 넓다.'}</span></div>${up ? `<button class="btn sm" data-act="penUpgrade" ${S.gold >= up.g && needOk(up.need) ? '' : 'disabled'}>넓히기</button>` : ''}</div>
+    <div class="li"><span class="stamp" style="width:2rem;height:2rem;font-size:1rem">槽</span><div class="t"><b>먹이통</b><span>거둘 때 가방의 먹이(제 먹이, 없으면 배합 사료)로 알아서 다시 먹인다. 고급 사료는 쓰지 않는다.</span></div>${S.feeder ? '<span class="chip good">설치됨</span>' : `<button class="btn sm" data-act="buyFeeder" ${S.gold >= FEEDER_COST ? '' : 'disabled'}>${FEEDER_COST.toLocaleString()}${CUR}</button>`}</div>
+  </div>
+  <h3 style="margin-top:14px">가축 들이기 <span class="small muted">빈 자리 ${free}</span></h3>
+  <div class="list">${Object.entries(ANIMALS).map(([k,A]) => `<div class="li"><span class="stamp" style="width:2rem;height:2rem;font-size:1rem">${A.k}</span><div class="t"><b>${A.n}</b><span class="flav">${esc(A.f)}</span><span>${A.feed ? `먹이 ${A.feed.map(x => IT[x].n).join('·')}·배합 사료` : '먹이 없음'} · ${A.h}시간마다 ${IT[A.out[0]].n} ${A.out[1]}~${A.out[2]}개${A.bonus ? ` · 가끔 ${IT[A.bonus[0]].n}` : ''}</span></div><button class="btn sm" data-act="buyAnimal" data-k="${k}" ${free <= 0 || S.gold < A.buy ? 'disabled' : ''}>${A.buy}${CUR}</button></div>`).join('')}</div>`;
+};
+
+// ---------- 맨 위로 ----------
+const reduceMo = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function toTopBtn(id, onTap){ const b = document.createElement('button'); b.id = id; b.className = 'totop'; b.type = 'button'; b.setAttribute('aria-label', '맨 위로'); b.innerHTML = '<span aria-hidden="true">▲</span> 맨 위로'; b.hidden = true; b.addEventListener('click', onTap); return b; }
+function sheetTopSync(){
+  const sh = $('#sheet'), pnl = sh && sh.querySelector('.panel'); if (!pnl) return;
+  let b = sh.querySelector('#toTopSheet'); if (!b){ b = toTopBtn('toTopSheet', () => { const p = $('#sheet .panel'); if (p){ p.scrollTop = 0; p.dispatchEvent(new Event('scroll')); } }); sh.appendChild(b); }
+  const upd = () => { b.hidden = pnl.scrollTop < 500; }; pnl.onscroll = upd; upd();
+}
+const _renderSheet_top = renderSheet;
+renderSheet = (...a) => { _renderSheet_top(...a); sheetTopSync(); };
+let toTopMain = null;
+function mainTopSync(){ if (!toTopMain){ toTopMain = toTopBtn('toTopMain', () => window.scrollTo({top:0, behavior:reduceMo() ? 'auto' : 'smooth'})); document.body.appendChild(toTopMain); } toTopMain.hidden = window.scrollY < 900 || !$('#sheet').hidden || document.body.classList.contains('c3-on'); }
+addEventListener('scroll', mainTopSync, {passive:true});
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
