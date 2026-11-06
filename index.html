@@ -3270,6 +3270,7 @@ TABS.home = () => {
     ${tile('openFish', 'fishing', '강가 낚시터', `<span class="st">강 · 바다 · 호수 · 지금은 ${tod}</span>`)}
     ${tile('sheet', 'rest', '온천 (휴식)', `<span class="st ${restActive() ? 'on' : ''}">${restActive() ? `휴식 중 · <span class="num" data-cd="${S.rest.until}"></span>` : curHP() < maxHP() ? `체력 회복 5배 · ${Math.floor(curHP())}/${maxHP()}` : '체력이 가득하다'}</span>`, 'data-s="rest"')}
     ${tile('sheet', 'shop', '잡화점', '<span class="st">사고팔기 · 씨앗 · 축사 먹이</span>', 'data-s="shop"')}
+    ${tile('sheet', 'market', '장터', `<span class="st ${blessOn() ? 'on' : ''}">${blessOn() ? `${BLESS[blessOn().k].n} 중` : '거래소 · 행상 · 기원 · 훈련'}</span>`, 'data-s="market"')}
     ${tile('sheet', 'board', '게시판', `<span class="st ${dn?'on':''}">${dn ? `구조 요청 ${dn}` : ST.mode==='cloud' ? '구조 요청 · 토벌대 · 소식' : '마을 소식'}</span>`, 'data-s="board"')}
     ${tile('sheet', 'sub', '신사 (서브 직업)', `<span class="st">${SUBS[S.sub].n}${syn()?' · <b style="color:var(--moss)">궁합 보너스</b>':''}</span>`, 'data-s="subjob"')}
   </div>
@@ -9916,6 +9917,169 @@ renderSheet = (...a) => { _renderSheet_top(...a); sheetTopSync(); };
 let toTopMain = null;
 function mainTopSync(){ if (!toTopMain){ toTopMain = toTopBtn('toTopMain', () => window.scrollTo({top:0, behavior:reduceMo() ? 'auto' : 'smooth'})); document.body.appendChild(toTopMain); } toTopMain.hidden = window.scrollY < 900 || !$('#sheet').hidden || document.body.classList.contains('c3-on'); }
 addEventListener('scroll', mainTopSync, {passive:true});
+// ===================== 장터: 거래소 · 떠돌이 행상 · 신사 기원 · 동료 훈련 =====================
+// 엽전 사용처를 늘린다. 거래소는 market/{id} 문서 하나가 물건 한 묶음이다.
+// market/{id} = {seller, sn, k, n, pu, price, ts, st:'open'|'sold'|'paid'|'cancel', buyer, bn, soldAt}
+// 한 사람만 살 수 있게 하는 것은 Firebase 규칙이 맡는다(open → sold 는 판 사람이 아닌 한 명만).
+// 판 사람의 엽전은 판 사람 기기가 'sold'를 보고 넣어 주고 'paid'로 바꾼다.
+const MK_FEE_LIST = .02, MK_FEE_SELL = .05, MK_MAX = 6, MK_DAYS = 3;
+const MK = {open:{}, mine:{}, on:false};
+if (typeof ICO !== 'undefined') ICO.market = typeof ico === 'function' ? ico('<path d="M3 10l2-5h14l2 5"/><path d="M3 10h18"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/><path d="M7.5 5l-1 5M12 5v5M16.5 5l1 5"/>') : ICO.shop;
+const mkOk = k => !!IT[k] && !k.includes('*') && !['ticket','ring','token'].includes(k) && sellPrice(k) > 0;
+const mkFree = k => cnt(k) - (typeof equippedN === 'function' ? equippedN(k) : 0);
+const mkLive = L => L.st === 'open' && now() - L.ts < MK_DAYS*24*H;
+const mkDoc = id => ST.db.doc('market/' + id);
+
+function marketListen(){
+  if (ST.mode !== 'cloud' || MK.on) return; MK.on = true;
+  unsubs.push(ST.db.collection('market').where('st', '==', 'open').limit(200).onSnapshot(s => { const m = {}; s.docs.forEach(d => { const x = d.data(); if (x) m[d.id] = {...x, id:d.id}; }); MK.open = m; if (SHEET && SHEET.k === 'market') renderSheet(true); }, e => console.warn('market', e)));
+  unsubs.push(ST.db.collection('market').where('seller', '==', ST.uid).onSnapshot(s => { const m = {}; s.docs.forEach(d => { const x = d.data(); if (x) m[d.id] = {...x, id:d.id}; }); MK.mine = m; mkSettle(); if (SHEET && SHEET.k === 'market') renderSheet(true); }, e => console.warn('market', e)));
+}
+const _tradeListen_mk = tradeListen;
+tradeListen = (...a) => { _tradeListen_mk(...a); marketListen(); };
+// 팔린 물건의 값 받기, 기한이 지난 물건 돌려받기
+async function mkSettle(){
+  S.mkPaid = S.mkPaid || {};
+  for (const L of Object.values(MK.mine)){
+    if (L.st === 'sold' && !S.mkPaid[L.id]){
+      const get = Math.floor(L.price*(1 - MK_FEE_SELL)); S.mkPaid[L.id] = 1; S.gold += get; stat('mkSold'); save();
+      notify('social', '거래소', `${L.bn || '누군가'}님이 ${IT[L.k]?.n || L.k} ${L.n}개를 샀습니다. ${get.toLocaleString()}${CUR}을 받았어요. (수수료 5% 뗌)`, 'mk' + L.id);
+      try { await mkDoc(L.id).update({st:'paid', doneAt:now()}); await mkDoc(L.id).delete(); } catch(e){}
+    } else if (L.st === 'paid' && S.mkPaid[L.id]){ try { await mkDoc(L.id).delete(); } catch(e){} }
+    else if (L.st === 'open' && !mkLive(L)) await mkCancel(L.id, true);
+  }
+  const ks = Object.keys(S.mkPaid); if (ks.length > 80) ks.slice(0, ks.length - 80).forEach(k => delete S.mkPaid[k]);
+}
+async function mkList(){
+  if (baseLocked()) return lockToast(); if (ST.mode !== 'cloud') return toast('거래소는 함께하기 버전에서 열려요.');
+  const k = UI.mkK, n = Math.floor(+($('#mkN') || {}).value || 0), pu = Math.floor(+($('#mkP') || {}).value || 0);
+  if (!k || !mkOk(k)) return toast('올릴 물건을 골라 주세요.');
+  if (!(n >= 1 && n <= 99 && n <= mkFree(k))) return toast(`수량은 1~${Math.min(99, mkFree(k))}개로 정해 주세요.`);
+  if (!(pu >= 1 && pu <= 99999)) return toast('한 개 값은 1~99,999냥으로 정해 주세요.');
+  if (Object.values(MK.mine).filter(mkLive).length >= MK_MAX) return toast(`한 번에 ${MK_MAX}묶음까지 올릴 수 있어요.`);
+  const price = pu*n, fee = Math.max(5, Math.ceil(price*MK_FEE_LIST));
+  if (S.gold < fee) return toast(`등록 수수료 ${fee}${CUR}이 모자라요.`, 'warn');
+  const id = uid36(), L = {seller:ST.uid, sn:S.char.name, k, n, pu, price, ts:now(), st:'open'};
+  if (!takeItem(k, n)) return; S.gold -= fee;
+  try { await mkDoc(id).set(L); } catch(e){ addItem(k, n); S.gold += fee; save(); return toast('거래소에 올리지 못했어요.', 'warn'); }
+  MK.mine[id] = {...L, id}; stat('mkList'); sfx('coin'); save(); UI.mkK = null; UI.mkTab = 'mine';
+  toast(`${IT[k].n} ${n}개를 ${price.toLocaleString()}${CUR}에 올렸다. (등록 수수료 ${fee}${CUR})`, 'good'); renderSheet();
+}
+async function mkCancel(id, quiet){
+  const L = MK.mine[id]; if (!L || L.st !== 'open' || L.seller !== ST.uid) return;
+  if (L.back) return; L.back = 1;
+  try { await mkDoc(id).update({st:'cancel', doneAt:now()}); } catch(e){ L.back = 0; return quiet || toast('이미 팔렸거나 거둘 수 없어요.', 'warn'); }
+  addItem(L.k, L.n); L.st = 'cancel'; save(); try { await mkDoc(id).delete(); } catch(e){}
+  if (!quiet) toast(`${IT[L.k].n} ${L.n}개를 거두어 가방에 넣었다.`); else notify('social', '거래소', `${MK_DAYS}일 동안 팔리지 않은 ${IT[L.k]?.n} ${L.n}개가 가방으로 돌아왔어요.`, 'mkx' + id);
+  renderSheet();
+}
+async function mkBuy(id){
+  if (baseLocked()) return lockToast(); if (ST.mode !== 'cloud') return;
+  const L = MK.open[id]; if (!L || !mkLive(L) || !IT[L.k]) return toast('이미 팔렸거나 내려간 물건이에요.');
+  if (L.seller === ST.uid) return toast('내가 올린 물건이에요.');
+  if (S.gold < L.price) return toast('엽전이 부족합니다.', 'warn');
+  if (MK.busy) return; MK.busy = true;
+  try { await mkDoc(id).update({st:'sold', buyer:ST.uid, bn:S.char.name, soldAt:now()}); }
+  catch(e){ MK.busy = false; return toast('다른 사람이 먼저 샀어요.', 'warn'); }
+  MK.busy = false; S.gold -= L.price; addItem(L.k, L.n); delete MK.open[id]; stat('mkBuy'); sfx('coin'); save();
+  toast(`${L.sn}님에게서 ${IT[L.k].n} ${L.n}개를 ${L.price.toLocaleString()}${CUR}에 샀다.`, 'good'); renderSheet(); render();
+}
+
+// ---------- 떠돌이 행상: 날마다 바뀌는 귀한 물건 (모두 같은 물건을 본다) ----------
+const MERCH_POOL = [['gem', 900], ['rareore', 700], ['scroll', 1200], ['soul', 1500], ['talisman', 600], ['rareherb', 500], ['dragonore', 2600], ['skyore', 5200], ['t_lantern', 900], ['t_torch', 600], ['silk_fine', 700], ['royal', 800], ['egg_pet', 5000], ['egg_summon', 6500]];
+function merchToday(){
+  const d = dayKey(); let h = hashStr('merch' + d); const rnd = () => { h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909); return ((h >>>= 0) % 10000)/10000; };
+  const pool = MERCH_POOL.filter(([k]) => k.startsWith('egg_') || IT[k]), out = [];
+  while (out.length < 4 && pool.length){ const [k, p] = pool.splice(Math.floor(rnd()*pool.length), 1)[0]; out.push({k, p:Math.round(p*(.85 + rnd()*.45)/10)*10}); }
+  return out;
+}
+const merchName = k => k === 'egg_pet' ? '야생동물의 알' : k === 'egg_summon' ? '요괴의 알' : IT[k].n;
+function merchBuy(k){
+  if (baseLocked()) return lockToast();
+  const o = merchToday().find(x => x.k === k); if (!o) return; const d = dayKey();
+  if (!S.merch || S.merch.d !== d) S.merch = {d, b:{}};
+  if (S.merch.b[k]) return toast('오늘은 이미 샀어요. 행상은 내일 다른 물건을 가져와요.');
+  if (S.gold < o.p) return toast('엽전이 부족합니다.', 'warn');
+  S.gold -= o.p; S.merch.b[k] = 1;
+  if (k.startsWith('egg_')){ const kind = k.slice(4); S.eggs.push({kind, sp:pick(Math.random, kind === 'pet' ? PET_SP : SUM_SP), id:uid36()}); } else addItem(k);
+  stat('merch'); sfx('rare'); save(); toast(`행상에게서 ${merchName(k)}${pp(merchName(k),'을','를')} 샀다.`, 'good'); renderSheet(); render();
+}
+
+// ---------- 신사 기원: 3시간 동안 새로 떠나는 탐사에 효과 ----------
+const BLESS = {
+  pung:{n:'풍요 기원', d:'탐사 보상 +10%', k:'豊'},
+  un:{n:'행운 기원', d:'귀한 물건 발견 +25%', k:'運'},
+  an:{n:'무사 기원', d:'몬스터와 마주칠 확률 −15% (횃불을 챙기면 횃불 효과가 대신 든다)', k:'安'},
+};
+const blessCost = () => 300 + S.lv*30;
+const blessOn = () => S.bless && S.bless.until > now() ? S.bless : null;
+function blessBuy(k){
+  if (baseLocked()) return lockToast(); if (!BLESS[k]) return;
+  if (blessOn()) return toast('이미 기원이 이어지고 있어요. 끝난 뒤에 다시 빌 수 있어요.');
+  const c = blessCost(); if (S.gold < c) return toast('엽전이 부족합니다.', 'warn');
+  S.gold -= c; S.bless = {k, until:now() + 3*H/SPD()}; stat('bless'); sfx('bell'); save(); toast(`${BLESS[k].n}을 올렸다. 3시간 동안 떠나는 탐사에 깃든다.`, 'good'); renderSheet(); render();
+}
+// makeSnap 값만 바꾼다: 떠날 때 정해지고 진행 중인 탐사 결과는 바뀌지 않는다
+const _makeSnap_bless = makeSnap;
+makeSnap = (...a) => { const s = _makeSnap_bless(...a), b = blessOn(); if (!b) return s; const o = {...s}; if (b.k === 'pung') o.rew = +(o.rew*1.1).toFixed(3); if (b.k === 'un') o.rare = +((o.rare || 1)*1.25).toFixed(3); if (b.k === 'an') o.enc = +((o.enc || 1)*.85).toFixed(3); return o; };
+
+// ---------- 동료 훈련: 엽전으로 경험치 (동료마다 하루 3번) ----------
+const trainCost = c => 100 + c.lv*40;
+function compTrain(id){
+  if (baseLocked()) return lockToast();
+  const c = (S.comps || []).find(x => x.id === id); if (!c) return; const d = dayKey();
+  if (!c.trainD || c.trainD.d !== d) c.trainD = {d, n:0};
+  if (c.trainD.n >= 3) return toast(`${c.name}${pp(c.name,'은','는')} 오늘 충분히 훈련했어요.`);
+  const cost = trainCost(c); if (S.gold < cost) return toast('엽전이 부족합니다.', 'warn');
+  S.gold -= cost; c.trainD.n++; const lv0 = c.lv; compXP(c, c.lv*10); c.bond = Math.min(100, (c.bond || 0) + 2); stat('train'); sfx('hit'); save();
+  toast(`${c.name}${pp(c.name,'이','가')} 훈련을 마쳤다.${c.lv > lv0 ? ` 레벨 ${c.lv}!` : ''}`, c.lv > lv0 ? 'good' : ''); renderSheet();
+}
+
+Object.assign(ACT, {
+  mkTab: d => { UI.mkTab = d.t; renderSheet(); }, mkPick: d => { UI.mkK = d.k; renderSheet(); }, mkList, mkBuy: d => mkBuy(d.id), mkCancel: d => mkCancel(d.id),
+  mkSearch(){ UI.mkQ = ($('#mkQ') || {}).value || ''; renderSheet(); }, merchBuy: d => merchBuy(d.k), blessBuy: d => blessBuy(d.k), compTrain: d => compTrain(d.id),
+});
+TITLES.push(
+  {id:'mk1', n:'장터의 장사꾼', d:'거래소에서 물건을 처음 팔았다.', c:S => (S.stats?.mkSold || 0) >= 1},
+  {id:'mk2', n:'단골 손님', d:'떠돌이 행상에게서 열 번 샀다.', c:S => (S.stats?.merch || 0) >= 10},
+);
+
+// ---------- 화면 ----------
+SHEETS.market = () => {
+  const t = UI.mkTab || 'browse', cloud = ST.mode === 'cloud';
+  const tabs = [['browse','거래소'],['sell','올리기'],['mine','내 물건'],['merch','행상'],['bless','기원'],['train','훈련']];
+  let body = '';
+  if (['browse','sell','mine'].includes(t) && !cloud) body = '<div class="card"><p class="muted" style="margin:0">거래소는 다른 개척자와 함께하는 온라인 버전에서 열려요.</p></div>';
+  else if (t === 'browse'){
+    const q = (UI.mkQ || '').trim(), list = Object.values(MK.open).filter(L => mkLive(L) && IT[L.k] && (!q || IT[L.k].n.includes(q))).sort((a, b) => a.pu - b.pu || a.ts - b.ts).slice(0, 80);
+    body = `<div class="row" style="gap:6px;margin-bottom:10px"><input id="mkQ" value="${esc(UI.mkQ || '')}" placeholder="물건 이름으로 찾기" aria-label="물건 이름으로 찾기" style="flex:1;min-width:0"><button class="btn sm" data-act="mkSearch">찾기</button></div>
+    ${list.length ? `<div class="list">${list.map(L => { const mine = L.seller === ST.uid; return `<div class="li">${itemIcon(L.k)}<div class="t"><b>${esc(IT[L.k].n)} <span class="cntx">×${L.n}</span></b><span>한 개 ${L.pu.toLocaleString()}${CUR} · 잡화점에 팔면 ${sellPrice(L.k)}${CUR} · ${esc(L.sn)}님</span></div><div class="acts"><button class="btn sm ${mine ? 'ghost' : 'seal'}" data-act="mkBuy" data-id="${L.id}" ${mine || S.gold < L.price ? 'disabled' : ''}>${mine ? '내 물건' : `${L.price.toLocaleString()}${CUR}`}</button></div></div>`; }).join('')}</div>` : `<div class="card"><p class="muted" style="margin:0">${q ? '찾는 물건이 아직 없어요.' : '아직 올라온 물건이 없어요. 먼저 올려 보세요.'}</p></div>`}`;
+  } else if (t === 'sell'){
+    const keys = Object.keys(S.inv).filter(k => mkOk(k) && mkFree(k) > 0).sort((a, b) => IT[a].t.localeCompare(IT[b].t) || IT[a].n.localeCompare(IT[b].n, 'ko'));
+    const k = UI.mkK && mkOk(UI.mkK) && mkFree(UI.mkK) > 0 ? UI.mkK : null, open = Object.values(MK.mine).filter(mkLive).length;
+    body = `<p class="small muted" style="margin-top:0">올릴 때 등록 수수료 2%(최소 5${CUR}), 팔리면 5%를 뗀다. ${MK_DAYS}일 동안 안 팔리면 가방으로 돌아온다. 지금 ${open}/${MK_MAX}묶음.</p>
+    ${k ? `<div class="card stack" style="margin-bottom:10px"><div class="row">${itemIcon(k)}<b class="grow">${esc(IT[k].n)} <span class="cntx">보유 ${mkFree(k)}</span></b><button class="btn sm ghost" data-act="mkPick" data-k="">다른 것</button></div>
+      <label class="row" style="gap:8px"><span class="grow">수량</span><input id="mkN" type="number" inputmode="numeric" min="1" max="${Math.min(99, mkFree(k))}" value="${Math.min(mkFree(k), 10)}" style="width:6em"></label>
+      <label class="row" style="gap:8px"><span class="grow">한 개 값 <span class="tiny muted">(잡화점 매입가 ${sellPrice(k)}${CUR}${SHOP.includes(k) ? ` · 잡화점 판매가 ${IT[k].p}${CUR}` : ''})</span></span><input id="mkP" type="number" inputmode="numeric" min="1" max="99999" value="${Math.max(1, Math.round(IT[k].p*.8))}" style="width:7em"></label>
+      <button class="btn seal" data-act="mkList" ${open >= MK_MAX ? 'disabled' : ''}>거래소에 올리기</button></div>` : ''}
+    ${keys.length ? `<div class="list">${keys.map(x => `<div class="li">${itemIcon(x)}<div class="t"><b>${esc(IT[x].n)} <span class="cntx">×${mkFree(x)}</span></b><span>잡화점 매입가 ${sellPrice(x)}${CUR}</span></div><div class="acts"><button class="btn sm" data-act="mkPick" data-k="${x}" aria-pressed="${x === k}">고르기</button></div></div>`).join('')}</div>` : '<div class="card"><p class="muted" style="margin:0">올릴 수 있는 물건이 없어요.</p></div>'}`;
+  } else if (t === 'mine'){
+    const list = Object.values(MK.mine).filter(L => L.st === 'open' && IT[L.k]).sort((a, b) => b.ts - a.ts);
+    body = list.length ? `<div class="list">${list.map(L => `<div class="li">${itemIcon(L.k)}<div class="t"><b>${esc(IT[L.k].n)} <span class="cntx">×${L.n}</span></b><span>${L.price.toLocaleString()}${CUR} · 내려가기까지 <span class="num" data-cd="${L.ts + MK_DAYS*24*H}"></span></span></div><div class="acts"><button class="btn sm ghost" data-act="mkCancel" data-id="${L.id}">거두기</button></div></div>`).join('')}</div><p class="tiny muted">팔리면 알림과 함께 엽전이 들어온다(수수료 5% 뗌).</p>` : '<div class="card"><p class="muted" style="margin:0">올려 둔 물건이 없어요.</p></div>';
+  } else if (t === 'merch'){
+    const d = dayKey(), got = S.merch && S.merch.d === d ? S.merch.b : {};
+    body = `<p class="small muted" style="margin-top:0">"먼 고장에서 귀한 걸 좀 가져왔지." 행상의 물건은 날마다 바뀌고, 하나씩만 판다.</p><div class="list">${merchToday().map(o => `<div class="li">${o.k.startsWith('egg_') ? `<span class="stamp" style="width:2.2rem;height:2.2rem">卵</span>` : itemIcon(o.k)}<div class="t"><b>${esc(merchName(o.k))}</b><span>${o.k.startsWith('egg_') ? '둥지에서 품으면 동료가 태어난다' : esc(IT[o.k].f || IT[o.k].d || '')}</span></div><div class="acts"><button class="btn sm seal" data-act="merchBuy" data-k="${o.k}" ${got[o.k] || S.gold < o.p ? 'disabled' : ''}>${got[o.k] ? '샀음' : `${o.p.toLocaleString()}${CUR}`}</button></div></div>`).join('')}</div>`;
+  } else if (t === 'bless'){
+    const b = blessOn(), c = blessCost();
+    body = `<p class="small muted" style="margin-top:0">신사에 공양하고 기원을 올린다. 3시간 동안 <b>새로 떠나는</b> 장기·조사대 탐사에 깃든다. 값 ${c.toLocaleString()}${CUR} (레벨에 따라 오른다).</p>
+    ${b ? `<div class="card" style="margin-bottom:10px"><b>${BLESS[b.k].n}</b> · ${BLESS[b.k].d} · 남은 시간 <span class="num" data-cd="${b.until}"></span></div>` : ''}
+    <div class="list">${Object.entries(BLESS).map(([k, B]) => `<div class="li"><span class="stamp" style="width:2rem;height:2rem;font-size:1rem">${B.k}</span><div class="t"><b>${B.n}</b><span>${B.d}</span></div><div class="acts"><button class="btn sm" data-act="blessBuy" data-k="${k}" ${b || S.gold < c ? 'disabled' : ''}>${c.toLocaleString()}${CUR}</button></div></div>`).join('')}</div>`;
+  } else if (t === 'train'){
+    const d = dayKey(), cs = (S.comps || []).slice().sort((a, b) => (b.out !== false) - (a.out !== false) || b.lv - a.lv).slice(0, 40);
+    body = `<p class="small muted" style="margin-top:0">사범에게 맡겨 동료를 단련한다. 한 번에 레벨의 절반쯤 경험을 얻고, 동료마다 하루 3번.</p>${cs.length ? `<div class="list">${cs.map(c => { const n = c.trainD && c.trainD.d === d ? c.trainD.n : 0, cost = trainCost(c); return `<div class="li"><div class="t"><b>${esc(c.name)} <span class="cntx">Lv.${c.lv}</span></b><span>오늘 ${n}/3${c.out !== false ? ' · 데리고 다니는 중' : ''}</span></div><div class="acts"><button class="btn sm" data-act="compTrain" data-id="${c.id}" ${n >= 3 || S.gold < cost ? 'disabled' : ''}>${cost.toLocaleString()}${CUR}</button></div></div>`; }).join('')}</div>` : '<div class="card"><p class="muted" style="margin:0">아직 동료가 없어요. 둥지에서 알을 품어 보세요.</p></div>'}`;
+  }
+  return sheetHead('장터', `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`) + `<div class="seg scrollx" style="margin-bottom:10px" role="group" aria-label="장터">${tabs.map(([k, n]) => `<button data-act="mkTab" data-t="${k}" aria-pressed="${t === k}">${n}</button>`).join('')}</div>${body}`;
+};
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
