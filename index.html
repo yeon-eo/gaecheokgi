@@ -580,6 +580,67 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .c3-res{ margin-top:auto; max-height:62%; overflow:auto; background:rgba(255,250,240,.95); color:#2b241b; border-radius:16px; padding:12px; display:flex; flex-direction:column; }
 .c3-res .list{ width:100%; }
 .c3-res > .row:last-child{ position:sticky; bottom:-12px; margin:0 -12px -12px; padding:8px 12px 12px; background:#fbf5e8; z-index:2; flex:none; }
+/* 집 3D */
+.h3-slot{ position:relative; aspect-ratio:4/3; overflow:hidden; border-radius:8px; touch-action:none; }
+.h3-box{ position:absolute; inset:0; }
+.h3-box canvas{ display:block; width:100%; height:100%; touch-action:none; }
+.h3-hud{ position:absolute; right:8px; top:8px; display:flex; gap:4px; }
+.h3-hud .chip{ min-height:32px; min-width:32px; justify-content:center; }
+.aff-sec{ margin-top:14px; }
+.aff-sec h4{ margin:0 0 6px; font-weight:600; letter-spacing:.04em; }
+.aff-pills{ display:flex; flex-wrap:wrap; gap:6px; }
+.aff-pill{ min-height:40px; padding:0 14px; border:1px solid var(--line); border-radius:20px; background:var(--card); color:var(--ink); font:inherit; font-size:.86rem; cursor:pointer; transition:border-color .15s, color .15s, background .15s; }
+.aff-pill:hover, .aff-pill:active{ border-color:var(--seal); color:var(--seal); background:color-mix(in srgb, var(--seal) 7%, var(--card)); }
+.aff-any{ display:block; width:100%; min-height:44px; margin-top:16px; border:1px solid var(--seal); border-radius:8px; background:transparent; color:var(--seal); font:inherit; font-size:.9rem; font-weight:600; cursor:pointer; }
+.aff-any:hover, .aff-any:active{ background:color-mix(in srgb, var(--seal) 8%, transparent); }
+.aff-back{ min-height:32px; padding:0 10px; border:0; background:none; color:inherit; font:inherit; font-size:.82rem; opacity:.7; cursor:pointer; }
+.aff-pill:focus-visible, .aff-any:focus-visible, .aff-back:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
+/* 개척 일지 띠 */
+.j-banner{ display:flex; align-items:center; gap:12px; width:100%; min-height:68px; margin-bottom:10px; padding:12px 14px; border:0; border-radius:10px; background:var(--seal); color:#fff8e8; font:inherit; text-align:left; cursor:pointer; box-shadow:0 3px 10px var(--shade); }
+.j-banner .ic{ flex:none; width:36px; height:36px; display:grid; place-items:center; }
+.j-banner .ic svg{ width:32px; height:32px; }
+.j-banner .t{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.j-banner .t b{ font-size:1.2rem; }
+.j-banner .t span{ font-size:.82rem; opacity:.92; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.j-banner i{ flex:none; min-width:26px; height:26px; padding:0 7px; display:grid; place-items:center; border-radius:13px; background:#fff8e8; color:var(--seal); font-style:normal; font-weight:700; }
+.j-banner .arr{ flex:none; font-size:1.6rem; line-height:1; }
+.j-banner:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+/* 계절 마츠리 */
+.fs-spring .b-lantern{ fill:#f2a0bc; } .fs-spring .b-lantern.alt{ fill:#fff0f4; }
+.fs-summer .b-lantern{ fill:#4a90c8; } .fs-summer .b-lantern.alt{ fill:#f2b84a; }
+.fs-autumn .b-lantern{ fill:#d8602a; } .fs-autumn .b-lantern.alt{ fill:#e8b030; }
+.fs-winter .b-lantern{ fill:#e8f0f8; } .fs-winter .b-lantern.alt{ fill:#e05a6a; }
+.fest-banner.fs-spring{ background:linear-gradient(135deg, #4a2840, #a0506e); }
+.fest-banner.fs-summer{ background:linear-gradient(135deg, #1e2a50, #2a5a8a); }
+.fest-banner.fs-autumn{ background:linear-gradient(135deg, #4a2a18, #a0502a); }
+.fest-banner.fs-winter{ background:linear-gradient(135deg, #2a3a50, #5a7898); }
+/* 계절 축제 */
+.sf-stage{ position:relative; overflow:hidden; }
+.sf-burst{ position:absolute; left:50%; top:50%; pointer-events:none; }
+.sf-burst span{ position:absolute; font-size:1.2rem; animation:sfBurst 1.2s ease-out both; }
+@keyframes sfBurst{ from{ transform:rotate(var(--a)) translateY(0); opacity:1; } to{ transform:rotate(var(--a)) translateY(-120px); opacity:0; } }
+@media (prefers-reduced-motion:reduce){ .sf-burst{ display:none; } }
+/* 개척 일지 · 공동 토벌 */
+.att-grid{ display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:4px; }
+.att-c{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:58px; padding:3px 1px; border:1px solid var(--line); border-radius:6px; background:var(--card); font-size:.72rem; line-height:1.25; text-align:center; word-break:keep-all; }
+.att-c b{ font-size:.66rem; color:var(--muted, inherit); font-weight:600; }
+.att-c span{ font-weight:700; }
+.att-c i{ position:absolute; right:2px; bottom:0; font-style:normal; font-size:.95rem; color:var(--seal); opacity:.55; transform:rotate(-12deg); }
+.att-c.next{ border:2px solid var(--seal); }
+.att-c.big{ border-color:var(--seal); }
+.att-c.on{ background:color-mix(in srgb, var(--seal) 12%, var(--card)); }
+.vb-art{ width:150px; height:112px; display:block; margin:0 auto; }
+.vb-art.hit{ animation:vbShake .35s ease; }
+@keyframes vbShake{ 0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-5px); } 75%{ transform:translateX(5px); } }
+@media (prefers-reduced-motion:reduce){ .vb-art.hit{ animation:none; } }
+/* 계절과 날씨 */
+.b-sea{ pointer-events:none; }
+.b-sea .rn{ stroke:#7f9ab5; stroke-width:1; opacity:.6; animation:seaRain .7s linear infinite; }
+.b-sea .sn{ fill:#fff; stroke:#a8b8c8; stroke-width:.4; animation:seaDrift 4s ease-in-out infinite alternate; }
+.b-sea .pt{ opacity:.8; animation:seaDrift 3.4s ease-in-out infinite alternate; }
+@keyframes seaRain{ from{ transform:translate(3px,-14px); } to{ transform:translate(-3px,14px); } }
+@keyframes seaDrift{ from{ transform:translate(-4px,-8px); } to{ transform:translate(5px,9px); } }
+@media (prefers-reduced-motion:reduce){ .b-sea *{ animation:none; } }
 /* 맨 위로 */
 .totop{ position:fixed; z-index:26; right:max(14px, calc((100vw - 560px)/2 + 14px), env(safe-area-inset-right,0px)); bottom:calc(88px + env(safe-area-inset-bottom,0px)); min-height:44px; padding:6px 14px; border:1px solid var(--line); border-radius:22px; background:var(--card); color:var(--ink); font:inherit; font-size:.86rem; font-weight:700; box-shadow:0 3px 12px var(--shade); cursor:pointer; }
 .totop span{ font-size:.72rem; margin-right:3px; }
@@ -2204,7 +2265,7 @@ function handleEvent(id, ev){
   const canMit = () => !S.mit.from[from];
   if ((ev.type === 'gift' || ev.type === 'grant') && ev.data && ev.data.pb){ pbFallback(id, from, nm, ev); return; } // 서버 우편함이 처리한다
   switch (ev.type){
-    case 'greet': notify('social', '인사', `${nm}님이 인사를 건넸습니다.`); break;
+    case 'greet': notify('social', '인사', socRecv('greet', nm, ev.data, from)); break;
     case 'meet': onMeetEvent(from, nm, ev.data || {}); break;
     case 'gift': {
       const k = ev.data.item, n = ev.data.n || 1; if (IT[k.replace('*','')]) postAdd({kind:'gift', from, name:nm, items:[[k, n]], msg:ev.data.msg ? String(ev.data.msg).slice(0, 100) : ''});
@@ -2212,35 +2273,35 @@ function handleEvent(id, ev){
       if (IT[k.replace('*','')]?.t === 'food' && tiredActive() && canMit() && stageRank(effStage(getRel(from))) >= 1){ S.tired.weak = true; S.mit.from[from] = 1; extra = ' 정성 어린 요리에 지친 몸이 한결 가벼워졌습니다.'; }
       const msg = ev.data.msg ? ` 「${String(ev.data.msg).slice(0, 100)}」` : '';
       notify('social', '선물', `${nm}님이 ${itemName(k)} ${n}개를 보냈습니다. 우편함에서 받아 주세요.${msg}${extra}`); break; }
-    case 'encourage': S.buffs.enc = now() + 2*H/SPD(); notify('social','격려',`${nm}님의 격려를 받았습니다. 2시간 동안 경험치 +10%`); break;
-    case 'heal': { const h = ev.data.h || 40; if (!S.exp){ setHP(curHP() + h); pubDirty(); } notify('social','치료',`${nm}님이 상처를 돌봐 주었습니다. 체력 +${h}`); break; }
-    case 'tea': addAff(from, 2, true); notify('social','차 대접',`${nm}님과 녹차를 나눠 마셨습니다. 마음이 따뜻해진다.`); break;
+    case 'encourage': S.buffs.enc = now() + 2*H/SPD(); notify('social','격려',`${socRecv('encourage', nm, ev.data, from)} 2시간 동안 경험치 +10%`); break;
+    case 'heal': { const h = ev.data.h || 40; if (!S.exp){ setHP(curHP() + h); pubDirty(); } notify('social','치료',`${socRecv('heal', nm, ev.data, from)} 체력 +${h}`); break; }
+    case 'tea': addAff(from, 2, true); notify('social','차 대접',socRecv('tea', nm, ev.data, from)); break;
     case 'comfort':
-      if (tiredActive() && canMit()){ S.tired.until -= 2*H/SPD(); S.mit.from[from] = 1; notify('social','위로',`${nm}님의 위로에 기운이 났습니다. 지친 몸 -2시간`); }
-      else notify('social','위로',`${nm}님이 따뜻한 말을 건넸습니다.`);
+      if (tiredActive() && canMit()){ S.tired.until -= 2*H/SPD(); S.mit.from[from] = 1; notify('social','위로',`${socRecv('comfort', nm, ev.data, from)} 기운이 났다. 지친 몸 -2시간`); }
+      else notify('social','위로',socRecv('comfort', nm, ev.data, from));
       break;
     case 'affection':
-      if (tiredActive() && canMit()){ S.tired.until -= 4*H/SPD(); S.tired.weak = true; S.mit.from[from] = 1; notify('social','애정 표현',`${nm}님의 애정 표현에 마음이 놓였습니다. 지친 몸 -4시간, 효과 약화`); }
-      else notify('social','애정 표현',`${nm}님이 애정을 표현했습니다.`);
+      if (tiredActive() && canMit()){ S.tired.until -= 4*H/SPD(); S.tired.weak = true; S.mit.from[from] = 1; notify('social','애정 표현',`${socRecv('affection', nm, ev.data, from)} 마음이 놓였다. 지친 몸 -4시간, 효과 약화`); }
+      else notify('social','애정 표현',socRecv('affection', nm, ev.data, from));
       break;
-    case 'friendReq': if (!S.social.noReq) { S.reqs.push({id, from, type:'friend', ts:ev.ts}); notify('social','친구 신청',`${nm}님이 친구가 되고 싶어 합니다.`); } break;
+    case 'friendReq': if (!S.social.noReq) { S.reqs.push({id, from, type:'friend', ts:ev.ts}); notify('social','친구 신청',socSeen('friendReq', nm, ev.data)); } break;
     case 'confess':
       if (S.social.noRomance) sendEv(from, 'confessRej');
-      else { S.reqs.push({id, from, type:'confess', ts:ev.ts}); notify('social','고백',`${nm}님이 마음을 고백했습니다.`); }
+      else { S.reqs.push({id, from, type:'confess', ts:ev.ts}); notify('social','고백',socSeen('confess', nm, ev.data)); }
       break;
     case 'propose':
       if (S.social.noRomance) sendEv(from, 'proposeRej');
-      else { S.reqs.push({id, from, type:'propose', ts:ev.ts}); notify('social','청혼',`${nm}님이 직접 세공한 반지를 내밀며 청혼했습니다.`); }
+      else { S.reqs.push({id, from, type:'propose', ts:ev.ts}); notify('social','청혼',socSeen('propose', nm, ev.data)); }
       break;
-    case 'friendAcc': S.stats.friends = (S.stats.friends||0) + 1; notify('social','친구',`${nm}님과 친구가 되었습니다.`); break;
-    case 'confessAcc': notify('social','연인',`${nm}님이 고백을 받아 주었습니다. 이제 연인입니다.`); break;
-    case 'proposeAcc': takeItem('ring'); S.stats.married = 1; notify('social','부부',`${nm}님이 청혼을 받아들였습니다. 축하합니다!`); break;
-    case 'friendRej': case 'confessRej': case 'proposeRej': notify('social','답장',`${nm}님이 정중히 거절했습니다.`); break;
-    case 'breakup': notify('social','관계',`${nm}님이 관계를 정리했습니다.`); break;
-    case 'rescue': notify('rescue','구조',`${nm}님이 ${ev.data.kind==='heal'?'치료제로 일으켜':'부축해'} 주었습니다.`); break;
-    case 'partyInv': if (!S.social.noReq) { S.reqs.push({id, from, type:'party', pid:ev.data.pid, ts:ev.ts}); notify('social','조사대 초대',`${nm}님이 조사대에 함께하자며 손을 내밀었습니다.`); } break;
+    case 'friendAcc': S.stats.friends = (S.stats.friends||0) + 1; notify('social','친구',socSeen('friendAcc', nm, ev.data)); break;
+    case 'confessAcc': notify('social','연인',socSeen('confessAcc', nm, ev.data)); break;
+    case 'proposeAcc': takeItem('ring'); S.stats.married = 1; notify('social','부부',socSeen('proposeAcc', nm, ev.data)); break;
+    case 'friendRej': case 'confessRej': case 'proposeRej': notify('social','답장',socSeen('reject', nm, ev.data)); break;
+    case 'breakup': notify('social','관계',socSeen('breakup', nm, ev.data)); break;
+    case 'rescue': notify('rescue','구조',socSeen(ev.data.kind === 'heal' ? 'rescue_heal' : 'rescue_carry', nm, ev.data)); break;
+    case 'partyInv': if (!S.social.noReq) { S.reqs.push({id, from, type:'party', pid:ev.data.pid, ts:ev.ts}); notify('social','조사대 초대',socSeen('partyInv', nm, ev.data)); } break;
     case 'partyAcc': notify('social','조사대',`${nm}님이 조사대원이 되었습니다.`); break;
-    case 'partyRej': notify('social','조사대',`${nm}님이 지금은 함께하기 어렵다고 합니다.`); break;
+    case 'partyRej': notify('social','조사대',socSeen('reject', nm, ev.data)); break;
     case 'grant': { if (!isOpUser(PL[from]) && PL[from]) break; const items = (ev.data.items ? IP(ev.data.items) : [[ev.data.item, ev.data.n]]).filter(([k]) => IT[k]).map(([k, n]) => [k, Math.max(1, Math.min(999, n || 1))]); const gold = Math.max(0, Math.min(10000000, ev.data.gold || 0)); if (!items.length && !gold) break; const p = {kind:'grant', name:'운영자', items, gold, msg:ev.data.msg ? String(ev.data.msg).slice(0, 200) : ''}; postAdd(p); notify('social','운영자 지급',`우편함에 운영자 지급 물품이 도착했습니다: ${postSum(p)}`); break; }
   }
   save(); del(); softRender();
@@ -2267,35 +2328,35 @@ async function act(o, kind){
     if (greetedToday(o)) return toast('오늘은 이미 인사를 나눴습니다. 내일 다시 인사해요.');
     if (!S.greet || S.greet.d !== dayKey()) S.greet = {d:dayKey(), ids:{}};
     S.greet.ids[o] = 1; stat('greet'); save();
-    const g = await addAff(o, 1, true); sendEv(o, 'greet'); toast(`${nm}님께 고개 숙여 인사했습니다.${g ? ` 호감도 +${g}` : ''}`);
+    const g = await addAff(o, 1, true), L = socPick('greet', nm); sendEv(o, 'greet', {ln:L.i}); toast(`${L.me}${g ? ` 호감도 +${g}` : ''}`);
   }
   else if (kind === 'encourage'){
     S.mit2 = S.mit2 && S.mit2.d === dayKey() ? S.mit2 : {d:dayKey(), enc:{}, tea:{}};
     if (S.mit2.enc[o]) return toast('오늘은 이미 격려했습니다.');
-    S.mit2.enc[o] = 1; save(); const g = await addAff(o, 2, true); sendEv(o, 'encourage'); toast(`${nm}님을 힘껏 격려했습니다.${g?` 호감도 +${g}`:''}`);
+    S.mit2.enc[o] = 1; save(); const g = await addAff(o, 2, true), L = socPick('encourage', nm); sendEv(o, 'encourage', {ln:L.i}); toast(`${L.me}${g?` 호감도 +${g}`:''}`);
   }
   else if (kind === 'heal'){
     const k = cnt('pot1') ? 'pot1' : cnt('pot2') ? 'pot2' : null;
     if (!k) return toast('치료하려면 회복 환약이 필요합니다.');
     takeItem(k); save(); const h = Math.round(IT[k].heal*(S.job==='healer'?1.3:1));
-    const g = await addAff(o, 3, true); sendEv(o, 'heal', {h}); toast(`${nm}님의 상처에 ${IT[k].n}${pp(IT[k].n,'을','를')} 써 주었습니다. (체력 +${h})${g?` 호감도 +${g}`:''}`);
+    const g = await addAff(o, 3, true), L = socPick('heal', nm); sendEv(o, 'heal', {h, ln:L.i}); toast(`${L.me} (${IT[k].n} 사용 · 체력 +${h})${g?` 호감도 +${g}`:''}`);
   }
   else if (kind === 'tea'){
     S.mit2 = S.mit2 && S.mit2.d === dayKey() ? S.mit2 : {d:dayKey(), enc:{}, tea:{}};
     if (S.mit2.tea[o]) return toast('오늘은 이미 함께 차를 마셨습니다.');
     const k = cnt('f_greentea') ? 'f_greentea' : cnt('f_greentea*') ? 'f_greentea*' : null;
     if (!k) return toast('녹차가 있어야 차를 대접할 수 있습니다. 부엌에서 만들어 보세요.');
-    takeItem(k); S.mit2.tea[o] = 1; save(); const g = await addAff(o, 4, true); sendEv(o, 'tea'); toast(`${nm}님께 녹차를 대접했습니다.${g?` 호감도 +${g}`:''}`);
+    takeItem(k); S.mit2.tea[o] = 1; save(); const g = await addAff(o, 4, true), L = socPick('tea', nm); sendEv(o, 'tea', {ln:L.i}); toast(`${L.me}${g?` 호감도 +${g}`:''}`);
   }
-  else if (kind === 'comfort'){ const g = await addAff(o, 2, true); sendEv(o, 'comfort'); toast(`${nm}님을 위로했습니다.${g?` 호감도 +${g}`:''}`); }
-  else if (kind === 'affection'){ const g = await addAff(o, 2, true); sendEv(o, 'affection'); toast(`${nm}님께 애정을 표현했습니다.${g?` 호감도 +${g}`:''}`); }
-  else if (kind === 'friendReq'){ if (PL[o]?.noReq) return toast('상대가 교류 요청을 받지 않고 있습니다.'); sendEv(o, 'friendReq'); toast('친구 신청을 보냈습니다.'); }
-  else if (kind === 'confess'){ sendEv(o, 'confess'); toast('마음을 전했습니다. 답을 기다려 봅시다.'); }
-  else if (kind === 'propose'){ if (!cnt('ring')) return toast('청혼 반지가 필요합니다. 세공소에서 직접 만들어야 합니다.'); sendEv(o, 'propose'); toast('반지를 건네며 청혼했습니다.'); }
+  else if (kind === 'comfort'){ const g = await addAff(o, 2, true), L = socPick('comfort', nm); sendEv(o, 'comfort', {ln:L.i}); toast(`${L.me}${g?` 호감도 +${g}`:''}`); }
+  else if (kind === 'affection'){ const g = await addAff(o, 2, true), L = socPick('affection', nm); sendEv(o, 'affection', {ln:L.i}); toast(`${L.me}${g?` 호감도 +${g}`:''}`); }
+  else if (kind === 'friendReq'){ if (PL[o]?.noReq) return toast('상대가 교류 요청을 받지 않고 있습니다.'); const L = socPick('friendReq', nm); sendEv(o, 'friendReq', {ln:L.i}); toast(L.me); }
+  else if (kind === 'confess'){ const L = socPick('confess', nm); sendEv(o, 'confess', {ln:L.i}); toast(`${L.me} 답을 기다려 보자.`); }
+  else if (kind === 'propose'){ if (!cnt('ring')) return toast('청혼 반지가 필요합니다. 세공소에서 직접 만들어야 합니다.'); const L = socPick('propose', nm); sendEv(o, 'propose', {ln:L.i}); toast(L.me); }
   else if (kind === 'breakup'){
     const down = s === 'married' || s === 'lover' ? 'friend' : 'acq';
     if (!await ask('관계 정리', `${nm}님과의 관계를 '${STAGE_N[down]}'${pp(STAGE_N[down],'으로','로')} 되돌립니다. 호감도가 20 줄어듭니다.`, '정리하기', true)) return;
-    await writeRel(o, {stage:down, aff:Math.max(0, (r.aff||0) - 20)}); sendEv(o, 'breakup'); toast('관계를 정리했습니다.');
+    await writeRel(o, {stage:down, aff:Math.max(0, (r.aff||0) - 20)}); const L = socPick('breakup', nm); sendEv(o, 'breakup', {ln:L.i}); toast(L.me);
   }
   sfx('click'); render(); renderSheet(true);
 }
@@ -2304,10 +2365,10 @@ async function answerReq(id, yes){
   S.reqs = S.reqs.filter(x => x.id !== id); save();
   if (q.type === 'party'){ if (yes) await joinParty(q.pid, q.from); else { sendEv(q.from, 'partyRej'); toast('정중히 거절했습니다.'); render(); } return; }
   const o = q.from, nm = PL[o]?.name || '상대';
-  if (!yes){ sendEv(o, q.type + 'Rej'); toast('정중히 거절했습니다.'); render(); return; }
-  if (q.type === 'friend'){ await writeRel(o, {stage:'friend'}); S.stats.friends = (S.stats.friends||0) + 1; sendEv(o, 'friendAcc'); toast(`${nm}님과 친구가 되었습니다.`, 'good'); }
-  if (q.type === 'confess'){ await writeRel(o, {stage:'lover'}); sendEv(o, 'confessAcc'); toast(`${nm}님과 연인이 되었습니다.`, 'good'); }
-  if (q.type === 'propose'){ await writeRel(o, {stage:'married'}); S.stats.married = 1; sendEv(o, 'proposeAcc'); postNews(`${PL[o]?.name||'누군가'}님과 ${S.char.name}님이 부부의 연을 맺었습니다. 모두 축하해 주세요!`, [o]); toast(`${nm}님과 부부가 되었습니다. 부부 버프: 경험치 +10%`, 'good'); }
+  if (!yes){ const L = socPick('reject', nm); sendEv(o, q.type + 'Rej', {ln:L.i}); toast(L.me); render(); return; }
+  if (q.type === 'friend'){ await writeRel(o, {stage:'friend'}); S.stats.friends = (S.stats.friends||0) + 1; const L = socPick('friendAcc', nm); sendEv(o, 'friendAcc', {ln:L.i}); toast(L.me, 'good'); }
+  if (q.type === 'confess'){ await writeRel(o, {stage:'lover'}); const L = socPick('confessAcc', nm); sendEv(o, 'confessAcc', {ln:L.i}); toast(L.me, 'good'); }
+  if (q.type === 'propose'){ await writeRel(o, {stage:'married'}); S.stats.married = 1; const L = socPick('proposeAcc', nm); sendEv(o, 'proposeAcc', {ln:L.i}); postNews(`${PL[o]?.name||'누군가'}님과 ${S.char.name}님이 부부의 연을 맺었습니다. 모두 축하해 주세요!`, [o]); toast(L.me, 'good'); }
   sfx('rare'); pubDirty(); render();
 }
 async function giftTo(o, k, n, msg){
@@ -2350,7 +2411,7 @@ async function rescue(o, kind){
   const xp = addXP(20 + p.exp.region*10); const g = await addAff(o, 8, true); S.stats.rescue = (S.stats.rescue||0) + 1;
   if (kind === 'carry') setHP(curHP() - 10);
   save(); sfx('win');
-  toast(`${p.name}님을 ${kind==='heal'?'치료했습니다':'거점까지 부축했습니다'}. 경험치 +${xp}${g?`, 호감도 +${g}`:''}`, 'good');
+  toast(`${socPick(kind === 'heal' ? 'rescue_heal' : 'rescue_carry', p.name).me} 경험치 +${xp}${g?`, 호감도 +${g}`:''}`, 'good');
   render(); renderSheet(true);
 }
 async function block(o){ if (!await ask('차단', '이 사람의 교류와 요청이 더는 보이지 않습니다. 나 화면의 설정에서 풀 수 있습니다.', '차단하기', true)) return; S.social.block.push(o); save(); closeSheet(); render(); toast('차단했습니다.'); }
@@ -2877,7 +2938,7 @@ function pushDue(){
   }
   if (S.travel) add(S.travel.arrive, 'exp', '도착', `${REG[S.travel.to].n}에 도착했습니다.`, 'arrive' + S.travel.arrive, {tab:'explore'});
   if (S.hard) add(S.hard.end, 'exp', '고난도 탐사', `${REG[S.hard.ri].n} 고난도 탐사가 끝날 시간입니다. 고르지 않은 사건은 자동으로 진행됐어요.`, 'hard' + S.hard.start, {tab:'explore'});
-  add(festNext(), 'event', '🏮 마츠리', '거점에서 마츠리가 열렸습니다! 밤 10시까지 노점에서 링고아메·야끼소바·타코야끼를 팔아요.', 'fest' + seoul(festNext()).key);
+  add(festNext(), 'event', `${festTheme().ic} ${festTheme().n}`, festTheme().noti, 'fest' + seoul(festNext()).key);
   if (S.rest) add(S.rest.until, 'harvest', '휴식 끝', '온천에서 푹 쉬었다. 체력이 많이 찼다.', 'rest' + S.rest.until);
   if (S.task) add(S.task.start + S.task.dur, 'harvest', '생활 작업', `${TASKS[S.task.kind].n}${pp(TASKS[S.task.kind].n,'을','를')} 마쳤습니다.`, 'task' + S.task.start);
   S.farm.forEach((f, i) => { if (f) add(f.at + f.dur, 'harvest', '수확', `${i+1}번 밭의 ${IT[SEEDS[f.seed].crop].n}${pp(IT[SEEDS[f.seed].crop].n,'이','가')} 다 자랐습니다.`, 'farm' + f.at); });
@@ -3163,7 +3224,8 @@ function viewTop(){
   if (restActive()) chips.push(`<button class="chip good" data-act="sheet" data-s="rest">♨ 휴식 중 · <span class="num" data-cd="${S.rest.until}"></span></button>`);
   { const e = elixActive(); if (e) chips.push(`<button class="chip blue" data-act="tab" data-t="bag">🧪 ${IT[e.id].n} · <span class="num" data-cd="${e.until}"></span></button>`); }
   { const T = typeof tradeLive === 'function' && tradeLive(); if (T) chips.push(`<button class="chip blue" data-act="tradeOpen">🤝 교환 ${T.st === 'ask' ? '신청 중' : '중'}</button>`); }
-  if (festOn()) chips.push(`<button class="chip fest" data-act="sheet" data-s="matsuri">🏮 마츠리 · <span class="num" data-cd="${festEnd()}"></span></button>`);
+  chips.push(seaChip(), ...lifeChips());
+  if (festOn()) chips.push(`<button class="chip fest" data-act="sheet" data-s="matsuri">${festTheme().ic} ${festTheme().n} · <span class="num" data-cd="${festEnd()}"></span></button>`);
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
   const pU = postUnread(), nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
@@ -3235,10 +3297,11 @@ function baseMapSVG(){
   return `<svg class="base-svg ${lock ? 'locked' : ''}" viewBox="0 0 360 270" role="group" aria-label="거점 지도">
     <rect x="0" y="0" width="360" height="270" rx="6" class="b-ground"/>
     <path d="M250 0 C270 40 330 70 360 76 L360 0 Z" class="b-river"/>
-    <path d="M0 0 L120 0 C100 30 60 70 0 96 Z" class="b-hill"/>
+    <path d="M0 0 L120 0 C100 30 60 70 0 96 Z" class="b-hill"/>${seaBaseBack()}
     <path d="M44 240 C90 230 120 236 150 226 C200 210 250 222 300 236 M150 226 C160 180 150 150 172 70 M118 214 C120 170 118 150 118 140 M200 200 C208 170 214 150 216 132 M296 212 C298 180 300 160 300 146" class="b-road"/>
     <g class="b-torii" transform="translate(18 236)"><path d="M-12 -14h24M-10 -9h20M-7 -14v16M7 -14v16"/></g>
-    ${festOn() ? `<g class="b-garland" aria-hidden="true"><path d="M0 18 Q90 40 180 20 T360 18" class="b-ink thin"/>${[20,48,76,104,132,160,188,216,244,272,300,328].map((x, i) => `<g transform="translate(${x} ${18 + Math.sin((x/360)*Math.PI*2)*0 + (i % 2 ? 9 : 12)})"><path d="M0 -6v3" class="b-ink thin"/><ellipse rx="4.5" ry="6" class="b-lantern ${i % 3 === 1 ? 'alt' : ''}"/></g>`).join('')}</g>` : ''}
+    ${seaBaseFx()}${sfBaseArt()}
+    ${festOn() ? `<g class="b-garland fs-${seaKey()}" aria-hidden="true"><path d="M0 18 Q90 40 180 20 T360 18" class="b-ink thin"/>${[20,48,76,104,132,160,188,216,244,272,300,328].map((x, i) => `<g transform="translate(${x} ${18 + Math.sin((x/360)*Math.PI*2)*0 + (i % 2 ? 9 : 12)})"><path d="M0 -6v3" class="b-ink thin"/><ellipse rx="4.5" ry="6" class="b-lantern ${i % 3 === 1 ? 'alt' : ''}"/></g>`).join('')}</g>` : ''}
     ${baseNodes().map(b => { const st = baseStatus(b.k); return `<g class="b-node" data-act="${b.act}" ${b.s ? `data-s="${b.s}"` : ''} role="button" tabindex="0" aria-label="${esc(b.n)}${b.g ? ` (${b.g})` : ''}${st ? `, ${st}` : ''}" transform="translate(${b.x} ${b.y})"><circle r="26" class="hit"/>${baseGlyph(b.k)}<text y="28" text-anchor="middle" class="b-label">${esc(b.n)}</text>${(() => { const n = ST.mode === 'cloud' ? whoAt(b.k === 'task' ? 'tasks' : b.k === 'shrine' ? 'subjob' : b.k).length : 0; return n ? `<g transform="translate(-24 -22)" class="b-ppl"><circle r="9"/><text y="3.5" text-anchor="middle">${n}</text></g>` : ''; })()}${st ? `<g transform="translate(16 -24)"><rect x="-2" y="-9" width="${st.length*9+8}" height="15" rx="7" class="b-badge"/><text x="2" y="2" class="b-badge-t">${esc(st)}</text></g>` : ''}</g>`; }).join('')}
     ${lock ? `<g class="b-lockmsg"><rect x="60" y="112" width="240" height="46" rx="8"/><text x="180" y="132" text-anchor="middle">장기 탐사 중에는</text><text x="180" y="149" text-anchor="middle">거점을 이용할 수 없습니다</text></g>` : ''}
   </svg>`;
@@ -3255,12 +3318,13 @@ TABS.home = () => {
   const es = expState();
   return `
   <div class="sec-title"><h2>거점</h2><span class="small muted">토벌 ${Object.keys(S.bosses).length} / 13 고장</span></div>
+  ${journalBanner()}
   ${MUSIC.yt && MUSIC.ytFail && !MUSIC.cfg ? `<p class="small" style="margin:-2px 2px 10px">배경음악 · <a href="${esc(MUSIC.yt.url)}" target="_blank" rel="noopener" style="color:var(--indigo)">유튜브 새 탭에서 듣기 ↗</a></p>` : ''}
   ${es && es.st === 'down' ? `<div class="card" style="border-color:var(--seal);margin-bottom:10px"><b style="color:var(--seal)">행동불능 상태</b><p class="small" style="margin:4px 0 0">${REG[S.exp.region].n}에서 쓰러졌습니다. ${ST.mode==='cloud'?'같은 고장의 동료가 구조하러 오길 기다리는 중입니다.':'잠시 뒤 마을 사람들이 실어 옵니다.'} 자동 귀환까지 <span class="num" data-cd="${es.autoAt}"></span></p></div>` : ''}
   ${S.reqs.length ? `<div class="card" style="margin-bottom:10px"><b>받은 요청 ${S.reqs.length}건</b> <button class="btn sm ghost" data-act="tab" data-t="social" style="float:right">교류에서 보기</button></div>` : ''}
   <div class="card map-card">${baseMapSVG()}<p class="tiny muted" style="margin:6px 2px 0">건물을 누르면 들어갈 수 있다.${lock ? ' 지금은 장기 탐사 중이라 잠겨 있다.' : ''}</p></div>
   <div class="tiles" style="margin-top:10px">
-    ${festOn() ? `<button class="tile fest-tile" data-act="sheet" data-s="matsuri"><span class="ic">🏮</span><b>마츠리</b><span class="st on">축제 중 · <span class="num" data-cd="${festEnd()}"></span> 남음</span></button>` : ''}
+    ${festOn() ? `<button class="tile fest-tile" data-act="sheet" data-s="matsuri"><span class="ic">${festTheme().ic}</span><b>${festTheme().n}</b><span class="st on">축제 중 · <span class="num" data-cd="${festEnd()}"></span> 남음</span></button>` : ''}
     ${tile('sheet', 'kitchen', '부엌', `<span class="st ${canCook?'on':''}">${canCook ? `지금 만들 수 있는 요리 ${canCook}` : `아는 레시피 ${knownRecipes().length}`}</span>`, 'data-s="kitchen"')}
     ${tile('sheet', 'farm', '논밭', `<span class="st ${ready?'on':''}">${ready ? `수확 가능 ${ready}` : growing ? `자라는 중 ${growing}/4` : '빈 밭 4칸'}</span>`, 'data-s="farm"')}
     ${tile('sheet', 'pen', '축사', `<span class="st ${penReady()?'on':''}">${penReady() ? `수확 가능 ${penReady()}` : S.pen.length ? `가축 ${S.pen.length}/${penMax()}${penHungry() ? ` · 먹이 필요 ${penHungry()}` : ''}` : '닭·오리·누에·꿀벌·소·산양·양'}</span>`, 'data-s="pen"')}
@@ -3270,6 +3334,7 @@ TABS.home = () => {
     ${tile('openFish', 'fishing', '강가 낚시터', `<span class="st">강 · 바다 · 호수 · 지금은 ${tod}</span>`)}
     ${tile('sheet', 'rest', '온천 (휴식)', `<span class="st ${restActive() ? 'on' : ''}">${restActive() ? `휴식 중 · <span class="num" data-cd="${S.rest.until}"></span>` : curHP() < maxHP() ? `체력 회복 5배 · ${Math.floor(curHP())}/${maxHP()}` : '체력이 가득하다'}</span>`, 'data-s="rest"')}
     ${tile('sheet', 'shop', '잡화점', '<span class="st">사고팔기 · 씨앗 · 축사 먹이</span>', 'data-s="shop"')}
+    ${sfTile()}
     ${tile('sheet', 'market', '장터', `<span class="st ${blessOn() ? 'on' : ''}">${blessOn() ? `${BLESS[blessOn().k].n} 중` : '거래소 · 행상 · 기원 · 훈련'}</span>`, 'data-s="market"')}
     ${tile('sheet', 'board', '게시판', `<span class="st ${dn?'on':''}">${dn ? `구조 요청 ${dn}` : ST.mode==='cloud' ? '구조 요청 · 토벌대 · 소식' : '마을 소식'}</span>`, 'data-s="board"')}
     ${tile('sheet', 'sub', '신사 (서브 직업)', `<span class="st">${SUBS[S.sub].n}${syn()?' · <b style="color:var(--moss)">궁합 보너스</b>':''}</span>`, 'data-s="subjob"')}
@@ -3364,7 +3429,7 @@ TABS.explore = () => {
   const g = P && P.gather && P.gather.region != null ? P.gather : null;
   let act = '';
   if (here){
-    act = `<hr class="rule" style="margin:2px 0">
+    act = `${seaRegLine(ri)}<hr class="rule" style="margin:2px 0">
     <div class="row"><div class="grow"><h3>단기 탐사</h3><span class="small muted">빠르게 훑고 온다. 몬스터 없음 · 하루 10회 (${S.short.n}/10) · 운 ${effStats().LUK}: 물건 +${(effStats().LUK/10).toFixed(1)}개 꼴</span></div>
       <button class="btn sm" data-act="short" ${shortRun || S.short.n >= 10 ? 'disabled' : ''}>${shortRun ? `<span class="num" data-cd="${shortRun.until}"></span>` : '훑어보기'}</button></div>
     ${!es ? `<hr class="rule" style="margin:2px 0">
@@ -3486,7 +3551,7 @@ TABS.social = () => {
   return `<div class="sec-title"><h2>교류</h2><span class="small muted">마을 사람 ${people.length}명 · 접속 ${online}명</span></div>
   ${baseLocked() ? '<p class="small" style="color:var(--seal);margin:0 2px 8px">장기 탐사 중에는 교류할 수 없다. 쪽지는 보낼 수 있다.</p>' : `<p class="tiny muted" style="margin:0 2px 8px">지금 있는 곳: <b>${REG[S.loc].n}</b> · 같은 고장에 있는 사람과만 교류할 수 있다. 쪽지는 어디서든 보낼 수 있다.</p>`}
   ${dl.length ? `<div class="card" style="border-color:var(--seal);margin-bottom:10px"><h3 style="color:var(--seal)">구조 요청</h3><div class="list">${dl.map(({p, es}) => { const here = S.loc === p.exp.region && !baseLocked(); return `<div class="li">${PHOTO(p.photo)}<div class="t"><b>${esc(p.name)}</b><span>${REG[p.exp.region].n}에서 쓰러짐 · 자동 귀환까지 <span class="num" data-cd="${es.autoAt}"></span></span></div><div class="acts">${here ? `<button class="btn sm" data-act="rescue" data-u="${esc(p.uid)}" data-k="carry">부축</button><button class="btn sm seal" data-act="rescue" data-u="${esc(p.uid)}" data-k="heal" ${cnt('cure')?'':'disabled'}>각성약 (${cnt('cure')})</button>` : `<button class="btn sm ghost" data-act="goRegion" data-r="${p.exp.region}">${josa(REG[p.exp.region].n,'으로','로')} 가기</button>`}</div></div>`; }).join('')}</div><p class="tiny muted" style="margin-bottom:0">쓰러진 고장에 가야 도울 수 있다. 부축: 거점으로 데려옴(상대 보상 절반). 각성약: 그 자리에서 일으켜 보상을 지킴.</p></div>` : ''}
-  ${S.reqs.length ? `<div class="sec-title"><h2 style="font-size:1.5rem">받은 요청</h2></div><div class="card"><div class="list">${S.reqs.map(q => `<div class="li">${PHOTO(PL[q.from]?.photo)}<div class="t"><b>${esc(PL[q.from]?.name || '누군가')}</b><span>${({friend:'친구 신청',confess:'고백',propose:'청혼',party:'조사대 초대'})[q.type]}</span></div><div class="acts"><button class="btn sm ghost" data-act="req" data-id="${q.id}" data-y="0">거절</button><button class="btn sm seal" data-act="req" data-id="${q.id}" data-y="1">수락</button></div></div>`).join('')}</div></div>` : ''}
+  ${S.reqs.length ? `<div class="sec-title"><h2 style="font-size:1.5rem">받은 요청</h2></div><div class="card"><div class="list">${S.reqs.map(q => `<div class="li">${PHOTO(PL[q.from]?.photo)}<div class="t"><b>${esc(PL[q.from]?.name || '누군가')}</b><span>${({friend:'친구 신청',confess:'고백',propose:'청혼',party:'조사대 초대',homeMerge:'집 합치기'})[q.type]}</span></div><div class="acts"><button class="btn sm ghost" data-act="req" data-id="${q.id}" data-y="0">거절</button><button class="btn sm seal" data-act="req" data-id="${q.id}" data-y="1">수락</button></div></div>`).join('')}</div></div>` : ''}
   <div class="sec-title"><h2 style="font-size:1.5rem">마을 광장 담소</h2><span class="small muted">접속한 모두와 이야기 나누기</span></div>
   <div class="card">${chatBox('square')}</div>
   <div class="sec-title"><h2 style="font-size:1.5rem">쪽지함</h2><span class="small muted">${mailUnread() ? `<b style="color:var(--seal)">안 읽은 쪽지 ${mailUnread()}</b>` : ''}</span></div>
@@ -3841,6 +3906,7 @@ SHEETS.profile = o => {
     ${rk >= 1 && rk <= 2 ? B('confess','고백','seal', (r.aff||0) < 80, '호감도 80 필요') : ''}
     ${rk >= 3 ? B('affection','애정 표현','seal') : ''}
     ${s === 'lover' ? B('propose','청혼', 'seal', !cnt('ring'), '청혼 반지 필요') : ''}
+    ${soc2Btns(o, B, rk)}
     <button class="btn sm ghost" data-act="sheet" data-s="mail" data-a="${esc(o)}">✉ 쪽지${mailUnreadFrom(o) ? ` (${mailUnreadFrom(o)})` : ''}</button>
   </div>
   <p class="tiny muted">치료: 회복 환약으로 상대 체력 회복 · 격려: 상대 경험치 +10% (2시간) · 차 대접: 녹차 1잔, 호감도 +4${!hasTea ? ' · 녹차가 없다' : ''}${!hasPot ? ' · 환약이 없다' : ''}</p>
@@ -4404,7 +4470,7 @@ function hardReward(H, r, mult){
   const lm = mult.loot * (HARD_LMUL[H.mins] || 1), rm = mult.rare * (HARD_LMUL[H.mins] || 1);
   if (r.mats) for (let i = 0; i < Math.round(r.mats * lm + Math.random()*0.6); i++) add(wpick(Math.random, R.mats), 1);
   if (r.herb) add('herb', r.herb * lm);
-  if (r.fish){ const fs = FISH.filter(f => !f.rare); for (let i = 0; i < r.fish; i++) add(pick(Math.random, fs).id, 1); }
+  if (r.fish){ const fs = FISH.filter(f => !f.rare && !f.season); for (let i = 0; i < r.fish; i++) add(pick(Math.random, fs).id, 1); }
   if (r.talisman) add('talisman', r.talisman);
   if (r.berry) add('berry', r.berry);
   if (r.mushroom) add('mushroom', r.mushroom);
@@ -5002,7 +5068,7 @@ function festTick(){
   if (!S || SCREEN !== 'game') return;
   const el = document.getElementById('sClk'); if (el) el.textContent = seoulClock();
   const on = festOn();
-  if (on && S.festNoti !== festKey()){ S.festNoti = festKey(); save(); notify('event', '🏮 마츠리', '거점에서 마츠리가 열렸습니다! 밤 10시까지 노점에서 링고아메·야끼소바·타코야끼를 팔아요.'); render(); }
+  if (on && S.festNoti !== festKey()){ S.festNoti = festKey(); save(); notify('event', `${festTheme().ic} ${festTheme().n}`, festTheme().noti); render(); }
   if (on !== FEST_WAS){ FEST_WAS = on; render(); if (!on && SHEET && SHEET.k === 'matsuri') renderSheet(true); }
 }
 let FEST_WAS = null;
@@ -5012,7 +5078,7 @@ function festBought(id){ if (!S.fest || S.fest.k !== festKey()) S.fest = {k:fest
 function festBuy(id, eatNow){
   if (!festOn()) return toast('축제가 끝났습니다. 내일 밤 8시에 다시 열려요.');
   if (baseLocked()) return lockToast();
-  const r = FEST_FOOD.find(x => x.id === id); if (!r) return;
+  const r = festFoods().find(x => x.id === id); if (!r) return;
   if (festBought(id) >= FEST_BUY) return toast(`${r.n}${pp(r.n,'은','는')} 이번 축제에서 ${FEST_BUY}개까지만 살 수 있어요.`);
   if (S.gold < r.p && !(S.settings.infGold && isOp())) return toast('엽전이 부족합니다.', 'warn');
   if (!(S.settings.infGold && isOp())) S.gold -= r.p;
@@ -5040,12 +5106,12 @@ function festKuji(){
 
 SHEETS.matsuri = () => {
   const on = festOn();
-  if (!on) return sheetHead('마츠리') + `<div class="card" style="text-align:center"><p style="margin:0">🏮 축제는 매일 <b>밤 8시 ~ 10시</b>에 열린다.</p><p class="small muted" style="margin:6px 0 0">다음 축제까지 <b class="num" data-cd="${festNext()}"></b> · 지금 ${seoulClock()}</p></div>`;
+  if (!on) return sheetHead(festTheme().n) + `<div class="card" style="text-align:center"><p style="margin:0">🏮 축제는 매일 <b>밤 8시 ~ 10시</b>에 열린다.</p><p class="small muted" style="margin:6px 0 0">다음 축제까지 <b class="num" data-cd="${festNext()}"></b> · 지금 ${seoulClock()}</p></div>`;
   festBought('');
   const k = UI.kuji && now() - UI.kuji.at < 120000 ? UI.kuji : null;
-  return sheetHead('🏮 마츠리') + `<div class="fest-banner"><b>여름밤 축제가 한창이다!</b><span class="small">초롱불 아래 노점이 줄지어 섰다. 끝나기까지 <b class="num" data-cd="${festEnd()}"></b></span></div>
+  return sheetHead(`${festTheme().ic} ${festTheme().n}`) + `<div class="fest-banner fs-${seaKey()}"><b>${festTheme().banner}</b><span class="small">${festTheme().sub} 끝나기까지 <b class="num" data-cd="${festEnd()}"></b></span></div>
   <h3 style="margin-top:12px">노점 먹거리 <span class="tiny muted">축제마다 음식별 ${FEST_BUY}개까지</span></h3>
-  <div class="list">${FEST_FOOD.map(r => { const b = festBought(r.id), left = FEST_BUY - b; return `<div class="li fest-item">${itemIcon('m_' + r.id)}<div class="t"><b>${r.n} <span class="tiny muted num">${r.p}${CUR}</span></b><span class="good-t">${r.bd} · ${r.b.dur}시간</span><span class="tiny muted">${r.f}</span></div><div class="stack" style="gap:4px"><button class="btn sm seal" data-act="festBuy" data-id="${r.id}" data-e="1" ${left <= 0 ? 'disabled' : ''}>사서 먹기</button><button class="btn sm ghost" data-act="festBuy" data-id="${r.id}" ${left <= 0 ? 'disabled' : ''}>사 두기 ${left}/${FEST_BUY}</button></div></div>`; }).join('')}</div>
+  <div class="list">${festFoods().map(r => { const b = festBought(r.id), left = FEST_BUY - b; return `<div class="li fest-item">${itemIcon('m_' + r.id)}<div class="t"><b>${r.n} <span class="tiny muted num">${r.p}${CUR}</span></b><span class="good-t">${r.bd} · ${r.b.dur}시간</span><span class="tiny muted">${r.f}</span></div><div class="stack" style="gap:4px"><button class="btn sm seal" data-act="festBuy" data-id="${r.id}" data-e="1" ${left <= 0 ? 'disabled' : ''}>사서 먹기</button><button class="btn sm ghost" data-act="festBuy" data-id="${r.id}" ${left <= 0 ? 'disabled' : ''}>사 두기 ${left}/${FEST_BUY}</button></div></div>`; }).join('')}</div>
   <p class="tiny muted" style="margin:6px 0 0">사 둔 음식은 가방에서 축제가 끝난 뒤에도 먹을 수 있다. 식사 버프는 한 번에 하나만 적용된다.</p>
   <h3 style="margin-top:14px">운세 뽑기 <span class="tiny muted">축제마다 한 번, 공짜</span></h3>
   ${k ? `<div class="card kuji ${k.n === '대길' ? 'big' : ''}"><b class="kuji-n">${k.n}</b><p class="small" style="margin:6px 0">${k.t}</p>${k.give.length ? `<span class="tiny">받은 것: ${k.give.join(', ')}</span>` : ''}</div>`
@@ -5060,7 +5126,7 @@ BASE_SHEETS.push('matsuri');
 // 밭 네 칸을 한눈에 보고, 눌러서 심고·돌보고·거둔다. 모두 수확 · 모두 물 주기 · 빈 밭 모두 심기 한 번에.
 // 씨앗이 없어도 밭에서 바로 사서 심을 수 있다.
 const farmReady = f => f && now() >= f.at + f.dur;
-const seedInfo = k => { const sd = SEEDS[k], h = sd.h*(S.sub === 'farmer' ? 0.8 : 1); return `${h % 1 ? h.toFixed(1) : h}시간 · ${sd.y[0] + (S.sub === 'farmer' ? 1 : 0)}~${sd.y[1] + (S.sub === 'farmer' ? 1 : 0)}개`; };
+let seedInfo = k => { const sd = SEEDS[k], h = sd.h*(S.sub === 'farmer' ? 0.8 : 1); return `${h % 1 ? h.toFixed(1) : h}시간 · ${sd.y[0] + (S.sub === 'farmer' ? 1 : 0)}~${sd.y[1] + (S.sub === 'farmer' ? 1 : 0)}개`; };
 function farmLock(){ if (baseLocked()){ lockToast(); return true; } return false; }
 function harvestAll(){
   if (farmLock()) return;
@@ -5196,7 +5262,7 @@ const fishCmTxt = cm => cm >= 100 ? `${(cm/100).toFixed(2)}m` : `${cm}cm`;
 function fishOrders(){
   if (S.forder && S.forder.d === dayKey()) return S.forder.list;
   const rng = mulberry32(hashStr(ST.uid + dayKey() + 'fish') >>> 0), list = [];
-  const pool = FISH.filter(f => !f.rare);
+  const pool = FISH.filter(f => !f.rare && !f.season);
   for (let i = 0; i < 3; i++){
     const f = wpick(rng, pool.filter(x => !list.some(o => o.id === x.id)).map(x => [x, 1/x.d]));
     const n = 1 + Math.floor(rng()*(f.d <= 2 ? 3 : 2));
@@ -5226,7 +5292,7 @@ function fishOrderBox(){
 // 칭호
 TITLES.push(
   {id:'bigfish', n:'대어 낚시꾼', d:'몸집이 아주 큰 물고기를 낚았다.', c:S => st_(S,'bigfish') >= 1},
-  {id:'fishall', n:'물고기 박사', d:'물고기 12종을 모두 낚았다.', c:S => FISH.every(f => (S.codex.fish||{})[f.id] > 0)},
+  {id:'fishall', n:'물고기 박사', d:'물고기 12종을 모두 낚았다.', c:S => FISH.filter(f => !f.season).every(f => (S.codex.fish||{})[f.id] > 0)},
   {id:'forder10', n:'단골 생선 장수', d:'생선 주문을 10번 납품했다.', c:S => st_(S,'forder') >= 10},
   {id:'elix10', n:'약방의 단골', d:'비약을 10번 마셨다.', c:S => st_(S,'elix') >= 10},
 );
@@ -6055,7 +6121,8 @@ function hallLv(){ if (ST.mode !== 'cloud' && S){ HALL.total = HALL.mine = S.hal
 function hallListen(){
   if (ST.mode !== 'cloud'){ HALL.total = HALL.mine = (S && S.hallLocal) || 0; return; }
   unsubs.push(ST.db.collection('hallc').limit(300).onSnapshot(s => {
-    const ps = s.docs.map(d => ({uid:d.id, ...d.data()})).filter(p => p && p.pts > 0);
+    HALL.raw = s.docs.map(d => ({uid:d.id, ...d.data()}));
+    const ps = HALL.raw.filter(p => p && p.pts > 0);
     HALL.people = ps.sort((a, b) => b.pts - a.pts); HALL.total = ps.reduce((a, p) => a + (+p.pts || 0), 0); HALL.loaded = true;
     const me = ps.find(p => p.uid === ST.uid); HALL.mine = Math.max(me ? me.pts : 0, S.hallPts || 0);
     softRender();
@@ -6065,7 +6132,7 @@ async function hallAdd(pts){
   S.hallPts = (S.hallPts || 0) + pts; HALL.mine = S.hallPts;
   if (ST.mode !== 'cloud'){ S.hallLocal = S.hallPts; HALL.total = S.hallPts; save(); return; }
   const before = hallLv();
-  try { await ST.db.doc('hallc/' + ST.uid).set({pts:S.hallPts, name:S.char.name, ts:now()}); } catch(e){ console.warn('hall', e); }
+  try { await ST.db.doc('hallc/' + ST.uid).set(hallDoc()); } catch(e){ console.warn('hall', e); }
   HALL.total += pts; save();
   if (hallLv() > before){ notify('social', '마을회관', `마을회관이 「${HALL_LV[hallLv()].n}」${pp(HALL_LV[hallLv()].n,'으로','로')} 발전했습니다! ${HALL_LV[hallLv()].perk}`); postNews && postNews(`${S.char.name}님의 납품으로 마을회관이 「${HALL_LV[hallLv()].n}」${pp(HALL_LV[hallLv()].n,'이','가')} 되었습니다!`); }
 }
@@ -6144,7 +6211,8 @@ SHEETS.hall = () => {
   const pct = nx ? clamp((HALL.total - L.pts)/(nx.pts - L.pts)*100, 0, 100) : 100;
   const seg = `<div class="seg" style="margin:10px 0">${[['build','납품'],['req','의뢰'],['shop','증표 교환소']].map(([k, n]) => `<button data-act="hallTab" data-t="${k}" aria-pressed="${t === k}">${n}${k === 'req' ? ` ${dailyReqs().filter(o => !o.done).length}` : ''}</button>`).join('')}</div>`;
   let body = '';
-  if (t === 'build'){
+  if (HALL_X[t]) body = HALL_X[t]();
+  else if (t === 'build'){
     const mats = Object.keys(S.inv).filter(k => !k.endsWith('*') && ['mat','fish'].includes(IT[k]?.t) && cnt(k) > 0 && !MAT_KEEP.includes(k)).sort((a, b) => cnt(b) - cnt(a));
     body = `<p class="small muted" style="margin-top:0">남는 재료를 납품하면 마을회관이 조금씩 형태를 갖춘다. 모두의 납품이 합쳐지고, 단계가 오를 때마다 마을 전체에 혜택이 생긴다. 납품 점수 20점마다 <b>개척 증표</b> 1개를 받는다.</p>
     <div class="list">${mats.map(k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">×${cnt(k)}</span></b><span class="tiny muted">1개 ${hallPtsOf(k, 1)}점 · 전부 ${hallPtsOf(k, cnt(k))}점</span></div><div class="row" style="gap:4px"><button class="btn sm ghost" data-act="hallGive" data-k="${k}" data-n="10">10개</button><button class="btn sm" data-act="hallGive" data-k="${k}" data-n="9999">전부</button></div></div>`).join('') || '<p class="small muted">납품할 재료가 없다.</p>'}</div>
@@ -6161,7 +6229,7 @@ SHEETS.hall = () => {
   <div class="hall-top">${hallArt(lv, true)}<div class="grow"><b style="font-size:1.1rem">${L.n}</b> <span class="chip">${lv}단계</span><p class="small" style="margin:4px 0">${L.d}</p>
     <div class="bar gold"><i style="width:${pct}%"></i></div><span class="tiny muted num">${nx ? `${HALL.total} / ${nx.pts}점 · 다음: ${nx.n} (${nx.perk})` : `${HALL.total}점 · 최고 단계!`}</span><br><span class="tiny muted">내 기여 ${HALL.mine}점</span></div></div>
   <details class="sub" style="margin-top:8px"><summary class="small">단계별 혜택</summary><div class="list">${HALL_LV.slice(1).map((x, i) => `<div class="li" ${lv >= i + 1 ? '' : 'style="opacity:.55"'}><div class="t"><b>${i + 1}단계 · ${x.n} <span class="tiny muted">${x.pts}점</span></b><span>${x.perk}</span></div>${lv >= i + 1 ? '<span class="chip good">달성</span>' : ''}</div>`).join('')}</div></details>
-  ${seg}${body}`;
+  ${seg}<div class="seg" style="margin:-4px 0 10px">${[['proj','주간 사업'],['raid',`공동 토벌${vbOpen() ? ' 🔥' : ''}`]].map(([k, n]) => `<button data-act="hallTab" data-t="${k}" aria-pressed="${t === k}">${n}</button>`).join('')}</div>${body}`;
 };
 // 혜택 적용
 const _makeSnap0 = makeSnap;
@@ -6746,8 +6814,8 @@ function fishTime(){ const h = new Date().getHours(); return h >= 5 && h < 11 ? 
 function openFish(){ FG = {st:'idle', spot:UI.spot || 'river', msg:''}; $('#fish').hidden = false; renderFish(); sfx('page'); }
 function closeFish(){ if (FG){ cancelAnimationFrame(FG.raf); clearTimeout(FG.t); } FG = null; $('#fish').hidden = true; $('#fish').innerHTML = ''; render(); }
 function zoneFrac(){ let z = 0.22 * (1 + (S.sub==='fisher'?.25:0) + (hasSyn('hunter:fisher')?.4:0)) * (1 + effStats().AGI*0.01); return Math.min(.5, z); }
-const fishPool = (spot, tod) => FISH.filter(f => f.spot === spot && (f.time === 'any' || f.time === tod));
-const fishWeight = f => f.rare ? 0.07*(S.sub==='fisher'?1.6:1) : 1/f.d;
+let fishPool = (spot, tod) => FISH.filter(f => f.spot === spot && (f.time === 'any' || f.time === tod));
+let fishWeight = f => f.rare ? 0.07*(S.sub==='fisher'?1.6:1) : 1/f.d;
 function pickFish(spot){ return wpick(Math.random, fishPool(spot, fishTime()).map(f => [f, fishWeight(f)])); }
 function renderFish(){
   const el = $('#fish'); if (!FG) return;
@@ -6774,7 +6842,7 @@ function renderFish(){
 function cast(){
   FG.st = 'wait'; FG.fish = pickFish(FG.spot); FG.msg = ''; sfx('splash'); renderFish();
   FG.t = setTimeout(() => { if (!FG || FG.st !== 'wait') return; FG.st = 'bite'; FG.biteAt = now(); sfx('bell'); renderFish();
-    FG.t = setTimeout(() => { if (FG && FG.st === 'bite'){ FG.st = 'done'; FG.msg = '놓쳤다… 물고기가 미끼만 먹고 갔다.'; sfx('fail'); renderFish(); } }, 900 + effStats().AGI*25); }, 1500 + Math.random()*3500);
+    FG.t = setTimeout(() => { if (FG && FG.st === 'bite'){ FG.st = 'done'; FG.msg = '놓쳤다… 물고기가 미끼만 먹고 갔다.'; sfx('fail'); renderFish(); } }, 900 + effStats().AGI*25); }, (1500 + Math.random()*3500)*seaBiteMul());
 }
 function hook(){
   if (!FG) return;
@@ -7466,14 +7534,14 @@ function homeMine(){
 }
 const placedOf = (H, k) => H.room.concat(H.yard).filter(i => i.k === k).length;
 const placedAll = H => H.room.length + H.yard.length;
-function cozyOf(H){ const seen = {}; let t = 0; for (const it of [...(H.room || []), ...(H.yard || [])]){ const F = FURN[it.k]; if (!F) continue; seen[it.k] = (seen[it.k] || 0) + 1; t += (F.c || 1) * Math.pow(0.5, seen[it.k] - 1); } t = Math.round(t); let lv = 0; COZY.forEach((c, i) => { if (t >= c[0]) lv = i; }); return {pts:t, lv, name:COZY[lv][1], next:COZY[lv + 1]}; }
+function cozyOf(H){ const seen = {}; let t = 0; for (const it of [...(H.room || []), ...(H.yard || [])]){ const F = FURN[it.k]; if (!F) continue; seen[it.k] = (seen[it.k] || 0) + 1; t += (F.c || 1) * Math.pow(0.5, seen[it.k] - 1); } t = Math.round(t + homeMateBonus(H)); let lv = 0; COZY.forEach((c, i) => { if (t >= c[0]) lv = i; }); return {pts:t, lv, name:COZY[lv][1], next:COZY[lv + 1]}; }
 
 // 다른 사람 값도 안전하게: 아는 가구만, 좌표·번호는 범위 안으로
 const hNum = (v, a, b, d = 0) => { const n = Math.round(+v); return Number.isFinite(n) ? clamp(n, a, b) : d; };
 function cleanItem(i){ if (!i || !FURN[i.k]) return null; return {k:i.k, x:hNum(i.x, 0, 360), y:hNum(i.y, 0, 270), f:i.f ? 1 : 0, s:SIZES.includes(+i.s) ? +i.s : 100, z:hNum(i.z, -9, 9), t:hNum(i.t, 0, TINT.length - 1)}; }
 const cleanActs = a => { const o = {}; for (const k of ['me','c0','c1']){ const v = a && a[k]; if (v) o[k] = {x:hNum(v.x, 0, 360), y:hNum(v.y, 0, 270), f:v.f ? 1 : 0}; } return o; };
 function homeClean(h){ h = h || {}; const list = v => (Array.isArray(v) ? v : []).slice(0, 90).map(cleanItem).filter(Boolean);
-  return {n:String(h.n || '').slice(0, 14), g:hNum(h.g, 0, HOUSE.length - 1), w:hNum(h.w, 0, WALLS.length - 1), f:hNum(h.f, 0, FLOORS.length - 1), y:hNum(h.y, 0, GROUNDS.length - 1), room:list(h.room), yard:list(h.yard), act:{room:cleanActs(h.act && h.act.room), yard:cleanActs(h.act && h.act.yard)}, likes:hNum(h.likes, 0, 9999999), book:(Array.isArray(h.book) ? h.book : []).slice(0, 12).map(b => ({n:String((b && b.n) || '누군가').slice(0, 16), t:String((b && b.t) || '').slice(0, 60), ts:+(b && b.ts) || 0}))}; }
+  return {mate:String(h.mate || '').slice(0, 60), n:String(h.n || '').slice(0, 14), g:hNum(h.g, 0, HOUSE.length - 1), w:hNum(h.w, 0, WALLS.length - 1), f:hNum(h.f, 0, FLOORS.length - 1), y:hNum(h.y, 0, GROUNDS.length - 1), room:list(h.room), yard:list(h.yard), act:{room:cleanActs(h.act && h.act.room), yard:cleanActs(h.act && h.act.yard)}, likes:hNum(h.likes, 0, 9999999), book:(Array.isArray(h.book) ? h.book : []).slice(0, 12).map(b => ({n:String((b && b.n) || '누군가').slice(0, 16), t:String((b && b.t) || '').slice(0, 60), ts:+(b && b.ts) || 0}))}; }
 
 // ---------- 집 그림 ----------
 function furnG(i, ctx){ const F = FURN[i.k]; return F.d(TINT[i.t || 0], ctx); }
@@ -7544,7 +7612,7 @@ function homeSkinView(H, scene){
 }
 function homeShopView(H){
   const cat = HCAT[UI.hCat] ? UI.hCat : 'room';
-  const list = Object.keys(FURN).filter(k => FURN[k].cat === cat);
+  const list = Object.keys(FURN).filter(k => FURN[k].cat === cat && !FURN[k].lim);
   return `<div class="seg" style="margin-bottom:10px">${Object.keys(HCAT).map(c => `<button data-act="hsCat" data-c="${c}" aria-pressed="${c === cat}">${HCAT[c]}</button>`).join('')}</div>
   <div class="list">${list.map(k => { const F = FURN[k], need = F.need || [], locked = F.req && !(() => { try { return F.req.c(S); } catch(e){ return false; } })(), ok = !locked && hGold(F.p) && needOk(need);
     return `<div class="li"><span class="h-ic">${furnThumb(k)}</span><div class="t"><b>${esc(F.n)}${H.inv[k] ? ` <span class="cntx">×${H.inv[k]}</span>` : ''}</b><span class="tiny">아늑함 +${F.c || 1}${F.nap ? ' · 낮잠을 잘 수 있다' : ''}${F.tint ? ' · 색 변경' : ''}${F.glow ? ' · 밤에 빛남' : ''}</span>
@@ -7764,7 +7832,7 @@ function fdBody(){
   return `<div class="card" style="padding:12px;margin-bottom:10px"><div class="row" style="margin-bottom:8px"><b class="grow">어디서 언제 낚일까</b><span class="small muted">${seen}/${FISH.length}종 · ${total}마리</span></div>${fdTable()}<p class="tiny muted" style="margin:8px 0 0">모든 물고기는 강가 낚시터에서 낚는다. 낚시터에서 강·바다·호수를 고를 수 있다.</p></div>
   <div class="seg" style="margin-bottom:6px">${chip('all','전체')}${FD_SPOTS.map(s => chip(s, SPOTN[s])).join('')}<button data-act="fdNow" aria-pressed="${onlyNow}">지금(${todN}) 낚이는 것만</button></div>
   ${list.length ? `<div class="list">${list.map(f => { const open = UI.fdSel === f.id, n = S.codex.fish[f.id] || 0, can = fishPool(f.spot, tod).includes(f);
-    return `<div class="fd-item"><button class="li click" data-act="fdSel" data-k="${f.id}" aria-expanded="${open}">${fdIcon(f)}<div class="t"><b>${esc(fdName(f))}${f.rare ? ' <span class="chip gold">희귀</span>' : ''}${can ? ' <span class="chip good">지금 낚인다</span>' : ''}</b><span>${SPOTN[f.spot]} · ${TIMEN[f.time]}</span></div>${n ? `<span class="small num">${n}마리</span>` : ''}</button>${open ? fdDetail(f) : ''}</div>`; }).join('')}</div>` : '<p class="small muted">지금 조건에 맞는 물고기가 없다.</p>'}`;
+    return `<div class="fd-item"><button class="li click" data-act="fdSel" data-k="${f.id}" aria-expanded="${open}">${fdIcon(f)}<div class="t"><b>${esc(fdName(f))}${f.rare ? ' <span class="chip gold">희귀</span>' : ''}${can ? ' <span class="chip good">지금 낚인다</span>' : ''}</b><span>${SPOTN[f.spot]} · ${f.season ? `${SEA[f.season].n}에만` : TIMEN[f.time]}${seaFresh(f.id) ? ' · 제철' : ''}</span></div>${n ? `<span class="small num">${n}마리</span>` : ''}</button>${open ? fdDetail(f) : ''}</div>`; }).join('')}</div>` : '<p class="small muted">지금 조건에 맞는 물고기가 없다.</p>'}`;
 }
 const _codex_fd = SHEETS.codex;
 SHEETS.codex = () => { const h = _codex_fd(); if (UI.codex !== 'fish') return h; const i = h.indexOf('<div class="list">'); return i < 0 ? h : h.slice(0, i) + fdBody(); };
@@ -9383,10 +9451,10 @@ const F3_LOOK = {
 function f3Scene(spot){
   const G = c3Clear(), tod = fishTime(), L = F3_LOOK[spot] || F3_LOOK.river, night = tod === 'night', sc = C3.sc;
   F3.spot = spot; F3.tod = tod; F3.L = L; C3.counter.visible = false; C3.wall.visible = false; fSeed = 9;
-  const hor = {morning:'#f8c8a8', day:'#e4f2f4', night:'#34406a'}[tod] || '#e4f2f4';
+  const hor = seaHor({morning:'#f8c8a8', day:'#e4f2f4', night:'#34406a'}[tod] || '#e4f2f4', S.loc);
   sc.background = new THREE.Color(hor); sc.fog = new THREE.Fog(hor, 22, 46);
-  C3.sun.intensity = night ? .28 : tod === 'morning' ? .78 : .86; C3.sun.color.set(night ? '#a8b8e8' : tod === 'morning' ? '#ffd8b0' : '#fff4e0'); C3.sun.position.set(night ? -4 : 5, 9, 3); C3.hemi.intensity = night ? .3 : .46;
-  const dome = new THREE.Mesh(new THREE.SphereGeometry(38, 24, 16), new THREE.MeshBasicMaterial({map:skyTex(tod), side:THREE.BackSide, fog:false})); G.add(dome);
+  C3.sun.intensity = night ? .28 : tod === 'morning' ? .78 : .86; C3.sun.color.set(night ? '#a8b8e8' : tod === 'morning' ? '#ffd8b0' : '#fff4e0'); C3.sun.position.set(night ? -4 : 5, 9, 3); C3.hemi.intensity = night ? .3 : .46; C3.sun.intensity *= seaSunK(S.loc); F3.wx = f3SeaParts(S.loc);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(38, 24, 16), new THREE.MeshBasicMaterial({map:skyTex(tod), color:seaDome(S.loc), side:THREE.BackSide, fog:false})); G.add(dome);
   if (night){ const m = new THREE.Mesh(new THREE.SphereGeometry(1.2, 20, 14), new THREE.MeshBasicMaterial({color:'#f6ecc0', fog:false})); m.position.set(7, 12, -28); G.add(m); const pos = []; fi(160, () => { const a = fr(-1.3, 1.3), h = fr(.12, .9); pos.push(Math.sin(a)*30, h*26 + 2, -Math.cos(a)*30); }); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); G.add(new THREE.Points(g, new THREE.PointsMaterial({color:'#ffffff', size:.13, fog:false}))); }
   else { const m = new THREE.Mesh(new THREE.SphereGeometry(tod === 'morning' ? 2 : 1.4, 20, 14), new THREE.MeshBasicMaterial({color:tod === 'morning' ? '#ffd8a0' : '#fff8e0', fog:false})); m.position.set(tod === 'morning' ? -10 : 8, tod === 'morning' ? 4.5 : 17, -30); G.add(m); fi(5, i => { const cl0 = new THREE.Group(); fi(4, k => { const q = new THREE.Mesh(new THREE.SphereGeometry(1 + k*.3, 10, 8), new THREE.MeshBasicMaterial({color:'#fff', transparent:true, opacity:.8, fog:false})); q.position.set(k*1.3 - 2, 0, 0); q.scale.y = .42; cl0.add(q); }); cl0.position.set(-16 + i*8, 9 + (i % 3)*3, -32); G.add(cl0); }); }
   // 물
@@ -9432,6 +9500,7 @@ function f3Tick(dt){
   if (!F3.on || !FG) return false; const T = (F3.T += dt), L = F3.L, st = FG.st, Hm = (() => { const m = $('#meter'); return m ? m.clientHeight - 6 : 100; })();
   // 물결
   const P = F3.water.geometry.attributes.position, N = F3.water.geometry.attributes.normal, b0 = F3.pos0, A = L.amp, flow = L.flow; for (let i = 0; i < P.count; i++){ const x = b0[i*3], z = b0[i*3 + 2], w1 = .9, w2 = 1.7, ph = T*(flow ? 2.2 : 1.1), s1 = Math.sin(x*w1 + z*.6 + ph), s2 = Math.sin(z*w2 - x*.4 + ph*1.3 + (flow ? T*1.5 : 0)), h = (s1 + s2*.5)*A; P.setY(i, h); const dx = Math.cos(x*w1 + z*.6 + ph)*w1*A - Math.cos(z*w2 - x*.4 + ph*1.3 + (flow ? T*1.5 : 0))*.2*A, dz = Math.cos(x*w1 + z*.6 + ph)*.6*A + Math.cos(z*w2 - x*.4 + ph*1.3 + (flow ? T*1.5 : 0))*w2*.5*A, n = 1/Math.hypot(dx*4, 1, dz*4); N.setXYZ(i, -dx*4*n, n, -dz*4*n); } P.needsUpdate = true; N.needsUpdate = true;
+  if (F3.wx) f3SeaTick(F3.wx, dt);
   if (F3.foam && Math.random() < .3) c3Emit(F3.foam, rnd(-2.2, 2.2), .04, -12, rnd(-.05, .05), 0, 1.5, 9);
   if (F3.boat){ F3.boat.position.y = Math.sin(T*1.1)*.05; F3.boat.rotation.z = Math.sin(T*.9)*.05; F3.boat.position.x = -1.8 + Math.sin(T*.05)*1.2; }
   F3.amb.forEach(a => { a.a += dt*a.s*.5; a.m.position.x += Math.cos(a.a)*dt*a.s; a.m.position.z += Math.sin(a.a)*dt*a.s; a.m.rotation.z = -a.a; if (Math.abs(a.m.position.x) > 3) a.a += 3; if (a.m.position.z > 1 || a.m.position.z < -11) a.a += 3; });
@@ -9591,13 +9660,13 @@ function x3Ally(m){
 const x3AllySig = () => ((S.exp && S.exp.party) || []).map(m => { const a = x3Ally(m); return a.code + '/' + a.comps.join(); }).join('|');
 // ---------- 장면 ----------
 function x3Scene(ri){
-  const T = X3_THEME[ri] || X3_THEME[0], G = c3Clear(), tod = fishTime(), night = tod === 'night' && !T.cave; fSeed = 137 + ri*31;
+  const T = x3SeaTheme(X3_THEME[ri] || X3_THEME[0], ri), G = c3Clear(), tod = fishTime(), night = tod === 'night' && !T.cave; fSeed = 137 + ri*31;
   X3.tone = night ? c => '#' + new THREE.Color(c).lerp(new THREE.Color('#0e1838'), .68).getHexString() : c => c; X3.ri = ri; X3.near = []; X3.far = []; X3.T = T; X3.night = night; X3.vents = []; X3.fire = null;
   const dim = c => { const k = new THREE.Color(c); if (night) k.lerp(new THREE.Color('#0e1838'), .78); else if (tod === 'morning') k.lerp(new THREE.Color('#ffd8b0'), .14); return '#' + k.getHexString(); };
   C3.counter.visible = false; C3.wall.visible = false;
   C3.sc.background = canvasTex(4, 128, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, dim(T.sky[0])); gr.addColorStop(.72, dim(T.sky[1])); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
   C3.sc.fog = T.fog ? new THREE.Fog(dim(T.fog), 7, 26) : new THREE.Fog(dim(T.sky[1]), 16, 48);
-  C3.hemi.intensity = night ? .3 : .5; C3.sun.intensity = night ? .22 : T.cave ? .34 : .86; C3.sun.color.set(night ? '#8aa8e8' : tod === 'morning' ? '#ffe0b8' : '#fff4dc');
+  C3.hemi.intensity = night ? .3 : .5; C3.sun.intensity = (night ? .22 : T.cave ? .34 : .86)*(T.sunK || 1); C3.sun.color.set(night ? '#8aa8e8' : tod === 'morning' ? '#ffe0b8' : '#fff4dc');
   C3.sun.position.set(4, 9, 6); const sh = C3.sun.shadow.camera; sh.left = -9; sh.right = 9; sh.top = 7; sh.bottom = -7; sh.updateProjectionMatrix();
   // 땅과 길: 무늬를 흘려 걷는 느낌을 준다
   const gt = canvasTex(256, 256, (g, w, h) => { g.fillStyle = T.ground; g.fillRect(0, 0, w, h); for (let i = 0; i < 620; i++){ g.fillStyle = `rgba(${i % 2 ? '255,255,255' : '0,0,0'},${fr(.02, .07)})`; g.fillRect(fr(0, w), fr(0, h), fr(1, 5), fr(1, 3)); } }, 14, 8);
@@ -9615,7 +9684,7 @@ function x3Scene(ri){
   X3.party = []; const allies = ((S.exp && S.exp.party) || []).slice(0, 3).map(x3Ally); allies.forEach((al, i) => { const s = seededOf(((S.exp.party[i] || {}).name) || 'p' + i), h = al.known ? x3Hero({a:avParse(al.code)}) : x3Hero({a:{...AV_DEF}, hair:AV_HAIR[s % AV_HAIR.length], cloth:AV_CLOTH[(s >> 3) % AV_CLOTH.length], obi:AV_CLOTH[(s >> 6) % AV_CLOTH.length], hn:''}); h.base = -1.5 - i*.85; h.z = i % 2 ? -.22 : .24; G.add(h.g); X3.party.push(h); }); X3.allySig = x3AllySig();
   X3.pets = []; [...activeComps().slice(0, 2).map(c => c.sp), ...allies.flatMap(a => a.comps)].slice(0, 6).forEach((sp, i) => { const r = mdlPet(sp); r.g.scale.setScalar(.36); r.g.rotation.y = 1.2; G.add(r.g); X3.pets.push({r, base:-1 - i*.62, z:i % 2 ? 1.28 : .96, ph:i*1.7, hop:0}); });
   // 입자
-  X3.fx = T.fx === 'snow' ? c3Parts({n:90, size:.09, color:'#ffffff', op:.9, g:-.02}) : T.fx === 'leaf' ? c3Parts({n:40, size:.1, color:T.leaf, op:.9, g:-.05}) : T.fx === 'ember' ? c3Parts({n:60, size:.08, color:'#f88838', op:.9, g:.06, add:true}) : T.fx === 'sparkle' ? c3Parts({n:40, size:.07, color:'#d8f4ff', op:.9, g:0, add:true}) : T.fx === 'mist' ? c3Parts({n:30, size:2.1, color:'#ffffff', op:.09, g:0}) : null;
+  X3.fx = T.fx === 'rain' ? c3Parts({n:220, size:.6, map:seaRainTex(), color:'#e4eef8', op:.85, g:0}) : T.fx === 'snow' ? c3Parts({n:90, size:.09, color:'#ffffff', op:.9, g:-.02}) : T.fx === 'leaf' ? c3Parts({n:40, size:.1, color:T.leaf, op:.9, g:-.05}) : T.fx === 'ember' ? c3Parts({n:60, size:.08, color:'#f88838', op:.9, g:.06, add:true}) : T.fx === 'sparkle' ? c3Parts({n:40, size:.07, color:'#d8f4ff', op:.9, g:0, add:true}) : T.fx === 'mist' ? c3Parts({n:30, size:2.1, color:'#ffffff', op:.09, g:0}) : null;
   X3.hit = c3Parts({n:40, size:.13, color:'#ffd878', op:1, g:-3.4, add:true}); X3.poof = c3Parts({n:30, size:.42, color:'#ffffff', op:.5, g:.3}); X3.steam = X3.vents.length ? c3Parts({n:30, size:.5, color:'#d8d0c8', op:.2, g:.1}) : null;
   // 별
   if (night){ const n = 110, pos = new Float32Array(n*3); fi(n, i => { pos[i*3] = fr(-30, 30); pos[i*3 + 1] = fr(4, 17); pos[i*3 + 2] = -26; }); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); G.add(new THREE.Points(g, new THREE.PointsMaterial({color:'#ffffff', size:.09, fog:false}))); }
@@ -9681,8 +9750,8 @@ function x3Tick(dt){
   X3.party.forEach(p => { x3Pose(p, dt, moving, p.base, p.z); if (st.camp){ p.g.rotation.y = .9; p.body.position.y = -.23; p.legL.rotation.x = p.legR.rotation.x = -1.3; } });
   X3.pets.forEach(p => { p.ph += dt*(moving ? 10 : 2); const r = p.r; p.hop = Math.max(0, p.hop - dt); const hop = p.hop > 0 ? Math.abs(Math.sin(p.ph*1.2))*.3 : moving ? Math.abs(Math.sin(p.ph))*.06 : 0; r.g.position.set(p.base + (st.camp ? 2.05 : 0), hop + (r.floaty ? .3 + Math.sin(p.ph*.5)*.05 : 0), p.z); r.g.rotation.y = st.camp ? .6 : 1.2; r.body.rotation.z = moving ? Math.sin(p.ph)*.04 : 0; (r.tails || []).forEach(t => { t.rotation.z = Math.sin(p.ph*.8)*.28; }); });
   // 날씨
-  const F = X3.fx, T = X3.T; if (F){ const n = dt*(T.fx === 'snow' ? 20 : T.fx === 'ember' ? 10 : T.fx === 'mist' ? 1.4 : T.fx === 'sparkle' ? 6 : 3.5); let c = Math.floor(n) + (Math.random() < n % 1 ? 1 : 0); while (c-- > 0){ const x = rnd(-8, 9), z = rnd(-3, 3);
-      if (T.fx === 'snow') c3Emit(F, x, 6, z, -.26 - (moving ? v*.4 : 0), -.72, 0, 8); else if (T.fx === 'leaf') c3Emit(F, x, 4.8, z, -.5, -.42, rnd(-.1, .1), 8); else if (T.fx === 'ember') c3Emit(F, x, .1, z, rnd(-.2, .2), .55, 0, 3.4); else if (T.fx === 'sparkle') c3Emit(F, x, rnd(.2, 4), z, 0, .02, 0, 1.2); else c3Emit(F, x, rnd(.2, 1.3), rnd(-5, 0), -.22, 0, 0, 7); } }
+  const F = X3.fx, T = X3.T; if (F){ const n = dt*(T.fx === 'rain' ? 160 : T.fx === 'snow' ? 20 : T.fx === 'ember' ? 10 : T.fx === 'mist' ? 1.4 : T.fx === 'sparkle' ? 6 : 3.5); let c = Math.floor(n) + (Math.random() < n % 1 ? 1 : 0); while (c-- > 0){ const x = rnd(-8, 9), z = rnd(-3, 3);
+      if (T.fx === 'rain') c3Emit(F, x, 6.5, z, -.8 - (moving ? v*.4 : 0), -11, 0, .62); else if (T.fx === 'snow') c3Emit(F, x, 6, z, -.26 - (moving ? v*.4 : 0), -.72, 0, 8); else if (T.fx === 'leaf') c3Emit(F, x, 4.8, z, -.5, -.42, rnd(-.1, .1), 8); else if (T.fx === 'ember') c3Emit(F, x, .1, z, rnd(-.2, .2), .55, 0, 3.4); else if (T.fx === 'sparkle') c3Emit(F, x, rnd(.2, 4), z, 0, .02, 0, 1.2); else c3Emit(F, x, rnd(.2, 1.3), rnd(-5, 0), -.22, 0, 0, 7); } }
   if (X3.steam) X3.vents.forEach(p => { if (Math.random() < dt*3.2 && Math.abs(p.position.x) < 10) c3Emit(X3.steam, p.position.x, .14, p.position.z, 0, .44, 0, 2.2); });
   if (T.fx === 'bolt'){ X3.flash -= dt; if (X3.flash < -rnd(5, 30)) X3.flash = .16; C3.hemi.intensity = X3.flash > 0 ? 1.6 : (X3.night ? .3 : .5); }
   // 일지 살피기
@@ -10080,6 +10149,1141 @@ SHEETS.market = () => {
   }
   return sheetHead('장터', `<span class="chip gold">${S.gold.toLocaleString()}${CUR}</span>`) + `<div class="seg scrollx" style="margin-bottom:10px" role="group" aria-label="장터">${tabs.map(([k, n]) => `<button data-act="mkTab" data-t="${k}" aria-pressed="${t === k}">${n}</button>`).join('')}</div>${body}`;
 };
+// ===================== 계절과 날씨 =====================
+// 서울 날짜만으로 정해서 서버 없이 모두가 같은 계절·날씨를 본다. 계절은 2주마다 바뀌고, 날씨는 고장마다 하루 단위로 바뀐다.
+// 탐사 효과는 makeSnap 값만 바꾼다. 떠날 때 정해지고 simulate와 난수는 그대로라 진행 중인 탐사 결과는 변하지 않는다.
+const SEA_LEN = 14, SEA_EPOCH = Date.UTC(2026, 10, 2)/(24*H); // 2026-11-02에 가을이 시작된다
+const SEA_ORDER = ['spring', 'summer', 'autumn', 'winter'];
+const SEA = {
+  spring:{n:'봄', ic:'🌸', tint:'#f0a8c0', crops:['tea', 'negi', 'herb', 'barley'], fresh:['f_seabream', 'f_trout']},
+  summer:{n:'여름', ic:'🌿', tint:'#58a858', crops:['cucumber', 'eggplant', 'bean'], fresh:['f_ayu', 'eel']},
+  autumn:{n:'가을', ic:'🍂', tint:'#d8883a', crops:['rice', 'imo', 'buckwheat', 'redbean'], fresh:['f_mackerel', 'f_catfish']},
+  winter:{n:'겨울', ic:'❄', tint:'#c8d8ec', crops:['radish', 'cabbage', 'ginger', 'glut'], fresh:['f_smelt', 'f_carp']},
+};
+const WX = {
+  clear:{n:'맑음', ic:'☀', d:'탐사 체력 소모 −5%'},
+  cloud:{n:'흐림', ic:'☁', d:'특별한 효과 없음'},
+  rain:{n:'비', ic:'🌧', d:'입질 30% 빨라짐 · 희귀 물고기 1.5배 · 밭에 저절로 물이 듦 · 탐사 체력 소모 +8%'},
+  fog:{n:'안개', ic:'🌫', d:'탐사 희귀 재료 +15%'},
+  wind:{n:'바람', ic:'🍃', d:'탐사 알 발견 +20%'},
+  snow:{n:'눈', ic:'❄', d:'탐사 보상 +8% · 탐사 체력 소모 +10%'},
+  cave:{n:'동굴 속', ic:'🕯', d:'날씨의 영향을 받지 않음'},
+};
+const SEA_WEIGHT = {
+  spring:{clear:4, cloud:2, rain:2, fog:1, wind:1},
+  summer:{clear:4, cloud:1, rain:4, fog:.5, wind:1},
+  autumn:{clear:5, cloud:2, rain:1, fog:1.5, wind:2},
+  winter:{clear:3, cloud:2, snow:4, fog:.5, wind:1},
+};
+// 고장이 허락하는 날씨. 없으면 계절표 그대로
+const SEA_REG = {7:['clear', 'cloud', 'wind'], 9:['snow', 'clear', 'cloud', 'wind'], 11:['rain', 'cloud', 'wind', 'clear'], 12:['clear', 'wind', 'fog', 'cloud']};
+const SEA_CAVE = 10, SEA_GREEN = [1, 2, 3, 5];
+const SX = {season:null, wx:null}; // 시험용으로 고정한다
+
+const seaDayNo = (t = Date.now()) => Math.round((seoul(t).day0 + KST)/(24*H));
+const seaPhase = (t = Date.now()) => Math.floor((seaDayNo(t) - SEA_EPOCH)/SEA_LEN);
+function seaKey(t = Date.now()){ if (SX.season) return SX.season; const i = (seaPhase(t) + 2) % 4; return SEA_ORDER[(i + 4) % 4]; }
+const seaNow = (t = Date.now()) => SEA[seaKey(t)];
+function seaLeft(t = Date.now()){ const d = (seaDayNo(t) - SEA_EPOCH) % SEA_LEN; return SEA_LEN - (d + SEA_LEN) % SEA_LEN; }
+const seaNext = () => SEA[SEA_ORDER[(SEA_ORDER.indexOf(seaKey()) + 1) % 4]];
+function seaHash(a, b){ let h = Math.imul(a, 2654435761) ^ Math.imul(b + 1, 40503); h ^= h >>> 13; h = Math.imul(h, 1540483477); h ^= h >>> 15; return (h >>> 0)/4294967296; }
+function seaWeather(ri = S.loc, t = Date.now()){
+  if (ri === SEA_CAVE) return {k:'cave', ...WX.cave};
+  if (SX.wx) return {k:SX.wx, ...WX[SX.wx]};
+  const base = SEA_WEIGHT[seaKey(t)], allow = SEA_REG[ri], list = [];
+  for (const k of allow || Object.keys(base)){ const w = k === 'snow' && ri === 9 ? 5 : base[k] || 0; if (w) list.push([k, w]); }
+  const total = list.reduce((a, x) => a + x[1], 0); let r = seaHash(seaDayNo(t), ri)*total, k = list[0][0];
+  for (const [x, w] of list){ if (r < w){ k = x; break; } r -= w; }
+  return {k, ...WX[k]};
+}
+const seaCrop = crop => seaNow().crops.includes(crop);
+const seaFresh = id => seaNow().fresh.includes(id);
+const seaFish = () => FISH.filter(f => f.season === seaKey());
+function seaDish(id){ const r = RECIPES.find(x => x.id === id); if (!r || !r.need) return false; const S0 = seaNow(), hit = k => S0.crops.includes(k) || S0.fresh.includes(k) || (IT[k] && FISH.some(f => f.id === k && f.season === seaKey())); return r.need.some(([k]) => Array.isArray(k) ? k.some(hit) : hit(k)); }
+
+// 계절 물고기 12종. 기존 물고기는 그대로 사계절 낚인다
+const SEA_FISH = [
+  ['fs_cherry', '벚꽃 송어', 'river', 'spring', 3, 42, '#d8a0a8', '#f8dce0', [25, 55], '벚꽃이 질 무렵 여울을 거슬러 오르는 분홍빛 송어. 봄에만 낚인다.'],
+  ['fs_anchovy', '봄 멸치', 'sea', 'spring', 2, 24, '#8aa4b8', '#e4eef2', [8, 15], '봄 바다를 은빛으로 뒤덮는 작은 물고기. 봄에만 낚인다.'],
+  ['fs_paradise', '버들붕어', 'lake', 'spring', 2, 28, '#7a9a6a', '#e0c870', [6, 12], '버드나무 그늘에서 지느러미를 펼치는 물고기. 봄에만 낚인다.'],
+  ['fs_mandarin', '여울 농어', 'river', 'summer', 4, 58, '#a89a5a', '#4a4030', [25, 60], '여름 여울을 치고 오르는 강의 사냥꾼. 여름에만 낚인다.'],
+  ['fs_hairtail', '갈치', 'sea', 'summer', 3, 40, '#c4ccd8', '#f4f6fa', [60, 130], '칼처럼 번쩍이는 긴 물고기. 여름에만 낚인다.'],
+  ['fs_snakehead', '가물치', 'lake', 'summer', 4, 52, '#4a5a48', '#a0a888', [40, 90], '장마철 흙탕물에서 힘이 넘치는 물고기. 여름에만 낚인다.'],
+  ['fs_salmon', '연어', 'river', 'autumn', 4, 62, '#c87868', '#f0c0a8', [50, 95], '먼 바다에서 태어난 강으로 돌아온 물고기. 가을에만 낚인다.'],
+  ['fs_saury', '꽁치', 'sea', 'autumn', 2, 26, '#5a7a9a', '#d8e0e8', [25, 40], '가을 숯불 냄새를 부르는 날씬한 물고기. 가을에만 낚인다.'],
+  ['fs_maplecarp', '단풍 붕어', 'lake', 'autumn', 3, 44, '#c8603a', '#f0b878', [15, 40], '단풍이 물든 듯 붉어진 붕어. 가을에만 낚인다.'],
+  ['fs_char', '곤들매기', 'river', 'winter', 4, 56, '#6a8094', '#f0e0b0', [25, 60], '얼음장 밑 차가운 물을 좋아하는 물고기. 겨울에만 낚인다.'],
+  ['fs_cod', '대구', 'sea', 'winter', 3, 46, '#a8987a', '#ece4d0', [50, 110], '나베에 넣으면 온몸이 풀리는 겨울 바다의 맛. 겨울에만 낚인다.'],
+  ['fs_crystal', '수정 빙어', 'lake', 'winter', 3, 48, '#c0dcec', '#ffffff', [10, 20], '속이 비칠 만큼 맑은 빙어. 겨울에만 낚인다.'],
+];
+for (const [id, n, spot, season, d, p, a, c, cm, f] of SEA_FISH){
+  FISH.push({id, n, spot, time:'any', d, p, season, f});
+  IT[id] = {n, t:'fish', p, d:`${SPOTN[spot]} · ${SEA[season].n} 제철`, f};
+  ICON[id] = ['fish', a, c]; FISH_CM[id] = cm;
+}
+
+const _fishPool_sea = fishPool, _fishWeight_sea = fishWeight;
+fishPool = (spot, tod) => _fishPool_sea(spot, tod).filter(f => !f.season || f.season === seaKey());
+fishWeight = f => { let w = _fishWeight_sea(f); if (seaFresh(f.id)) w *= 2; if (f.rare && seaWeather().k === 'rain') w *= 1.5; return w; };
+const seaBiteMul = () => seaWeather().k === 'rain' ? .7 : 1;
+
+// 탐사
+const _makeSnap_sea = makeSnap;
+makeSnap = (region, ...a) => {
+  const s = _makeSnap_sea(region, ...a), k = seaWeather(region == null ? S.loc : region).k, o = {...s};
+  if (k === 'clear') o.cost = +(o.cost*.95).toFixed(3);
+  if (k === 'rain') o.cost = +(o.cost*1.08).toFixed(3);
+  if (k === 'fog') o.rare = +((o.rare || 1)*1.15).toFixed(3);
+  if (k === 'wind') o.egg = +((o.egg || 1)*1.2).toFixed(3);
+  if (k === 'snow'){ o.rew = +(o.rew*1.08).toFixed(3); o.cost = +(o.cost*1.1).toFixed(3); }
+  return o;
+};
+
+// 논밭: 심는 순간 제철이면 20% 빨리 자라고, 거둘 때 하나 더
+function seaStamp(){
+  S.farm.forEach(f => { if (!f || f.ss !== undefined || now() - f.at > 5000) return; const crop = SEEDS[f.seed].crop; f.ss = seaCrop(crop) ? 1 : 0; if (f.ss) f.dur = f.dur*.8; if (seaWeather().k === 'rain') f.water = true; });
+}
+const _plant_sea = plant; plant = (...a) => { _plant_sea(...a); seaStamp(); save(); };
+const _plantBuy_sea = plantBuy; plantBuy = (...a) => { const r = _plantBuy_sea(...a); seaStamp(); save(); return r; };
+function seaBonus(list){ if (!list.length) return; const got = {}; list.forEach(k => { addItem(k, 1); got[k] = (got[k] || 0) + 1; }); S.stats.seaHarvest = (S.stats.seaHarvest || 0) + list.length; save(); toast(`제철 덤: ${Object.entries(got).map(([k, v]) => `${IT[k].n} +${v}`).join(', ')}`, 'good'); renderSheet(true); render(); }
+const seaReady = () => S.farm.map(f => f && f.ss && farmReady(f) ? f : null);
+const _harvest_sea = harvest; harvest = i => { const f = seaReady()[i]; _harvest_sea(i); if (f && !S.farm[i]) seaBonus([SEEDS[f.seed].crop]); };
+const _harvestAll_sea = harvestAll; harvestAll = () => { const b = seaReady(); _harvestAll_sea(); seaBonus(b.filter((f, i) => f && !S.farm[i]).map(f => SEEDS[f.seed].crop)); };
+const _seedInfo_sea = seedInfo; seedInfo = k => _seedInfo_sea(k) + (seaCrop(SEEDS[k].crop) ? ' · 제철: 20% 빨리, 1개 더' : '');
+
+// 음식: 제철 재료가 들어간 요리는 효과 시간이 25% 길다
+const _eat_sea = eat;
+eat = key => { const f0 = S.food; _eat_sea(key); const f = S.food; if (f && f !== f0 && seaDish(f.id)){ f.until = now() + (f.until - now())*1.25; f.ss = 1; save(); toast('제철 음식이라 효과가 25% 더 오래 간다.', 'good'); render(); } };
+
+TITLES.push(
+  {id:'sea_fish', n:'사계의 낚시꾼', d:'계절 물고기 12종을 모두 낚았다.', c:S => FISH.filter(f => f.season).every(f => (S.codex.fish || {})[f.id] > 0)},
+  {id:'sea_farm', n:'철따라 농사꾼', d:'제철 작물로 덤을 40번 받았다.', c:S => st_(S, 'seaHarvest') >= 40},
+);
+
+function seaTick(){
+  if (!S || SCREEN !== 'game') return;
+  const id = seaKey() + seaPhase();
+  if (S.seaSeen !== id){ S.seaSeen = id; const s = seaNow(); toast(`${s.ic} ${s.n}이 왔다. 제철 작물과 ${s.n} 물고기를 살펴보자.`, 'good'); save(); }
+  if (seaWeather().k === 'rain'){ let n = 0; S.farm.forEach(f => { if (f && !f.water){ f.water = true; n++; } }); if (n) save(); }
+}
+setInterval(seaTick, 20000); setTimeout(seaTick, 2500);
+
+// 화면
+const seaChip = () => { const s = seaNow(), w = seaWeather(); return `<button class="chip" data-act="sheet" data-s="season">${s.ic} ${s.n} · ${w.ic} ${w.n}</button>`; };
+let seaRegLine = ri => { const w = seaWeather(ri); return `<p class="small" style="margin:2px 2px 8px"><button class="chip" data-act="sheet" data-s="season">${w.ic} 오늘 ${w.n}</button> <span class="muted">${w.d}</span></p>`; };
+const seaBaseBack = () => `<rect x="1" y="1" width="358" height="268" rx="6" fill="${seaNow().tint}" opacity="${seaKey() === 'winter' ? .3 : .14}" pointer-events="none" aria-hidden="true"/>`;
+function seaBaseFx(){
+  const k = seaWeather().k, sk = seaKey(), pts = (n, f) => Array.from({length:n}, (_, i) => f(i, (i*73 + 31) % 360, (i*131 + 17) % 270, -(i*.37 % 3).toFixed(2))).join('');
+  let out = '';
+  if (k === 'rain') out = pts(26, (i, x, y, d) => `<path class="rn" d="M${x} ${y}l-3 11" style="animation-delay:${d/4}s"/>`);
+  else if (k === 'snow') out = pts(26, (i, x, y, d) => `<circle class="sn" cx="${x}" cy="${y}" r="${1.2 + i % 3*.5}" style="animation-delay:${d}s"/>`);
+  else if (sk === 'spring') out = pts(12, (i, x, y, d) => `<ellipse class="pt" cx="${x}" cy="${y}" rx="3" ry="1.8" fill="#f2a8c0" style="animation-delay:${d}s"/>`);
+  else if (sk === 'autumn') out = pts(12, (i, x, y, d) => `<ellipse class="pt" cx="${x}" cy="${y}" rx="3" ry="1.8" fill="#d8783a" style="animation-delay:${d}s"/>`);
+  return out ? `<g class="b-sea" aria-hidden="true">${out}</g>` : '';
+}
+SHEETS.season = () => {
+  const s = seaNow(), w = seaWeather(), n = seaNext(), left = seaLeft(), day = 24*H, chips = a => a.map(t => `<span class="chip">${t}</span>`).join(' ');
+  const dishes = RECIPES.filter(r => r.need && seaDish(r.id)).sort((a, b) => (a.lv || 0) - (b.lv || 0)), shown = dishes.slice(0, 10);
+  return sheetHead('계절과 날씨') + `<div class="stack">
+    <div class="card"><h3 style="margin:0 0 4px">${s.ic} 지금은 ${s.n}</h3><p class="small muted" style="margin:0">${left}일 뒤에 ${n.n}이 온다. 계절은 2주마다 바뀐다.</p></div>
+    <div class="card"><h3 style="margin:0 0 4px">${w.ic} ${REG[S.loc].n}의 오늘 날씨: ${w.n}</h3><p class="small muted" style="margin:0">${w.d}</p></div>
+    <div class="card"><h3 style="margin:0 0 6px">제철 작물</h3><div class="row wrapf" style="gap:4px">${chips(s.crops.map(k => IT[k].n))}</div><p class="small muted" style="margin:6px 0 0">이 계절에 심으면 20% 빨리 자라고 거둘 때 하나 더 나온다.</p></div>
+    <div class="card"><h3 style="margin:0 0 6px">${s.n} 물고기</h3><div class="row wrapf" style="gap:4px">${chips(seaFish().map(f => `${f.n} (${SPOTN[f.spot]})`))}</div><p class="small muted" style="margin:6px 0 0">이 계절에만 낚인다. ${s.fresh.map(k => IT[k].n).join('·')}도 제철이라 2배 잘 낚인다.</p></div>
+    <div class="card"><h3 style="margin:0 0 6px">제철 요리</h3><div class="row wrapf" style="gap:4px">${chips(shown.map(r => r.n))}${dishes.length > shown.length ? ` <span class="small muted">외 ${dishes.length - shown.length}가지</span>` : ''}</div><p class="small muted" style="margin:6px 0 0">제철 재료가 든 요리는 먹었을 때 효과 시간이 25% 길다.</p></div>
+    <div class="card"><h3 style="margin:0 0 6px">고장별 날씨</h3><p class="small muted" style="margin:0 0 6px">탐사 효과는 떠나는 날의 날씨로 정해진다.</p><div class="list">${REG.map((r, i) => { const a = seaWeather(i), b = seaWeather(i, Date.now() + day); return `<div class="li"><span aria-hidden="true" style="width:24px;text-align:center">${a.ic}</span><div class="t"><b>${r.n}${i === S.loc ? ' <span class="chip good">지금 여기</span>' : ''}</b><span>오늘 ${a.n} · 내일 ${b.n}</span></div></div>`; }).join('')}</div></div>
+    <div class="card"><h3 style="margin:0 0 6px">날씨 효과</h3><div class="list">${['clear', 'rain', 'fog', 'wind', 'snow'].map(k => `<div class="li"><span aria-hidden="true" style="width:24px;text-align:center">${WX[k].ic}</span><div class="t"><b>${WX[k].n}</b><span>${WX[k].d}</span></div></div>`).join('')}</div></div>
+  </div>`;
+};
+
+// 3D 풍경: 탐사와 낚시에서 읽기만 한다
+const seaMix = (a, b, k) => '#' + new THREE.Color(a).lerp(new THREE.Color(b), k).getHexString();
+function x3SeaTheme(T0, ri){
+  if (T0.cave) return T0;
+  const T = {...T0}, sk = seaKey(), k = seaWeather(ri).k, green = SEA_GREEN.includes(ri);
+  if (green && T.farC){
+    if (sk === 'spring') T.farC = seaMix(T.farC, '#eca8c4', .25);
+    if (sk === 'autumn'){ T.farC = seaMix(T.farC, '#c87838', .5); T.ground = seaMix(T.ground, '#b89048', .4); }
+    if (sk === 'winter'){ T.farC = seaMix(T.farC, '#dfe6ee', .55); T.ground = seaMix(T.ground, '#eef2f6', .6); }
+  }
+  if (ri !== 6 && (!T.fx || T.fx === 'leaf')){ if (sk === 'spring'){ T.fx = 'leaf'; T.leaf = '#f4b8cc'; } if (sk === 'autumn'){ T.fx = 'leaf'; T.leaf = '#d87838'; } }
+  const sky = (c, q) => { T.sky = T.sky.map(x => seaMix(x, c, q)); if (T.fog) T.fog = seaMix(T.fog, c, q); };
+  if (k === 'rain'){ T.fx = 'rain'; sky('#6a7686', .6); T.sunK = .55; }
+  if (k === 'snow'){ T.fx = 'snow'; sky('#c8d0da', .35); T.sunK = .75; }
+  if (k === 'fog'){ T.fx = 'mist'; T.fog = '#dfe4e6'; T.sunK = .8; }
+  if (k === 'cloud'){ sky('#a8b0b8', .4); T.sunK = .78; }
+  if (k === 'wind' && !T.fx){ T.fx = 'leaf'; T.leaf = '#b8c890'; }
+  return T;
+}
+const seaRainTex = () => canvasTex(32, 32, (g, w, h) => { g.clearRect(0, 0, w, h); const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.5, 'rgba(255,255,255,.95)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(w/2 - 1, 0, 2, h); });
+const SEA_DOME = {rain:'#8a93a0', snow:'#c0c8d0', fog:'#d8dadc', cloud:'#c8ccd0'};
+const seaDome = ri => SEA_DOME[seaWeather(ri).k] || '#ffffff';
+const seaHor = (c, ri) => { const k = seaWeather(ri).k; return k === 'rain' ? seaMix(c, '#6a7686', .6) : k === 'snow' ? seaMix(c, '#c8d0da', .4) : k === 'fog' ? seaMix(c, '#dfe4e6', .6) : k === 'cloud' ? seaMix(c, '#a8b0b8', .35) : c; };
+const seaSunK = ri => ({rain:.55, snow:.75, fog:.8, cloud:.78})[seaWeather(ri).k] || 1;
+function f3SeaParts(ri){ const k = seaWeather(ri).k; return k === 'rain' ? {k, p:c3Parts({n:220, size:.75, map:seaRainTex(), color:'#e4eef8', op:.85, g:0})} : k === 'snow' ? {k, p:c3Parts({n:150, size:.1, color:'#ffffff', op:.9, g:-.02})} : null; }
+function f3SeaTick(w, dt){
+  const rate = w.k === 'rain' ? 170 : 14, n = dt*rate; let c = Math.floor(n) + (Math.random() < n % 1 ? 1 : 0);
+  while (c-- > 0){ const x = rnd(-9, 9), z = rnd(-14, 2); if (w.k === 'rain') c3Emit(w.p, x, 8, z, -.5, -11, 0, .72); else c3Emit(w.p, x, 8, z, -.2, -.8, 0, 10); }
+  if (w.k === 'rain' && Math.random() < dt*5) f3Ring(rnd(-5, 5), rnd(-9, -1), .5);
+}
+// ===================== 추위·더위 대비, 개척 일지(이야기·부탁·출석·순위표), 회관 주간 사업, 마을 공동 토벌 =====================
+// 규칙 변경 없음: 공동 기록은 hallc/{uid}(자기 문서)에, 순위는 players/{uid}.rk에 쓴다. 탐사 효과는 makeSnap만 바꾼다.
+const VX = {open:null, sf:null}; // 시험용: 공동 토벌을 강제로 열거나 닫는다
+
+// ---------- 1. 추위·더위 ----------
+const PREP = {
+  h1:{n:'우치와와 삿갓', kind:'hot', tier:1, gold:80, need:[['wood', 2]]},
+  h2:{n:'얼음 주머니', kind:'hot', tier:2, gold:400, need:[['hide', 2], ['salt', 4]]},
+  c1:{n:'도테라', kind:'cold', tier:1, gold:100, need:[['wool', 1]]},
+  c2:{n:'털가죽 하오리', kind:'cold', tier:2, gold:450, need:[['wool', 3], ['hide', 3]]},
+};
+const HZ_N = {hot:'더위', cold:'추위'}, HZ_IC = {hot:'🥵', cold:'🥶'}, PREP_H = 6;
+function seaHazard(ri = S.loc){
+  const sk = seaKey(); let kind = null, lv = 0;
+  if (ri === 7){ kind = 'hot'; lv = sk === 'summer' ? 2 : 1; }
+  else if (ri === 9 || ri === 10){ kind = 'cold'; lv = sk === 'winter' ? 2 : 1; }
+  else if (sk === 'winter'){ kind = 'cold'; lv = ri === 11 || ri === 12 ? 2 : 1; }
+  else if (sk === 'summer'){ kind = 'hot'; lv = ri === 4 ? 2 : 1; }
+  return lv ? {kind, lv} : null;
+}
+const prepOn = () => S.prep && S.prep.until > now() ? S.prep : null;
+const prepCovers = hz => { const p = prepOn(); if (!p || !hz) return false; const P = PREP[p.k]; return P.kind === hz.kind && P.tier >= hz.lv; };
+const hzPen = hz => hz.lv === 2 ? '체력 소모 +25%, 보상 −10%' : '체력 소모 +12%';
+const _makeSnap_hz = makeSnap;
+makeSnap = (region, ...a) => {
+  const s = _makeSnap_hz(region, ...a), hz = seaHazard(region == null ? S.loc : region);
+  if (!hz || prepCovers(hz)) return s;
+  const o = {...s}; o.cost = +(o.cost*(hz.lv === 2 ? 1.25 : 1.12)).toFixed(3); if (hz.lv === 2) o.rew = +(o.rew*.9).toFixed(3); return o;
+};
+function prepWear(k, how){
+  const P = PREP[k]; if (!P) return;
+  if (how === 'mat'){ if (!needOk(P.need)) return toast('재료가 모자라요.'); needTake(P.need); }
+  else { if (S.gold < P.gold) return toast('엽전이 모자라요.'); S.gold -= P.gold; }
+  S.prep = {k, until:now() + PREP_H*H/SPD()}; stat('prep'); sfx('soft'); save(); toast(`${P.n}${pp(P.n, '을', '를')} 챙겼다. ${PREP_H}시간 동안 ${HZ_N[P.kind]}에 끄떡없다.`, 'good'); renderSheet(true); render();
+}
+const prepCard = () => {
+  const p = prepOn(), hz = seaHazard();
+  return `<div class="card"><h3 style="margin:0 0 4px">추위·더위 대비</h3>
+    <p class="small muted" style="margin:0 0 6px">${hz ? `${REG[S.loc].n}: ${HZ_N[hz.kind]} ${hz.lv}단계 · 대비가 없으면 탐사 ${hzPen(hz)}` : `${REG[S.loc].n}은 지금 지내기 좋다.`}</p>
+    ${p ? `<p class="small" style="margin:0 0 6px">${PREP[p.k].n} 착용 중 · <span class="num" data-cd="${p.until}"></span></p>` : ''}
+    <div class="list">${Object.keys(PREP).map(k => { const P = PREP[k]; return `<div class="li"><div class="t"><b>${P.n} <span class="chip">${HZ_N[P.kind]} ${P.tier}단계까지</span></b><span class="tiny muted">재료: ${P.need.map(([x, n]) => `${IT[x].n} ${n}`).join(', ')}</span></div><div class="row" style="gap:4px"><button class="btn sm ghost" data-act="prepWear" data-k="${k}" data-h="mat" ${needOk(P.need) ? '' : 'disabled'}>재료로</button><button class="btn sm" data-act="prepWear" data-k="${k}" data-h="gold" ${S.gold >= P.gold ? '' : 'disabled'}>${P.gold}${CUR}</button></div></div>`; }).join('')}</div></div>`;
+};
+const _season_sheet = SHEETS.season;
+SHEETS.season = () => _season_sheet().replace('<div class="card"><h3 style="margin:0 0 6px">제철 작물', prepCard() + '<div class="card"><h3 style="margin:0 0 6px">제철 작물');
+const _seaRegLine = seaRegLine;
+seaRegLine = ri => { const hz = seaHazard(ri); return _seaRegLine(ri) + (hz ? `<p class="small" style="margin:-4px 2px 8px"><button class="chip ${prepCovers(hz) ? 'good' : 'bad'}" data-act="sheet" data-s="season">${HZ_IC[hz.kind]} ${HZ_N[hz.kind]} ${hz.lv}단계</button> <span class="muted">${prepCovers(hz) ? '대비 완료' : `대비 없으면 ${hzPen(hz)}`}</span></p>` : ''); };
+
+// ---------- 2. 메인 이야기 ----------
+const STORY = [
+  {t:'파도에 밀려온 아침', x:'눈을 뜨니 흰 모래 위였다. 겐조가 그물로 건져 올렸다며 혀를 찬다. "여기선 밥부터 먹어야 사람 구실을 하지." 스즈네가 부엌을 내주었다.', g:{k:'stat', s:'cook', n:1, l:'요리 한 번 하기'}},
+  {t:'바위엄니의 발자국', x:'겐조가 찢어진 그물을 들어 보였다. 해안을 짓밟는 큰 멧돼지가 밤마다 마을 앞까지 내려온다고 한다. 이 땅에서 살기로 했다면 첫 번째 일은 정해졌다.', g:{k:'boss', r:0}},
+  {t:'대숲이 우는 이유', x:'바위엄니의 몸에서 푸른 돌 조각이 떨어졌다. 오츠루가 망치로 두드려 보더니 고개를 젓는다. "쇠도 옥도 아니야. 청죽 숲의 낫족제비가 똑같은 돌을 물고 다닌다던데."', g:{k:'boss', r:1}},
+  {t:'늪이 숨 쉬는 밤', x:'조각이 둘이 되자 서로를 끌어당겼다. 미오가 "돌들이 서로 보고 싶은가 봐요" 하고 웃는다. 녹소 지대의 늪은 요즘 밤마다 부풀어 오른다고 한다.', g:{k:'boss', r:2}},
+  {t:'안에서 끊어진 금줄', x:'스즈네는 조각을 보고 얼굴이 굳었다. 신사에서 배운 옛 노래에 열세 개의 조각이 나온다고 했다. 고목 숲 거목의 금줄이 안쪽에서부터 끊어지고 있다.', g:{k:'boss', r:3}},
+  {t:'외눈이 내려다본 것', x:'렌타로가 처음으로 길을 막아섰다. "그 돌, 더 모으지 마시오. 내 스승도 그러다 돌아오지 못했소." 그러나 적암 협곡의 외눈 거인은 이미 마을 쪽을 내려다보고 있다.', g:{k:'boss', r:4}},
+  {t:'안개 위의 사당', x:'안개가 걷힌 아침, 호수 가운데 사당의 벽에 글이 드러났다. "기둥이 기울면 땅이 잠긴다." 글자 위로 커다란 물뱀의 비늘 자국이 나 있다.', g:{k:'boss', r:5}},
+  {t:'지지 않는 단풍', x:'미오의 할머니는 계절이 이렇게 빨리 돈 적이 없다고 했다. 단풍 고개만 홀로 가을에 멈춰 있다. 누군가 조각의 힘으로 계절을 붙잡아 두고 있는 것이다.', g:{k:'boss', r:6}},
+  {t:'붉은 뿔의 맹세', x:'큰 부채를 꺾자 텐구들이 물러나며 말했다. "화산의 오니들에게 물어라. 기둥을 지키겠다고 맹세한 건 그들이었으니." 오츠루가 말없이 칼날을 벼려 주었다.', g:{k:'boss', r:7}},
+  {t:'이름 잃은 신', x:'붉은 뿔은 쓰러지며 조각을 스스로 내밀었다. 폐신사 터에는 이름이 깎여 나간 비석이 있다. 스즈네의 노래는 마지막 한 줄만 전해지지 않는다.', g:{k:'boss', r:8}},
+  {t:'눈 속의 칼', x:'백설 평원의 지장보살 곁에 낡은 칼이 꽂혀 있었다. 렌타로는 칼자루를 오래 쓰다듬었다. "스승님은 혼자 갔소. 그대는 혼자가 아니오." 눈보라가 걸어오기 시작했다.', g:{k:'boss', r:9}},
+  {t:'얼어붙은 실타래', x:'눈의 여인은 사라지며 노래의 마지막 줄을 흘렸다. 절반뿐이다. 나머지 절반은 얼음 동굴 깊은 곳, 여왕의 실에 묶여 있다고 한다.', g:{k:'boss', r:10}},
+  {t:'뇌신의 문', x:'노래는 이렇게 끝난다. "돌을 모은 이가 기둥을 세우리라." 조각은 이제 열둘. 천주봉으로 오르는 길은 번개 짐승이 지키고 있다.', g:{k:'boss', r:11}},
+  {t:'하늘 기둥을 감은 뱀', x:'구름 위 돌기둥이 눈에 띄게 기울어 있다. 여덟 갈래 큰 뱀이 기둥을 칭칭 감아 끌어내리는 중이다. 마을 사람들이 싸 준 도시락이 아직 따뜻하다.', g:{k:'boss', r:12}},
+  {t:'빈칸에 새긴 이름', x:'열세 조각을 제자리에 끼우자 기둥이 천천히 일어섰다. 기둥 밑동의 비문에는 첫 개척자의 이름 자리가 비어 있었다. 마을 사람들이 회관에 모여 무슨 이름을 새길지 의논한다. 회관을 함께 일으켜 보자.', g:{k:'hall', n:100}},
+];
+const storyRew = i => i === STORY.length - 1 ? {gold:5000, xp:800, tok:30, egg:'summon'} : {gold:150 + i*180, xp:30 + i*30, tok:2 + Math.floor(i/3), items:i % 4 === 3 ? [['scroll', 1]] : i % 4 === 1 ? [['pot2', 2]] : []};
+
+// ---------- 3. 주민들의 부탁 ----------
+const SUBQ = [
+  {id:'su1', who:'스즈네', t:'경단에 넣을 팥', x:'"팥이 똑 떨어졌어요! 조금만 나눠 주실래요?"', g:{k:'give', i:'redbean', n:3}, r:{gold:120, xp:30, items:[['f_dango', 1]]}},
+  {id:'su2', who:'스즈네', t:'새 메뉴 맛보기', x:'"요리를 많이 해 본 분의 입맛이 궁금해요."', g:{k:'stat', s:'cook', n:15, l:'요리'}, r:{gold:400, xp:80, tok:3}},
+  {id:'su3', who:'스즈네', t:'꿀 경단의 비밀', x:'"꿀을 넣으면 어떨까 해서요. 벌집을 구하기가 어렵네요."', g:{k:'give', i:'honey', n:3}, r:{gold:900, xp:160, items:[['scroll', 1]]}},
+  {id:'ge1', who:'겐조', t:'물고기 얼굴 익히기', x:'"낚시꾼이면 물고기 이름 정도는 외워야지."', g:{k:'fish', n:3}, r:{gold:150, xp:40, items:[['e_fish', 1]]}},
+  {id:'ge2', who:'겐조', t:'메기가 땅을 흔든다', x:'"밤마다 메기가 설치니 술맛이 안 나. 한 마리 잡아 와."', g:{k:'give', i:'f_catfish', n:1}, r:{gold:300, xp:60}},
+  {id:'ge3', who:'겐조', t:'자랑거리', x:'"큰 놈을 낚았다는 소문 좀 내 보게."', g:{k:'stat', s:'bigfish', n:5, l:'대물 낚기'}, r:{gold:1000, xp:180, tok:5}},
+  {id:'ot1', who:'오츠루', t:'숯 대신 목재', x:'"화덕이 식으면 내 입도 식거든! 목재 좀 부탁해."', g:{k:'give', i:'wood', n:8}, r:{gold:200, xp:40, items:[['ore', 3]]}},
+  {id:'ot2', who:'오츠루', t:'쇠를 믿어 봐', x:'"장비는 두드릴수록 정이 드는 법이야."', g:{k:'stat', s:'enh', n:3, l:'장비 강화 성공'}, r:{gold:600, xp:100, tok:3}},
+  {id:'ot3', who:'오츠루', t:'정령석 한 조각', x:'"평생 한 번은 그걸 두드려 보고 싶어."', g:{k:'give', i:'rareore', n:2}, r:{gold:2000, xp:260, tok:8}},
+  {id:'re1', who:'렌타로', t:'칼을 든 이유', x:'"말보다 발자국을 믿소. 늪지까지 가 보시오."', g:{k:'boss', r:2}, r:{gold:500, xp:90}},
+  {id:'re2', who:'렌타로', t:'험한 길의 맛', x:'"편한 길로는 아무것도 배우지 못하오."', g:{k:'stat', s:'hardDone', n:3, l:'고난도 탐사 완주'}, r:{gold:1200, xp:200, tok:5}},
+  {id:'re3', who:'렌타로', t:'스승의 칼집', x:'"칼집을 새로 짜 드리고 싶소. 질긴 가죽이 필요하오."', g:{k:'give', i:'hide', n:10}, r:{gold:1800, xp:260, tok:6}},
+  {id:'mi1', who:'미오', t:'첫 수확', x:'"같이 밭 일궈요! 다섯 번만 거둬 보세요."', g:{k:'stat', s:'harvest', n:5, l:'수확'}, r:{gold:150, xp:40, items:[['compost', 2]]}},
+  {id:'mi2', who:'미오', t:'동물 친구들', x:'"축사 친구들을 쓰다듬어 주셨어요?"', g:{k:'stat', s:'ranchPat', n:8, l:'축사 쓰다듬기'}, r:{gold:500, xp:80, items:[['feed2', 3]]}},
+  {id:'mi3', who:'미오', t:'풍년 일기', x:'"철 따라 심으면 더 잘 자란대요. 일기에 적어 둘래요."', g:{k:'stat', s:'seaHarvest', n:10, l:'제철 덤 받기'}, r:{gold:1500, xp:220, tok:6}},
+];
+const seaQuest = () => { const f = seaFish()[((seaPhase() % 3) + 3) % 3], s = seaNow(); return {id:'sea' + seaPhase(), who:'겐조', t:`${s.n}의 맛`, x:`"이 철에만 나는 ${f.n}${pp(f.n, '을', '를')} 마을 잔칫상에 올리고 싶네."`, g:{k:'give', i:f.id, n:2}, r:{gold:800, xp:120, tok:4}}; };
+const qS = () => (S.q = S.q || {main:0, sub:{}});
+function qProg(g){
+  if (g.k === 'give'){ const c = Math.min(cnt(g.i), g.n); return {cur:c, max:g.n, l:`${IT[g.i].n} 건네기`}; }
+  if (g.k === 'boss') return {cur:S.bosses[g.r] ? 1 : 0, max:1, l:`${REG[g.r].n}의 ${BOSS[g.r].n} 토벌`};
+  if (g.k === 'stat') return {cur:Math.min((S.stats || {})[g.s] || 0, g.n), max:g.n, l:g.l};
+  if (g.k === 'fish') return {cur:Math.min(Object.keys(S.codex.fish || {}).filter(k => S.codex.fish[k] > 0).length, g.n), max:g.n, l:'물고기 종류 낚기'};
+  if (g.k === 'hall') return {cur:Math.min(Math.max(S.hallPts || 0, HALL.mine || 0), g.n), max:g.n, l:'마을회관 기여 점수'};
+  return {cur:0, max:1, l:''};
+}
+const qDone = g => { const p = qProg(g); return p.cur >= p.max; };
+function qPay(r){
+  const out = []; if (r.gold){ S.gold += r.gold; out.push(`${r.gold}${CUR}`); } if (r.xp) out.push(`경험치 ${addXP(r.xp)}`); if (r.tok){ addItem('token', r.tok); out.push(`증표 ${r.tok}`); }
+  (r.items || []).forEach(([k, n]) => { addItem(k, n); out.push(`${itemName(k)} ${n}`); });
+  if (r.egg){ S.eggs.push({kind:r.egg, sp:pick(Math.random, r.egg === 'pet' ? PET_SP : SUM_SP), id:uid36()}); out.push(r.egg === 'pet' ? '야생동물의 알' : '요괴의 알'); }
+  return out.join(' · ');
+}
+const rewTxt = r => [r.gold ? `${r.gold}${CUR}` : '', r.xp ? `경험치 ${r.xp}` : '', r.tok ? `증표 ${r.tok}` : '', ...(r.items || []).map(([k, n]) => `${itemName(k)} ${n}`), r.egg ? (r.egg === 'pet' ? '야생동물의 알' : '요괴의 알') : ''].filter(Boolean).join(' · ');
+function qTake(g){ if (g.k !== 'give') return true; if (baseLocked()){ lockToast(); return false; } if (cnt(g.i) < g.n) return false; takeItem(g.i, g.n); return true; }
+function storyClaim(){
+  const q = qS(), C = STORY[q.main]; if (!C || !qDone(C.g) || !qTake(C.g)) return;
+  const txt = qPay(storyRew(q.main)); q.main++; stat('story'); sfx('win'); save(); pubDirty(); toast(`「${C.t}」 완료 · ${txt}`, 'good'); renderSheet(true); render();
+}
+function subClaim(id){
+  const q = qS(), Q = id.startsWith('sea') ? seaQuest() : SUBQ.find(x => x.id === id); if (!Q || Q.id !== id || q.sub[id] || !qDone(Q.g) || !qTake(Q.g)) return;
+  q.sub[id] = 1; const txt = qPay(Q.r), nid = Object.keys(NPCS).find(x => NPCS[x].name === Q.who); if (nid) npcAff(nid, 5); stat('subq'); sfx('coin'); save(); toast(`${Q.who}의 부탁 완료 · ${txt} · 호감도 +5`, 'good'); renderSheet(true); render();
+}
+const subList = () => { const q = qS(), seen = {}, out = []; for (const Q of SUBQ){ if (q.sub[Q.id] || seen[Q.who]) continue; seen[Q.who] = 1; out.push(Q); } const s = seaQuest(); if (!q.sub[s.id]) out.unshift(s); return out; };
+const storyReady = () => { const q = qS(), C = STORY[q.main]; return C ? qDone(C.g) : !q.gift; };
+const subReady = () => subList().filter(Q => qDone(Q.g)).length;
+const goalLine = g => { const p = qProg(g); return `<div class="bar gold" style="margin:6px 0 2px"><i style="width:${p.cur/p.max*100}%"></i></div><span class="tiny muted num">${p.l} ${p.cur}/${p.max}</span>`; };
+
+// ---------- 4. 출석 달력 ----------
+const ATT_N = 28;
+const attRew = i => i === 28 ? {egg:'pet', tok:5} : i === 21 ? {items:[['scroll', 1]], gold:500} : i === 14 ? {items:[['pot2', 5]], gold:400} : i % 7 === 0 ? {tok:3, gold:300} : {gold:50 + i*10};
+const ATT_SHORT = {scroll:'비전서', pot2:'환약'};
+const attLabel = r => [r.egg ? (r.egg === 'pet' ? '동물 알' : '요괴 알') : '', ...(r.items || []).map(([k, n]) => `${ATT_SHORT[k] || itemName(k)} ${n}`), r.tok ? `증표 ${r.tok}` : '', r.gold ? `${r.gold}${CUR}` : ''].filter(Boolean);
+const attS = () => (S.att = S.att || {n:0, d:''});
+const attToday = () => attS().d === seoul().key;
+function attStamp(){ const a = attS(); if (attToday()) return; a.d = seoul().key; a.n = a.n % ATT_N + 1; const txt = qPay(attRew(a.n)); stat('attend'); sfx('coin'); save(); toast(`${a.n}일째 도장 · ${txt}`, 'good'); renderSheet(true); render(); }
+
+// ---------- 5. 순위표 (players.rk) ----------
+const _pubObj_rk = pubObj;
+pubObj = () => { const o = _pubObj_rk(); if (!o) return o; o.rk = rkMine(); return o; };
+function rkMine(){ const st = S.stats || {}; return {lv:S.lv, boss:Object.keys(S.bosses).length, cm:Math.max(0, ...Object.values(S.fishRec || {})), cook:st.cook || 0, harv:st.harvest || 0, hall:Math.max(S.hallPts || 0, HALL.mine || 0), story:qS().main, quest:st.subq || 0}; }
+const RK_CAT = [['lv', '레벨', v => `Lv.${v}`], ['boss', '토벌', v => `${v}고장`], ['cm', '대물', v => `${v}cm`], ['cook', '요리', v => `${v}번`], ['harv', '수확', v => `${v}번`], ['hall', '회관', v => `${v}점`], ['story', '이야기', v => `${v}장`]];
+function rkRows(cat){
+  const rows = []; const seen = {};
+  const add = (uid, name, v) => { if (seen[uid] || !(v > 0)) return; seen[uid] = 1; rows.push({uid, name, v}); };
+  if (!isOp()) add(ST.uid || 'me', S.char.name, rkMine()[cat]);
+  for (const uid in PL){ const p = PL[uid]; if (!p || p.op || !p.rk) continue; add(uid, p.name, p.rk[cat]); }
+  return rows.sort((a, b) => b.v - a.v);
+}
+
+// ---------- 6. 회관 주간 사업 ----------
+const WP_LIST = [
+  {n:'곡간 채우기', d:'다가올 흉년에 대비해 곡식과 채소를 모은다.', f:k => Object.values(SEEDS).some(s => s.crop === k)},
+  {n:'어시장 잔치', d:'온 마을이 먹을 생선을 모은다.', f:k => IT[k] && IT[k].t === 'fish'},
+  {n:'제방 쌓기', d:'장마에 무너진 둑을 다시 쌓는다.', f:k => ['wood', 'ore', 'hide', 'bone', 'sap'].includes(k)},
+  {n:'약재 마련', d:'겨울 감기에 쓸 약재와 먹거리를 모은다.', f:k => ['herb', 'sansai', 'mushroom', 'berry', 'clam'].includes(k)},
+];
+const WP_TIER = [{n:30, gold:400, tok:3}, {n:80, gold:900, tok:6}, {n:160, gold:1800, tok:10}];
+const wpWeek = () => Math.floor((seaDayNo() - 4)/7);
+const wpNow = () => WP_LIST[((wpWeek() % 4) + 4) % 4];
+const wpS = () => { if (!S.wp || S.wp.w !== wpWeek()) S.wp = {w:wpWeek(), n:0, got:0}; return S.wp; };
+let hallRaw = () => { const me = {uid:ST.uid, name:S.char.name, vb:S.vb, wp:wpS()}; if (ST.mode !== 'cloud') return [me]; return [...(HALL.raw || []).filter(p => p.uid !== ST.uid), me]; };
+let hallDoc = () => ({pts:Math.max(S.hallPts || 0, HALL.mine || 0), name:S.char.name, ts:now(), vb:S.vb ? {w:S.vb.w, dmg:S.vb.dmg, n:S.vb.n} : null, wp:S.wp ? {w:S.wp.w, n:S.wp.n} : null});
+async function hallSync(){ if (ST.mode !== 'cloud' || !HALL.loaded) return; try { await ST.db.doc('hallc/' + ST.uid).set(hallDoc()); } catch (e){ console.warn('hall', e); } }
+function wpState(){ const w = wpWeek(), ps = hallRaw().filter(p => p.wp && p.wp.w === w && p.wp.n > 0), total = ps.reduce((a, p) => a + (+p.wp.n || 0), 0), k = Math.max(1, ps.length); return {total, k, goals:WP_TIER.map(t => t.n*k)}; }
+const wpAll = () => { const st = wpState(); return st.total >= st.goals[2]; };
+async function wpGive(k, n){ const W = wpNow(); if (!W.f(k)) return; const c = Math.min(n, cnt(k) - equippedN(k)); if (c <= 0) return; const s = wpS(); await hallDeliver(k, c); s.n += c; save(); await hallSync(); renderSheet(true); }
+function wpClaim(i){ const s = wpS(), st = wpState(), T = WP_TIER[i]; if (s.got & (1 << i) || st.total < st.goals[i]) return; if (s.n < 5) return toast('이번 사업에 5개 이상 납품해야 받을 수 있어요.'); s.got |= 1 << i; const txt = qPay({gold:T.gold, tok:T.tok}); sfx('coin'); save(); toast(`주간 사업 ${i + 1}단계 보상 · ${txt}`, 'good'); renderSheet(true); }
+function hallFeast(){ if (baseLocked()) return lockToast(); if (S.feastD === seoul().key) return toast('잔치는 하루에 한 번만 열 수 있어요.'); if (S.gold < 1000) return toast('엽전이 모자라요.'); S.gold -= 1000; S.feastD = seoul().key; addItem('token', 3); stat('feast'); hallAdd(60).then(() => hallSync()); if (ST.mode === 'cloud') postNews(`${S.char.name}님이 마을회관에서 잔치를 열었습니다.`); sfx('win'); save(); toast('회관에 상을 차렸다. 회관 +60점 · 증표 +3', 'good'); renderSheet(true); render(); }
+const _makeSnap_wp = makeSnap;
+makeSnap = (...a) => { const s = _makeSnap_wp(...a); if (!S || !wpAll()) return s; return {...s, rew:+(s.rew*1.03).toFixed(3)}; };
+
+// ---------- 7. 마을 공동 토벌 (토요일·일요일) ----------
+const VB_LIST = [
+  {n:'해일을 부르는 큰게', d:'집채만 한 집게로 포구를 들어 올린다.', c:'#c8603a', c2:'#7a2e1a'},
+  {n:'마을을 삼키는 안개구렁이', d:'안개째로 초가지붕을 휘감는다.', c:'#8a9aa8', c2:'#4a5a68'},
+  {n:'쌀을 훔치는 산더미 너구리', d:'곳간을 통째로 짊어지고 달아난다.', c:'#a07a50', c2:'#5a3e22'},
+  {n:'종을 깨무는 쇠이빨 오니', d:'회관 종소리를 몹시 싫어한다.', c:'#5a7ab0', c2:'#2a3a68'},
+];
+const VB_TIER = [{p:.34, gold:500, tok:3}, {p:.67, gold:1000, tok:5}, {p:1, gold:2000, tok:10, egg:'summon'}];
+const vbWeek = () => Math.floor((seaDayNo() - 2)/7);
+const vbOpen = () => VX.open != null ? VX.open : ((seaDayNo() - 2) % 7 + 7) % 7 < 2;
+const vbNow = () => VB_LIST[((vbWeek() % 4) + 4) % 4];
+const vbS = () => { if (!S.vb || S.vb.w !== vbWeek()) S.vb = {w:vbWeek(), dmg:0, n:0, d:'', t:0, got:0}; return S.vb; };
+const vbTries = () => { const v = vbS(); return v.d === seoul().key ? v.t : 0; };
+function vbState(){ vbS(); const w = vbWeek(), ps = hallRaw().filter(p => p.vb && p.vb.w === w && p.vb.dmg > 0), total = ps.reduce((a, p) => a + (+p.vb.dmg || 0), 0), hp = Math.max(700, ps.length*700); return {total, hp, n:ps.length, ps:ps.sort((a, b) => b.vb.dmg - a.vb.dmg), pct:Math.min(1, total/hp)}; }
+async function vbHit(){
+  if (!vbOpen()) return toast('공동 토벌은 토요일과 일요일에 열려요.'); if (baseLocked()) return lockToast();
+  const v = vbS(), st0 = vbState(); if (vbTries() >= 3) return toast('오늘은 세 번 모두 싸웠어요. 내일 다시!'); if (st0.total >= st0.hp) return toast('이번 주 요괴는 이미 물러갔어요.');
+  const es = effStats(), crit = Math.random() < .1 + es.LUK*.004, dmg = Math.round((100 + S.lv*1.5 + activeComps().length*10)*(.85 + Math.random()*.3)*(crit ? 1.5 : 1));
+  if (v.d !== seoul().key){ v.d = seoul().key; v.t = 0; } v.t++; v.n++; v.dmg += dmg; stat('vbHit'); UI.vbLog = `${crit ? '급소를 찔렀다! ' : ''}${vbNow().n}에게 ${dmg}만큼 피해를 입혔다.`; sfx(crit ? 'rare' : 'hit'); save();
+  await hallSync(); const st = vbState(); if (st.total >= st.hp && st0.total < st0.hp){ stat('vbWin'); if (ST.mode === 'cloud') postNews(`마을 사람들이 힘을 모아 ${vbNow().n}${pp(vbNow().n, '을', '를')} 물리쳤습니다! ${S.char.name}님이 마지막 일격을 넣었습니다.`); toast(`${vbNow().n}${pp(vbNow().n, '을', '를')} 물리쳤다!`, 'good'); }
+  renderSheet(true); render();
+}
+function vbClaim(i){ const v = vbS(), st = vbState(), T = VB_TIER[i]; if (v.got & (1 << i) || st.pct < T.p || v.n < 1) return; v.got |= 1 << i; const txt = qPay(T); sfx('coin'); save(); toast(`공동 토벌 ${i + 1}단계 보상 · ${txt}`, 'good'); renderSheet(true); }
+function vbArt(B, hit){ return `<svg class="vb-art ${hit ? 'hit' : ''}" viewBox="0 0 120 90" role="img" aria-label="${B.n}"><ellipse cx="60" cy="78" rx="46" ry="8" fill="${B.c2}" opacity=".3"/><path d="M18 76C14 40 34 16 60 16s46 24 42 60z" fill="${B.c}" stroke="${B.c2}" stroke-width="2"/><path d="M34 22l-8-16 18 8M86 22l8-16-18 8" fill="${B.c2}"/><circle cx="46" cy="44" r="7" fill="#fff"/><circle cx="74" cy="44" r="7" fill="#fff"/><circle cx="47" cy="45" r="3" fill="#201810"/><circle cx="73" cy="45" r="3" fill="#201810"/><path d="M40 62q20 12 40 0l-5 8-6-5-6 6-6-6-6 5z" fill="#f4ecd8" stroke="${B.c2}"/></svg>`; }
+
+// ---------- 8. 화면 ----------
+const claimBtn = (act, i, ok, got, rew, label) => `<div class="li"><div class="t"><b>${label}</b><span class="tiny muted">${rew}</span></div>${got ? '<span class="chip good">받음</span>' : `<button class="btn sm ${ok ? 'seal' : 'ghost'}" data-act="${act}" data-i="${i}" ${ok ? '' : 'disabled'}>받기</button>`}</div>`;
+const HALL_X = {
+  proj:() => { const W = wpNow(), s = wpS(), st = wpState(), mats = Object.keys(S.inv).filter(k => !k.endsWith('*') && W.f(k) && cnt(k) - equippedN(k) > 0 && !MAT_KEEP.includes(k)).sort((a, b) => cnt(b) - cnt(a));
+    return `<div class="card"><h3 style="margin:0 0 4px">이번 주 사업: ${W.n}</h3><p class="small muted" style="margin:0 0 6px">${W.d} 월요일에 바뀐다. 함께한 ${st.k}명 기준 목표다.</p><div class="bar gold"><i style="width:${Math.min(100, st.total/st.goals[2]*100)}%"></i></div><span class="tiny muted num">모은 수 ${st.total} / ${st.goals[2]} · 내 납품 ${s.n}개</span>${wpAll() ? '<p class="small" style="margin:6px 0 0"><b>사업 완수!</b> 이번 주 모두의 장기 탐사 보상 +3%</p>' : ''}</div>
+    <div class="list" style="margin:8px 0">${WP_TIER.map((T, i) => claimBtn('wpClaim', i, st.total >= st.goals[i] && s.n >= 5, s.got & (1 << i), `${T.gold}${CUR} · 증표 ${T.tok}`, `${i + 1}단계 · ${st.goals[i]}개`)).join('')}</div>
+    <p class="tiny muted" style="margin:0 0 8px">보상은 이번 주에 5개 이상 납품하면 받는다. 납품하면 회관 점수와 증표도 평소처럼 쌓인다.</p>
+    ${mats.length ? `<div class="list">${mats.slice(0, 20).map(k => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)} <span class="cntx">×${cnt(k)}</span></b></div><div class="row" style="gap:4px"><button class="btn sm ghost" data-act="wpGive" data-k="${k}" data-n="1">1개</button><button class="btn sm" data-act="wpGive" data-k="${k}" data-n="9999">전부</button></div></div>`).join('')}</div>` : '<p class="small muted">이번 사업에 낼 물건이 가방에 없다.</p>'}
+    <div class="card" style="margin-top:10px"><div class="row"><div class="grow"><b>회관 잔치 열기</b><br><span class="small muted">1000${CUR} · 하루 한 번 · 회관 +60점, 증표 +3, 마을 소식에 실린다</span></div><button class="btn sm" data-act="hallFeast" ${S.feastD === seoul().key || S.gold < 1000 ? 'disabled' : ''}>${S.feastD === seoul().key ? '오늘 열었음' : '열기'}</button></div></div>`; },
+  raid:() => { const B = vbNow(), v = vbS(), st = vbState(), open = vbOpen(), left = 3 - vbTries(), dead = st.total >= st.hp;
+    return `<div class="card" style="text-align:center">${vbArt(B, !!UI.vbLog)}<h3 style="margin:2px 0">${B.n}</h3><p class="small muted" style="margin:0 0 6px">${B.d}</p><div class="bar"><i style="width:${(1 - st.pct)*100}%;background:var(--seal)"></i></div><span class="tiny muted num">남은 기운 ${Math.max(0, st.hp - st.total)} / ${st.hp} · 함께한 ${st.n}명 · 내 피해 ${v.dmg}</span>
+      ${UI.vbLog ? `<p class="small" style="margin:6px 0 0">${esc(UI.vbLog)}</p>` : ''}
+      <button class="btn seal" style="margin-top:8px;width:100%" data-act="vbHit" ${open && left > 0 && !dead ? '' : 'disabled'}>${dead ? '물리쳤다!' : !open ? '토요일·일요일에 열린다' : left > 0 ? `힘껏 친다 (오늘 ${left}번 남음)` : '오늘은 여기까지'}</button></div>
+    <div class="list" style="margin:8px 0">${VB_TIER.map((T, i) => claimBtn('vbClaim', i, st.pct >= T.p && v.n >= 1, v.got & (1 << i), rewTxt(T), `${Math.round(T.p*100)}% 깎기`)).join('')}</div>
+    <p class="tiny muted" style="margin:0 0 8px">한 번이라도 싸운 사람은 다음 토요일 전까지 보상을 받을 수 있다.</p>
+    ${st.ps.length ? `<h3>이번 주 활약</h3><div class="list">${st.ps.slice(0, 8).map((p, i) => `<div class="li"><b class="num" style="width:1.5em">${i + 1}</b><div class="t"><b>${esc(p.name || '누군가')}${p.uid === ST.uid ? ' (나)' : ''}</b></div><span class="num small">${p.vb.dmg}</span></div>`).join('')}</div>` : ''}`; },
+};
+SHEETS.journal = () => {
+  const t = UI.jt || 'story', q = qS(), tabs = [['story', '이야기'], ['sub', `부탁${subReady() ? ` ${subReady()}` : ''}`], ['att', '출석'], ['rank', '순위표'], ['wc', `주간 대회${wcReady() ? ` ${wcReady()}` : ''}`]]; let body = '';
+  if (t === 'story'){
+    const C = STORY[q.main], past = STORY.slice(0, q.main);
+    body = (C ? `<div class="card"><span class="chip">${q.main === 0 ? '서장' : q.main === STORY.length - 1 ? '종장' : `제${q.main}장`}</span><h3 style="margin:6px 0 4px">${C.t}</h3><p style="margin:0 0 6px;line-height:1.7">${C.x}</p>${goalLine(C.g)}<p class="tiny muted" style="margin:6px 0">보상: ${rewTxt(storyRew(q.main))}</p><button class="btn seal" style="width:100%" data-act="storyClaim" ${qDone(C.g) ? '' : 'disabled'}>${qDone(C.g) ? '이야기 이어 가기' : '아직 해야 할 일이 남았다'}</button></div>` : `<div class="card"><h3 style="margin:0 0 4px">이야기 끝</h3><p style="margin:0;line-height:1.7">기둥 밑동에는 이제 마을 사람들의 이름이 빼곡하다. 맨 앞자리는 ${esc(S.char.name)}의 몫이다.</p></div>${storyGiftCard()}`)
+      + (past.length ? `<details class="sub" style="margin-top:8px"><summary class="small">지나온 이야기 ${past.length}장</summary><div class="list">${past.map(c => `<div class="li"><div class="t"><b>${c.t}</b><span class="small">${c.x}</span></div></div>`).join('')}</div></details>` : '');
+  } else if (t === 'sub'){
+    const list = subList(); body = `<p class="small muted" style="margin-top:0">주민마다 부탁이 차례로 이어진다. 들어주면 호감도도 오른다.</p>` + (list.length ? `<div class="stack">${list.map(Q => `<div class="card"><div class="row"><b class="grow">${Q.t}</b><span class="chip green">주민 ${esc(Q.who)}</span></div><p class="small" style="margin:4px 0">${Q.x}</p>${goalLine(Q.g)}<div class="row" style="margin-top:6px"><span class="tiny muted grow">${rewTxt(Q.r)}</span><button class="btn sm ${qDone(Q.g) ? 'seal' : 'ghost'}" data-act="subClaim" data-k="${Q.id}" ${qDone(Q.g) ? '' : 'disabled'}>완료</button></div></div>`).join('')}</div>` : '<p class="small muted">지금은 들어줄 부탁이 없다.</p>');
+  } else if (t === 'att'){
+    const a = attS(), now_ = a.n; body = `<p class="small muted" style="margin-top:0">하루 한 번 도장을 찍는다. 빠진 날이 있어도 칸은 이어지고, 28칸을 채우면 처음으로 돌아간다.</p><div class="att-grid">${Array.from({length:ATT_N}, (_, i) => { const d = i + 1, r = attRew(d), big = d % 7 === 0; return `<div class="att-c ${d <= now_ ? 'on' : ''} ${big ? 'big' : ''} ${d === now_ % ATT_N + 1 && !attToday() ? 'next' : ''}"><b class="num">${d}일</b>${attLabel(r).map(t => `<span>${t}</span>`).join('')}${d <= now_ ? '<i aria-label="받음">印</i>' : ''}</div>`; }).join('')}</div><button class="btn seal" style="width:100%;margin-top:10px" data-act="attStamp" ${attToday() ? 'disabled' : ''}>${attToday() ? '오늘은 찍었다' : `${a.n % ATT_N + 1}일째 도장 찍기`}</button><p class="small" style="margin:8px 2px 0;text-align:center">${attToday() ? `내일 받을 보상: <b>${rewTxt(attRew(a.n % ATT_N + 1))}</b>` : `오늘 받을 보상: <b>${rewTxt(attRew(a.n % ATT_N + 1))}</b>`}</p>`;
+  } else if (t === 'wc') body = wcView();
+  else {
+    const c = UI.rkCat || 'lv', cat = RK_CAT.find(x => x[0] === c), rows = rkRows(c), me = rows.findIndex(r => r.uid === (ST.uid || 'me'));
+    body = `<div class="row wrapf" style="gap:4px;margin-bottom:8px">${RK_CAT.map(([k, n]) => `<button class="chip ${k === c ? 'gold' : ''}" data-act="rkCat" data-k="${k}" aria-pressed="${k === c}">${n}</button>`).join('')}</div>` + (rows.length ? `<div class="list">${rows.slice(0, 20).map((r, i) => `<div class="li" ${i === me ? 'style="background:var(--paper-2)"' : ''}><b class="num" style="width:1.8em">${i + 1}</b><div class="t"><b>${esc(r.name || '누군가')}${i === me ? ' (나)' : ''}</b></div><span class="num small">${cat[2](r.v)}</span></div>`).join('')}</div>${me >= 20 ? `<p class="small" style="margin:8px 2px">내 순위 ${me + 1}위 · ${cat[2](rows[me].v)}</p>` : ''}` : '<p class="small muted">아직 기록이 없다.</p>') + '<p class="tiny muted" style="margin:8px 2px 0">접속한 적 있는 개척자의 공개 기록으로 만든다. 주민과 운영자는 빠진다.</p>';
+  }
+  return sheetHead('개척 일지', '<button class="chip" data-act="sheet" data-s="guide">이번 업데이트</button>') + `<div class="seg" style="margin-bottom:10px">${tabs.map(([k, n]) => `<button data-act="jt" data-t="${k}" aria-pressed="${t === k}">${n}</button>`).join('')}</div>${body}`;
+};
+Object.assign(ACT, {
+  prepWear:d => prepWear(d.k, d.h), jt:d => { UI.jt = d.t; renderSheet(true); }, storyClaim:() => storyClaim(), subClaim:d => subClaim(d.k), attStamp:() => attStamp(), rkCat:d => { UI.rkCat = d.k; renderSheet(true); },
+  wpGive:d => wpGive(d.k, +d.n), wpClaim:d => wpClaim(+d.i), hallFeast:() => hallFeast(), vbHit:() => vbHit(), vbClaim:d => vbClaim(+d.i),
+});
+TITLES.push(
+  {id:'story_end', n:'기둥을 세운 이', d:'메인 이야기를 끝까지 읽었다.', c:S => S.q && S.q.main >= STORY.length},
+  {id:'subq20', n:'마을의 해결사', d:'주민의 부탁을 20번 들어주었다.', c:S => st_(S, 'subq') >= 20},
+  {id:'attend28', n:'개근 개척자', d:'출석 도장을 28번 찍었다.', c:S => st_(S, 'attend') >= 28},
+  {id:'vbwin', n:'마지막 일격', d:'공동 토벌의 마지막 일격을 넣었다.', c:S => st_(S, 'vbWin') >= 1},
+);
+if (typeof ICO !== 'undefined') ICO.journal = ico('<path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h12"/><path d="M9 8h6M9 11h4"/>');
+function lifeChips(){
+  const out = [];
+  if (!attToday()) out.push('<button class="chip gold" data-act="journalGo" data-t="att">📅 출석 도장</button>');
+  if (storyReady()) out.push('<button class="chip gold" data-act="journalGo" data-t="story">📖 이야기 진행</button>');
+  if (sfOn()) out.push(sfChip());
+  if (wcReady()) out.push('<button class="chip gold" data-act="journalGo" data-t="wc">🏆 대회 보상</button>');
+  if (vbOpen()) out.push(`<button class="chip bad" data-act="hallGo" data-t="raid">👹 공동 토벌</button>`);
+  return out;
+}
+Object.assign(ACT, {journalGo:d => { UI.jt = d.t; openSheet('journal'); }, hallGo:d => { UI.hallTab = d.t; openSheet('hall'); }});
+// ===================== 계절 축제, 주간 대회, 이야기 완결 보상, 출석 자동 창, 업데이트 길잡이 =====================
+// 규칙 변경 없음: 대회 기록은 hallc/{uid}의 wc·wcp에 쓴다. 패치마다 GUIDE_V와 GUIDE를 고치면 모두에게 한 번 뜬다.
+
+// ---------- 1. 업데이트 길잡이 ----------
+const GUIDE_V = '2026-11-08d';
+const GUIDE = [
+  ['🏠', '집이 3D가 되었어요', '내 집과 이웃 집을 입체로 둘러볼 수 있어요. 끌어서 시점을 돌리고, 꾸미기에서는 가구를 직접 끌어 옮겨 보세요. 2D로도 볼 수 있어요.'],
+  ['💞', '집 합치기', '연인이나 부부라면 내 집 화면에서 집을 합칠 수 있어요. 두 사람의 방과 마당이 이어지고, 상대 집 아늑함의 절반이 더해져요.'],
+];
+const GUIDE_PREV = [
+  ['🏮', '마츠리가 계절마다 달라져요', '밤 8시 마츠리가 하루·나츠·아키·후유 마츠리로 바뀌어요. 계절마다 노점 음식과 초롱 색이 달라요.'],
+  ['📖', '개척 일지가 맨 위로', '거점 맨 위의 빨간 띠를 누르면 이야기·부탁·출석·주간 대회로 바로 갈 수 있어요.'],
+  ['💬', '교류 대사가 매번 달라요', '인사, 차 대접, 애정 표현, 고백까지 할 때마다 다른 장면이 나와요.'],
+  ['🤝', '새로운 교류', '하이파이브·간식 나누기·수다·장난·쓰다듬기·산책·상담·포옹·꽃 건네기·손잡기가 생겼어요.'],
+  ['💌', '답례와 오늘의 교류', '교류 탭의 「받은 마음」에서 답례할 수 있어요. 오늘의 교류 목표를 채우면 보상을 받아요. 순위표에는 인기 순위도 생겼어요.'],
+];
+const GUIDE_OLD = [
+  ['🍂', '계절과 날씨', '2주마다 계절이 바뀌고 고장마다 날씨가 달라요. 거점 맨 위의 계절 표시를 누르면 제철 작물·물고기와 내일 날씨까지 볼 수 있어요.'],
+  ['🧥', '추위와 더위', '여름·겨울과 험한 고장에서는 대비 없이 떠나면 탐사가 고돼요. 계절 창에서 우치와나 도테라를 챙겨 보세요.'],
+  ['🎏', '계절 축제', '계절이 끝나기 전 3일 동안 하나미·하나비·츠키미·오쇼가츠가 열려요. 놀이로 축제 패를 모아 한정 가구로 바꾸고, 철마다 다른 노점 음식도 맛보세요.'],
+  ['📖', '개척 일지', '거점의 개척 일지에서 메인 이야기 15장과 주민 부탁을 진행해요. 이야기를 끝까지 보면 특별한 선물이 있어요.'],
+  ['📅', '출석 달력', '하루 첫 접속 때 달력이 열려요. 28칸을 채우면 알을 받을 수 있어요.'],
+  ['🏆', '순위표와 주간 대회', '매주 월요일에 낚시·요리·수확·납품 중 한 종목으로 겨뤄요. 목표를 넘길 때마다 보상을 받고, 다음 주에는 순위 상품도 받아요.'],
+  ['🏯', '마을회관', '주간 사업과 회관 잔치가 생겼어요.'],
+  ['👹', '마을 공동 토벌', '토요일·일요일에 큰 요괴가 나타나요. 모두의 피해가 합쳐져요.'],
+];
+SHEETS.guide = () => sheetHead('이번 업데이트') + `<p class="small muted" style="margin-top:0">새로 들어온 것을 한눈에 살펴보세요.</p><div class="list">${[...GUIDE, ...GUIDE_PREV, ...GUIDE_OLD].map(([ic, t, d]) => `<div class="li"><span aria-hidden="true" style="width:28px;text-align:center;font-size:1.25rem">${ic}</span><div class="t"><b>${t}</b><span>${d}</span></div></div>`).join('')}</div><button class="btn seal full" style="margin-top:12px" data-act="closeSheet">다 읽었어요</button>`;
+const _closeSheet_guide = closeSheet;
+let guideAsking = false;
+closeSheet = force => {
+  if (force || !SHEET || SHEET.k !== 'guide') return _closeSheet_guide(force);
+  if (guideAsking) return;
+  guideAsking = true;
+  ask('길잡이를 닫을까요?', '다시 보고 싶으면 개척 일지의 「이번 업데이트」 단추를 누르면 돼요.', '닫기').then(yes => { guideAsking = false; if (!yes) return; S.guideSeen = GUIDE_V; save(); _closeSheet_guide(true); });
+};
+
+// ---------- 2. 하루 첫 접속 출석 창 → 길잡이 ----------
+function lifePop(){
+  if (window.__NOPOP || !S || SCREEN !== 'game' || SHEET || FG || CG || C3.on && !X3.on || !$('#ask').hidden) return;
+  const k = seoul().key;
+  if (S.attPop !== k && !attToday()){ S.attPop = k; save(); UI.jt = 'att'; openSheet('journal'); return; }
+  if (S.guideSeen !== GUIDE_V) openSheet('guide');
+}
+setInterval(lifePop, 1200);
+
+// ---------- 3. 계절 축제 (계절의 마지막 3일) ----------
+const SF_DAYS = 3, SF_BUY = 5, SF_PLAY = 3;
+const SF = {
+  spring:{n:'하나미', ic:'🌸', game:'꽃잎 점치기', act:'흩날리는 꽃잎을 손바닥에 받았다.', burst:['🌸', '🌸', '✿'], d:'벚꽃 아래 고자를 펴고 봄을 즐긴다.', furn:['f_sakura', 'f_goza']},
+  summer:{n:'하나비', ic:'🎆', game:'불꽃 쏘아 올리기', act:'밤하늘에 불꽃이 활짝 피었다.', burst:['🎆', '🎇', '✨'], d:'유카타 차림으로 강가에 앉아 밤하늘의 불꽃을 올려다본다.', furn:['f_furin', 'f_hanabi']},
+  autumn:{n:'츠키미', ic:'🎑', game:'당고 쌓기', act:'삼보 위에 당고를 조심조심 쌓아 올렸다.', burst:['🎑', '🌕', '🍁'], d:'억새를 꽂고 당고를 올려 보름달에 한 해의 수확을 감사한다.', furn:['f_sheaf', 'f_gotgam']},
+  winter:{n:'오쇼가츠', ic:'🎍', game:'후쿠부쿠로 열기', act:'후쿠부쿠로의 끈을 풀었다.', burst:['🎍', '⛩', '❄'], d:'카도마츠를 세우고 신사에 하츠모데를 다녀오며 새해의 복을 빈다.', furn:['f_kadomatsu', 'f_snowman']},
+};
+const SF_FOOD = [
+  {id:'sf_sakuramochi', s:'spring', n:'사쿠라모찌', p:120, b:{dur:4, st:{LUK:4, SPI:2}}, bd:'운 +4, 정신 +2', f:'소금에 절인 벚잎으로 감싼 분홍빛 모찌.', ic:['balls', '#f4b8cc', '#fff0f4']},
+  {id:'sf_hanacha', s:'spring', n:'사쿠라유', p:80, b:{dur:3, regen:1}, bd:'체력 자연 회복 2배', f:'소금에 절인 벚꽃에 뜨거운 물을 부었다. 찻잔 속에서 꽃잎이 천천히 펴진다.', ic:['cup', '#f0c0d0', '#f8e8c0']},
+  {id:'sf_hwachae', s:'summer', n:'히야시 수박', p:120, b:{dur:4, cost:-0.15}, bd:'체력 소모 15% 감소', f:'우물물에 담가 시원하게 식힌 수박. 툇마루에서 먹어야 제맛이다.', ic:['bowl', '#e8506a', '#ffd8e0']},
+  {id:'sf_unagi', s:'summer', n:'우나기 꼬치', p:160, b:{dur:4, st:{VIT:4, STR:2}, maxhp:30}, bd:'체력 +4, 힘 +2, 최대 체력 +30', f:'도요노우시 날에 먹으면 여름을 타지 않는다고 한다.', ic:['zaru', '#8a5a2a', '#e0b070']},
+  {id:'sf_songpyeon', s:'autumn', n:'츠키미 당고', p:130, b:{dur:4, st:{VIT:3, LUK:3}}, bd:'체력 +3, 운 +3', f:'보름달처럼 동그랗게 빚어 삼보에 쌓아 올린 당고.', ic:['balls', '#f4f0e4', '#e8dcc0']},
+  {id:'sf_chestnut', s:'autumn', n:'야키구리', p:110, b:{dur:3, rew:0.08}, bd:'탐사 보상 +8%', f:'손이 시커메져도 멈출 수 없다.', ic:['balls', '#8a5a30', '#d8a870']},
+  {id:'sf_tteokguk', s:'winter', n:'오조니', p:140, b:{dur:4, xp:0.1, regen:1}, bd:'경험치 +10%, 체력 자연 회복 2배', f:'맑은 국물에 구운 모찌를 넣은 정월 음식.', ic:['bowl', '#f4f0e4', '#c8a870']},
+  {id:'sf_yuja', s:'winter', n:'유즈차', p:90, b:{dur:3, st:{SPI:3, SEN:2}}, bd:'정신 +3, 감각 +2', f:'노란 유즈 향이 추위를 녹인다.', ic:['cup', '#f0c040', '#fff0b0']},
+];
+for (const r of SF_FOOD){ IT['m_' + r.id] = {n:r.n, t:'food', p:Math.round(r.p*.5), d:r.bd, f:r.f, r:r.id, fest:1}; ICON['m_' + r.id] = r.ic; }
+const _foodRec_sf = foodRec; foodRec = id => _foodRec_sf(id) || SF_FOOD.find(x => x.id === id);
+IT.fcoin = {n:'축제 패', t:'sp', p:0, d:'계절 축제의 놀이로 받는다. 축제 교환소에서 쓴다.', f:'축제 이름이 찍힌 작은 나무패.'}; ICON.fcoin = ['orb', '#e8a040', '#fff0c0'];
+const nF = (n, cat, w, h, c, d) => ({n, cat, p:0, need:[], c, w, h, lim:1, d});
+Object.assign(FURN, {
+  f_sakura:nF('벚나무', 'yard', 90, 110, 9, () => `<rect x="-5" y="-54" width="10" height="54" fill="${WD2}" ${hS}/><circle cx="-20" cy="-66" r="20" fill="#f4b8cc" ${hS}/><circle cx="20" cy="-68" r="21" fill="#f8c8d8" ${hS}/><circle cx="0" cy="-88" r="22" fill="#f4b8cc" ${hS}/>`),
+  f_goza:nF('하나미 고자', 'yard', 96, 24, 4, () => `<path d="M-46-20h92l-6 20h-80z" fill="#d8b070" ${hS}/><path d="M-30-20l-4 20M-10-20l-2 20M10-20l2 20M30-20l4 20" stroke="#a8804a"/>`),
+  f_furin:nF('후린', 'room', 30, 64, 4, () => `<path d="M0-64v14" stroke="${HK}"/><path d="M-12-36q0-16 12-16t12 16z" fill="#a8d8f0" ${hS}/><path d="M0-36v22" stroke="${HK}"/><rect x="-5" y="-14" width="10" height="14" fill="#f4ecd8" ${hS}/>`),
+  f_hanabi:nF('하나비 병풍', 'room', 90, 70, 6, () => `<rect x="-42" y="-68" width="84" height="66" fill="#1e2a50" ${hS}/><path d="M-14-68v66M14-68v66" stroke="${WD3}"/><g stroke="#ffd070" stroke-width="2">${[0, 60, 120, 180, 240, 300].map(a => `<path d="M0-38l${Math.round(Math.cos(a*Math.PI/180)*22)} ${Math.round(Math.sin(a*Math.PI/180)*22)}"/>`).join('')}</g>`),
+  f_sheaf:nF('츠키미 억새', 'yard', 44, 76, 4, () => `<path d="M-12-26h24l-4 26h-16z" fill="#8a7a6a" ${hS}/><path d="M-4-26q-8-24-16-40M0-26v-46M4-26q8-24 16-40" fill="none" stroke="#a8a050" stroke-width="2"/><path d="M-20-66q-3-6-1-10M0-72q-2-4 0-6M20-66q3-6 1-10" fill="none" stroke="#e8dcc0" stroke-width="4" stroke-linecap="round"/>`),
+  f_gotgam:nF('호시가키 줄', 'room', 60, 70, 5, () => `<path d="M-24-68h48" stroke="${WD2}" stroke-width="3"/>${[-18, 0, 18].map(x => `<path d="M${x}-68v62" stroke="#c8a870"/>${[-56, -38, -20].map(y => `<ellipse cx="${x}" cy="${y}" rx="7" ry="8" fill="#e08a30" ${hS}/>`).join('')}`).join('')}`),
+  f_kadomatsu:nF('카도마츠', 'yard', 50, 90, 6, () => `<path d="M-16-70l8 6v64h-12zM0-88l8 6v82h-14zM14-60l6 5v55h-10z" fill="#6aa050" ${hS}/><path d="M-22-14h44v14h-44z" fill="#c8a060" ${hS}/><path d="M-22-8h44" stroke="#8a5a30" stroke-width="2"/>`),
+  f_snowman:nF('유키다루마', 'yard', 50, 74, 5, () => `<circle cx="0" cy="-22" r="22" fill="#fff" ${hS}/><circle cx="0" cy="-54" r="15" fill="#fff" ${hS}/><path d="M0-52l14 3-14 3z" fill="#e08a30"/><circle cx="-5" cy="-58" r="1.8" fill="${HK}"/><circle cx="5" cy="-58" r="1.8" fill="${HK}"/><path d="M-13-68h26l-4-6h-18z" fill="#c03a30" ${hS}/>`),
+  f_pillar:nF('천주 기둥 모형', 'room', 50, 100, 20, () => `<path d="M-14 0l4-90h20l4 90z" fill="#c8ccd8" ${hS}/><path d="M-22 0h44v-6h-44z" fill="#8a8a9a" ${hS}/><path d="M-11-30q11 10 22 0M-10-54q10 10 20 0M-9-76q9 8 18 0" fill="none" stroke="#6a8aa8" stroke-width="2"/><circle cx="0" cy="-94" r="6" fill="#8ad0f0" ${hS}/>`),
+});
+const furnGive = (k, n = 1) => { const H = homeMine(); H.inv[k] = (H.inv[k] || 0) + n; };
+const sfDay = (t = Date.now()) => (((seaDayNo(t) - SEA_EPOCH) % SEA_LEN) + SEA_LEN) % SEA_LEN;
+const sfOn = () => VX.sf != null ? VX.sf : sfDay() >= SEA_LEN - SF_DAYS;
+const sfIn = () => { const d = sfDay(); return d >= SEA_LEN - SF_DAYS ? 0 : SEA_LEN - SF_DAYS - d; };
+const sfNow = () => SF[seaKey()];
+const sfS = () => { const k = seaKey() + seaPhase(); if (!S.sf || S.sf.k !== k) S.sf = {k, b:{}, d:'', t:0}; return S.sf; };
+const sfTries = () => { const s = sfS(); return s.d === seoul().key ? s.t : 0; };
+const sfFoods = () => SF_FOOD.filter(r => r.s === seaKey());
+function sfBuy(id){ if (!sfOn()) return; if (baseLocked()) return lockToast(); const r = SF_FOOD.find(x => x.id === id), s = sfS(); if (!r || r.s !== seaKey()) return; if ((s.b[id] || 0) >= SF_BUY) return toast(`이번 축제에서는 ${SF_BUY}개까지만 살 수 있어요.`); if (S.gold < r.p) return toast('엽전이 모자라요.'); S.gold -= r.p; s.b[id] = (s.b[id] || 0) + 1; addItem('m_' + id); stat('sfBuy'); sfx('coin'); save(); toast(`${r.n}${pp(r.n, '을', '를')} 샀다.`); renderSheet(true); render(); }
+function sfPlay(){ if (!sfOn()) return; const s = sfS(); if (sfTries() >= SF_PLAY) return toast('오늘 놀이는 모두 했어요. 내일 또 오세요.'); if (s.d !== seoul().key){ s.d = seoul().key; s.t = 0; } s.t++; const n = wpick(Math.random, [[2, 50], [4, 30], [6, 15], [12, 5]]); addItem('fcoin', n); stat('sfPlay'); UI.sfBurst = now(); UI.sfMsg = `${sfNow().act} 축제 패 ${n}개를 받았다!${n >= 12 ? ' 대박!' : ''}`; sfx(n >= 6 ? 'rare' : 'coin'); save(); renderSheet(true); render(); }
+const SF_SHOP = [['token5', '개척 증표 5개', 10], ['scroll', null, 25], ['egg_pet', '야생동물의 알', 40]];
+function sfTrade(k){
+  if (!sfOn()) return; const F = FURN[k];
+  if (F){ if (!sfNow().furn.includes(k) || cnt('fcoin') < 20) return; takeItem('fcoin', 20); furnGive(k); stat('sfFurn'); sfx('win'); save(); toast(`${F.n}${pp(F.n, '을', '를')} 받았다. 내 집 보관함에 넣어 두었다.`, 'good'); renderSheet(true); return; }
+  const o = SF_SHOP.find(x => x[0] === k); if (!o || cnt('fcoin') < o[2]) return; takeItem('fcoin', o[2]);
+  if (k === 'token5') addItem('token', 5); else if (k === 'egg_pet') S.eggs.push({kind:'pet', sp:pick(Math.random, PET_SP), id:uid36()}); else addItem(k);
+  sfx('coin'); save(); toast(`${o[1] || itemName(k)}${pp(o[1] || itemName(k), '을', '를')} 받았다.`, 'good'); renderSheet(true);
+}
+SHEETS.sfest = () => {
+  const F = sfNow(), s = seaNow(), on = sfOn(), left = SF_PLAY - sfTries(), burst = UI.sfBurst && now() - UI.sfBurst < 1600;
+  if (!on) return sheetHead(`${F.n}`) + `<div class="card" style="text-align:center"><p style="font-size:2rem;margin:0">${F.ic}</p><p style="margin:4px 0">${s.n} ${F.n}까지 <b>${sfIn()}일</b> 남았다.</p><p class="small muted" style="margin:0">계절마다 마지막 ${SF_DAYS}일 동안 열린다. 축제 패 ${cnt('fcoin')}개를 가지고 있다.</p></div>`;
+  return sheetHead(`${F.ic} ${F.n}`, `<span class="chip gold">패 ${cnt('fcoin')}</span>`) + `<p class="small muted" style="margin-top:0">${F.d} ${SEA_LEN - sfDay()}일 뒤에 끝난다.</p>
+  <div class="card sf-stage" style="text-align:center">${burst ? `<div class="sf-burst" aria-hidden="true">${Array.from({length:12}, (_, i) => `<span style="--a:${i*30}deg;animation-delay:${i % 3*.06}s">${F.burst[i % 3]}</span>`).join('')}</div>` : ''}<h3 style="margin:0 0 6px">${F.game}</h3>${UI.sfMsg ? `<p class="small" style="margin:0 0 6px">${esc(UI.sfMsg)}</p>` : ''}<button class="btn seal full" data-act="sfPlay" ${left > 0 ? '' : 'disabled'}>${left > 0 ? `해 보기 (오늘 ${left}번 남음)` : '내일 또 할 수 있다'}</button></div>
+  <h3 style="margin:12px 0 6px">노점</h3><div class="list">${sfFoods().map(r => { const b = sfS().b[r.id] || 0; return `<div class="li">${itemIcon('m_' + r.id)}<div class="t"><b>${r.n} <span class="tiny muted num">${r.p}${CUR}</span></b><span class="good-t">${r.bd} · ${r.b.dur}시간</span></div><button class="btn sm" data-act="sfBuy" data-k="${r.id}" ${b < SF_BUY && S.gold >= r.p ? '' : 'disabled'}>사기 ${b}/${SF_BUY}</button></div>`; }).join('')}</div>
+  <h3 style="margin:12px 0 6px">축제 교환소</h3><div class="list">${F.furn.map(k => `<div class="li"><span class="iic md" style="display:block;width:44px;height:44px">${furnThumb(k)}</span><div class="t"><b>${FURN[k].n}</b><span class="tiny muted">${s.n} 축제 한정 가구</span></div><button class="btn sm" data-act="sfTrade" data-k="${k}" ${cnt('fcoin') >= 20 ? '' : 'disabled'}>패 20</button></div>`).join('')}${SF_SHOP.map(([k, n, c]) => `<div class="li"><div class="t"><b>${n || itemName(k)}</b></div><button class="btn sm ghost" data-act="sfTrade" data-k="${k}" ${cnt('fcoin') >= c ? '' : 'disabled'}>패 ${c}</button></div>`).join('')}</div>`;
+};
+const sfChip = () => sfOn() ? `<button class="chip fest" data-act="sheet" data-s="sfest">${sfNow().ic} ${sfNow().n}</button>` : '';
+const sfTile = () => sfOn() ? `<button class="tile fest-tile" data-act="sheet" data-s="sfest"><span class="ic">${sfNow().ic}</span><b>${sfNow().n}</b><span class="st on">계절 축제 · ${SEA_LEN - sfDay()}일 남음</span></button>` : '';
+function sfBaseArt(){ if (!sfOn()) return ''; const c = seaNow().tint; return `<g aria-hidden="true" pointer-events="none"><path d="M0 16 Q90 34 180 18 T360 16" fill="none" stroke="${c}" stroke-width="1.5"/>${[30, 75, 120, 165, 210, 255, 300, 340].map((x, i) => `<path d="M${x} ${18 + (i % 2)*5}l6 4v12h-12v-12z" fill="${c}" opacity=".9"/>`).join('')}</g>`; }
+
+// ---------- 4. 주간 대회 ----------
+const WC_KIND = [
+  {k:'fish', n:'대물 낚시', d:'이번 주에 낚은 가장 큰 물고기로 겨룬다.', ms:[30, 60, 100], f:v => `${v}cm`},
+  {k:'cook', n:'솜씨 겨루기', d:'이번 주에 요리한 횟수로 겨룬다.', ms:[5, 15, 30], f:v => `${v}번`, s:'cook'},
+  {k:'harv', n:'풍년 겨루기', d:'이번 주에 수확한 횟수로 겨룬다.', ms:[5, 15, 30], f:v => `${v}번`, s:'harvest'},
+  {k:'give', n:'회관 일꾼', d:'이번 주에 올린 회관 기여 점수로 겨룬다.', ms:[50, 150, 400], f:v => `${v}점`, s:'hall'},
+];
+const WC_MS = [{gold:300, tok:2}, {gold:800, tok:4}, {gold:1500, tok:8, items:[['fcoin', 5]]}];
+const WC_RANK = [{gold:5000, tok:25, egg:'summon'}, {gold:3000, tok:15}, {gold:2000, tok:10}];
+const WC_REST = {gold:800, tok:5}, WC_JOIN = {gold:300, tok:2};
+const wcWeek = () => wpWeek();
+const wcKind = (w = wcWeek()) => WC_KIND[((w % 4) + 4) % 4];
+const wcStat = s => s === 'hall' ? Math.max(S.hallPts || 0, HALL.mine || 0) : (S.stats || {})[s] || 0;
+const wcVal = o => { const K = wcKind(o.w); return K.k === 'fish' ? o.v || 0 : Math.max(0, wcStat(K.s) - (o.base || 0)); };
+function wcS(){
+  const w = wcWeek();
+  if (!S.wc || S.wc.w !== w){ if (S.wc) S.wcP = {w:S.wc.w, v:wcVal(S.wc)}; const K = wcKind(w); S.wc = {w, v:0, base:K.s ? wcStat(K.s) : 0, got:0}; }
+  return S.wc;
+}
+const _fishSize_wc = fishSize;
+fishSize = f => { const r = _fishSize_wc(f), s = wcS(); if (wcKind().k === 'fish' && r.cm > (s.v || 0)) s.v = r.cm; return r; };
+const _hallDoc_wc = hallDoc;
+hallDoc = () => { const s = wcS(); return {..._hallDoc_wc(), wc:{w:s.w, v:wcVal(s)}, wcp:S.wcP || null}; };
+const _hallRaw_wc = hallRaw;
+hallRaw = () => { const s = wcS(), me = _hallRaw_wc(); const m = me.find(p => p.uid === ST.uid); if (m){ m.wc = {w:s.w, v:wcVal(s)}; m.wcp = S.wcP || null; } return me; };
+function wcBoard(w){
+  return hallRaw().map(p => ({uid:p.uid, name:p.name, op:p.uid === ST.uid ? isOp() : !!(PL[p.uid] && PL[p.uid].op), v:p.wc && p.wc.w === w ? +p.wc.v || 0 : p.wcp && p.wcp.w === w ? +p.wcp.v || 0 : 0})).filter(p => p.v > 0 && !p.op).sort((a, b) => b.v - a.v);
+}
+function wcClaim(i){ const s = wcS(), K = wcKind(), v = wcVal(s); if (s.got & (1 << i) || v < K.ms[i]) return; s.got |= 1 << i; const txt = qPay(WC_MS[i]); stat('wcMs'); sfx('coin'); save(); toast(`주간 대회 목표 달성 · ${txt}`, 'good'); renderSheet(true); render(); }
+function wcLast(){ const w = wcWeek() - 1, K = wcKind(w), list = wcBoard(w), me = list.findIndex(p => p.uid === ST.uid); if (me < 0) return null; const v = list[me].v, join = v > 0; if (!join) return null; const ok = v >= K.ms[0], r = !ok ? WC_JOIN : WC_RANK[me] || (me < 10 ? WC_REST : WC_JOIN); return {w, rank:me + 1, v, K, r, total:list.length, can:S.wcClaim !== w}; }
+function wcClaimLast(){ const L = wcLast(); if (!L || !L.can) return; S.wcClaim = L.w; if (L.rank === 1 && L.v >= L.K.ms[0]) stat('wcWin'); const txt = qPay(L.r); sfx('win'); save(); toast(`지난주 ${L.rank}위 상품 · ${txt}`, 'good'); renderSheet(true); render(); }
+let wcSynced = -1;
+setInterval(() => { if (!S || SCREEN !== 'game') return; const s = wcS(), v = wcVal(s); if (v !== wcSynced){ wcSynced = v; hallSync(); } }, 30000);
+const wcView = () => {
+  const K = wcKind(), s = wcS(), v = wcVal(s), list = wcBoard(s.w), me = list.findIndex(p => p.uid === ST.uid), L = wcLast(), d = ((seaDayNo() - 4) % 7 + 7) % 7;
+  return `${L && L.can ? `<div class="card" style="border-color:var(--seal);margin-bottom:8px"><b>지난주 「${L.K.n}」 ${L.rank}위 · ${L.K.f(L.v)}</b><p class="tiny muted" style="margin:2px 0 6px">${rewTxt(L.r)}</p><button class="btn seal full" data-act="wcClaimLast">상품 받기</button></div>` : ''}
+  <div class="card"><h3 style="margin:0 0 4px">이번 주: ${K.n}</h3><p class="small muted" style="margin:0 0 6px">${K.d} ${7 - d}일 뒤에 다음 종목으로 바뀐다.</p><b class="num">내 기록 ${K.f(v)}</b>${me >= 0 ? ` <span class="chip gold">${me + 1}위</span>` : ''}</div>
+  <div class="list" style="margin:8px 0">${K.ms.map((m, i) => claimBtn('wcClaim', i, v >= m, s.got & (1 << i), rewTxt(WC_MS[i]), `목표 ${K.f(m)}`)).join('')}</div>
+  <details class="sub"><summary class="small">순위 상품 보기</summary><div class="list">${[['1위', WC_RANK[0]], ['2위', WC_RANK[1]], ['3위', WC_RANK[2]], ['4~10위', WC_REST], ['참가상', WC_JOIN]].map(([n, r]) => `<div class="li"><div class="t"><b>${n}</b><span class="tiny muted">${rewTxt(r)}</span></div></div>`).join('')}</div><p class="tiny muted" style="margin:6px 2px 0">첫 목표를 넘긴 사람만 순위 상품을 받고, 그 밖에는 참가상을 받는다. 상품은 다음 주에 받는다.</p></details>
+  <h3 style="margin:12px 0 6px">이번 주 순위</h3>${list.length ? `<div class="list">${list.slice(0, 20).map((p, i) => `<div class="li" ${i === me ? 'style="background:var(--paper-2)"' : ''}><b class="num" style="width:1.8em">${i + 1}</b><div class="t"><b>${esc(p.name || '누군가')}${i === me ? ' (나)' : ''}</b></div><span class="num small">${K.f(p.v)}</span></div>`).join('')}</div>` : '<p class="small muted">아직 기록이 없다. 첫 번째가 되어 보자.</p>'}`;
+};
+const wcReady = () => { const s = wcS(), K = wcKind(), v = wcVal(s), L = wcLast(); return K.ms.filter((m, i) => v >= m && !(s.got & (1 << i))).length + (L && L.can ? 1 : 0); };
+
+// ---------- 5. 이야기 완결 보상 ----------
+const STORY_GIFT = {gold:30000, xp:3000, tok:100, items:[['ticket', 1], ['scroll', 3], ['fcoin', 20]], egg:'summon'};
+function storyGift(){ const q = qS(); if (q.main < STORY.length || q.gift) return; q.gift = 1; const txt = qPay(STORY_GIFT); S.eggs.push({kind:'pet', sp:pick(Math.random, PET_SP), id:uid36()}); furnGive('f_pillar'); stat('storyGift'); if (ST.mode === 'cloud') postNews(`${S.char.name}님이 하늘 기둥을 다시 세우고 이야기를 끝냈습니다!`); sfx('win'); save(); pubDirty(); toast(`기둥의 선물 · ${txt} · 천주 기둥 모형 · 야생동물의 알 · 앞으로 탐사 보상 +5%`, 'good'); renderSheet(true); render(); }
+const _makeSnap_gift = makeSnap;
+makeSnap = (...a) => { const s = _makeSnap_gift(...a); if (!S || !S.q || !S.q.gift) return s; return {...s, rew:+(s.rew*1.05).toFixed(3)}; };
+const storyGiftCard = () => { const q = qS(); return q.gift ? '<div class="card" style="margin-top:8px"><b>기둥의 축복</b><p class="small muted" style="margin:2px 0 0">앞으로 모든 탐사 보상이 5% 늘어난다.</p></div>' : `<div class="card" style="border-color:var(--seal);margin-top:8px"><b>기둥의 선물</b><p class="small" style="margin:4px 0">${rewTxt(STORY_GIFT)} · 야생동물의 알 · 한정 가구 「천주 기둥 모형」 · 탐사 보상 영구 +5%</p><button class="btn seal full" data-act="storyGift">선물 받기</button></div>`; };
+
+Object.assign(ACT, {sfBuy:d => sfBuy(d.k), sfPlay:() => sfPlay(), sfTrade:d => sfTrade(d.k), wcClaim:d => wcClaim(+d.i), wcClaimLast:() => wcClaimLast(), storyGift:() => storyGift()});
+TITLES.push(
+  {id:'wc_win', n:'이주의 일인자', d:'주간 대회에서 1위를 했다.', c:S => st_(S, 'wcWin') >= 1},
+  {id:'sf_four', n:'축제의 단골', d:'축제 놀이를 30번 했다.', c:S => st_(S, 'sfPlay') >= 30},
+);
+// ===================== 계절 마츠리, 일지 띠, 교류 랜덤 대사, 새 교류·답례·오늘의 교류 =====================
+// 보내는 쪽이 대사 번호(ln)를 정해 events에 실어 두 사람이 같은 장면을 본다. 규칙 변경 없음.
+
+// ---------- 1. 계절 마츠리 ----------
+const FEST_THEME = {
+  spring:{n:'하루 마츠리', ic:'🌸', banner:'벚꽃잎이 초롱불 위로 흩날린다!', sub:'봄밤의 노점이 줄지어 섰다.', foods:['ringoame', 'watagashi', 'taiyaki', 'ramune', 'mf_mitarashi', 'mf_ichigo'], noti:'오늘 밤 하루 마츠리가 열렸습니다. 벚꽃 아래 미타라시 당고를 맛보세요!'},
+  summer:{n:'나츠 마츠리', ic:'🎐', banner:'여름밤 축제가 한창이다!', sub:'유카타 자락 사이로 초롱불이 흔들린다.', foods:['kakigori', 'ramune', 'yakisoba', 'corn', 'mf_hiyashiame', 'mf_kingyo'], noti:'오늘 밤 나츠 마츠리가 열렸습니다. 시원한 빙수가 기다려요!'},
+  autumn:{n:'아키 마츠리', ic:'🍁', banner:'가마를 멘 행렬이 지나간다!', sub:'단풍빛 초롱 아래 햇곡식 냄새가 난다.', foods:['corn', 'taiyaki', 'yakisoba', 'takoyaki', 'mf_yakiimo', 'mf_kurimanju'], noti:'오늘 밤 아키 마츠리가 열렸습니다. 따끈한 야키이모를 맛보세요!'},
+  winter:{n:'후유 마츠리', ic:'⛄', banner:'눈 위로 초롱불이 번진다!', sub:'김이 오르는 노점마다 사람들이 모여 있다.', foods:['takoyaki', 'taiyaki', 'ringoame', 'yakisoba', 'mf_amazake', 'mf_oden'], noti:'오늘 밤 후유 마츠리가 열렸습니다. 아마자케로 몸을 녹이세요!'},
+};
+const festTheme = () => FEST_THEME[seaKey()];
+const MF_FOOD = [
+  {id:'mf_mitarashi', n:'미타라시 당고', p:70, b:{dur:3, st:{LUK:3, VIT:2}}, bd:'운 +3, 체력 +2', f:'달콤짭짤한 간장 소스를 바른 꼬치 당고.', ic:['balls', '#d8a860', '#f0e0b0']},
+  {id:'mf_ichigo', n:'이치고 다이후쿠', p:90, b:{dur:3, st:{SPI:3, SEN:2}}, bd:'정신 +3, 감각 +2', f:'찹쌀떡 속에 새콤한 딸기가 통째로 들었다.', ic:['apple', '#f4e8e8', '#e05a6a']},
+  {id:'mf_hiyashiame', n:'히야시 아메', p:60, b:{dur:3, cost:-0.1}, bd:'체력 소모 10% 감소', f:'생강 향이 도는 차가운 물엿 음료.', ic:['cup', '#e8c880', '#fff0c8']},
+  {id:'mf_kingyo', n:'금붕어 사탕', p:80, b:{dur:3, st:{AGI:3, LUK:2}}, bd:'민첩 +3, 운 +2', f:'금붕어 모양으로 빚은 반짝이는 사탕 공예.', ic:['ramune', '#f07840', '#ffe0c0']},
+  {id:'mf_yakiimo', n:'야키이모', p:70, b:{dur:3, regen:1}, bd:'체력 자연 회복 2배', f:'돌 위에서 천천히 구워 꿀처럼 달다.', ic:['zaru', '#a0506a', '#f0c870']},
+  {id:'mf_kurimanju', n:'쿠리만쥬', p:90, b:{dur:3, st:{STR:3, SEN:2}}, bd:'힘 +3, 감각 +2', f:'밤 모양으로 구워 낸 달콤한 과자.', ic:['balls', '#a06a30', '#e8c088']},
+  {id:'mf_amazake', n:'아마자케', p:70, b:{dur:3, regen:1, st:{SPI:2}}, bd:'체력 자연 회복 2배, 정신 +2', f:'누룩으로 빚은 달고 따뜻한 음료. 술은 아니다.', ic:['cup', '#f4f0e0', '#e8dcc0']},
+  {id:'mf_oden', n:'노점 오뎅', p:100, b:{dur:4, maxhp:40, st:{VIT:3}}, bd:'최대 체력 +40, 체력 +3', f:'맑은 국물에 푹 끓인 무와 곤약.', ic:['bowl', '#d8b880', '#f4ecd8']},
+];
+for (const r of MF_FOOD){ FEST_FOOD.push(r); IT['m_' + r.id] = {n:r.n, t:'food', p:Math.round(r.p*.5), d:r.bd, f:r.f, r:r.id, fest:1}; ICON['m_' + r.id] = r.ic; }
+const festFoods = () => festTheme().foods.map(id => FEST_FOOD.find(x => x.id === id));
+
+// ---------- 2. 개척 일지 띠 ----------
+const lifeCount = () => (attToday() ? 0 : 1) + (storyReady() ? 1 : 0) + subReady() + wcReady();
+const journalBanner = () => { const n = lifeCount(), q = qS(), C = STORY[q.main]; return `<button class="j-banner" data-act="sheet" data-s="journal"><span class="ic" aria-hidden="true">${ICO.journal}</span><span class="t"><b>개척 일지</b><span>${C ? `지금 이야기 · ${C.t}` : '이야기 완결 · 부탁 · 출석 · 주간 대회'}</span></span>${n ? `<i>${n}</i>` : ''}<span class="arr" aria-hidden="true">›</span></button>`; };
+
+// ---------- 3. 교류 대사 ----------
+// [내가 보는 글, 상대가 보는 글]. {n}은 상대 이름이다
+const SOC_LINES = {
+  greet:[
+    ['{n}님께 고개 숙여 인사했다.', '{n}님이 고개 숙여 인사를 건넸다.'],
+    ['{n}님께 "오늘 날이 참 좋네요" 하고 말을 걸었다.', '{n}님이 "오늘 날이 참 좋네요" 하고 말을 걸어왔다.'],
+    ['{n}님을 보고 손을 크게 흔들었다.', '{n}님이 저 멀리서 손을 크게 흔들었다.'],
+    ['{n}님께 "밥은 드셨어요?" 하고 물었다.', '{n}님이 "밥은 드셨어요?" 하고 안부를 물었다.'],
+    ['삿갓을 살짝 들어 {n}님께 인사했다.', '{n}님이 삿갓을 살짝 들어 인사했다.'],
+    ['{n}님과 눈이 마주쳐 빙긋 웃어 보였다.', '{n}님과 눈이 마주치자 빙긋 웃어 주었다.'],
+    ['{n}님께 "오늘도 힘내요!" 하고 외쳤다.', '{n}님이 "오늘도 힘내요!" 하고 외쳤다.'],
+    ['{n}님 곁을 지나며 가볍게 목례했다.', '{n}님이 곁을 지나며 가볍게 목례했다.'],
+    ['{n}님께 "간밤엔 잘 주무셨어요?" 하고 물었다.', '{n}님이 "간밤엔 잘 주무셨어요?" 하고 물었다.'],
+    ['{n}님 어깨의 꽃잎을 털어 주며 인사했다.', '{n}님이 어깨에 앉은 꽃잎을 털어 주며 인사했다.'],
+    ['게다 소리를 울리며 다가가 {n}님께 인사했다.', '게다 소리가 나더니 {n}님이 다가와 인사했다.'],
+    ['{n}님께 "또 만났네요!" 하고 반가워했다.', '{n}님이 "또 만났네요!" 하고 반가워했다.'],
+  ],
+  encourage:[
+    ['{n}님의 등을 힘껏 두드려 주었다.', '{n}님이 등을 힘껏 두드려 주었다.'],
+    ['{n}님께 "당신이라면 할 수 있어요!" 하고 말했다.', '{n}님이 "당신이라면 할 수 있어요!" 하고 말했다.'],
+    ['{n}님을 향해 주먹을 불끈 쥐어 보였다.', '{n}님이 주먹을 불끈 쥐어 보였다.'],
+    ['{n}님께 "오늘의 고생은 내일의 쌀이죠" 하고 웃었다.', '{n}님이 "오늘의 고생은 내일의 쌀이죠" 하고 웃었다.'],
+    ['{n}님의 부적 끈을 단단히 매어 주었다.', '{n}님이 부적 끈을 단단히 매어 주었다.'],
+    ['{n}님을 위해 신사 쪽으로 손을 모아 빌었다.', '{n}님이 당신을 위해 손을 모아 빌어 주었다.'],
+    ['{n}님께 "지금까지도 잘해 왔잖아요" 하고 말했다.', '{n}님이 "지금까지도 잘해 왔잖아요" 하고 말했다.'],
+    ['{n}님 앞에서 응원 북 치는 시늉을 했다.', '{n}님이 앞에서 응원 북 치는 시늉을 했다.'],
+  ],
+  heal:[
+    ['{n}님의 상처를 조심스레 싸매 주었다.', '{n}님이 상처를 조심스레 싸매 주었다.'],
+    ['{n}님께 "조금 쓰라릴 거예요" 하고 약을 발라 주었다.', '{n}님이 "조금 쓰라릴 거예요" 하며 약을 발라 주었다.'],
+    ['{n}님의 멍든 팔에 환약을 개어 얹었다.', '{n}님이 멍든 팔에 환약을 개어 얹어 주었다.'],
+    ['{n}님께 "무리하지 마세요" 하고 환약을 건넸다.', '{n}님이 "무리하지 마세요" 하며 환약을 건넸다.'],
+    ['{n}님의 이마를 짚어 보고 약을 먹였다.', '{n}님이 이마를 짚어 보고 약을 챙겨 주었다.'],
+    ['{n}님의 다리를 살펴보고 천으로 동여맸다.', '{n}님이 다리를 살펴보고 천으로 동여매 주었다.'],
+  ],
+  tea:[
+    ['{n}님께 유노미에 녹차를 따라 드렸다.', '{n}님이 유노미에 녹차를 따라 주었다.'],
+    ['툇마루에 나란히 앉아 {n}님과 차를 마셨다.', '{n}님과 툇마루에 나란히 앉아 차를 마셨다.'],
+    ['{n}님과 찻잔을 두 손으로 감싸고 숨을 돌렸다.', '{n}님과 찻잔을 두 손으로 감싸고 숨을 돌렸다.'],
+    ['{n}님께 "오늘 찻잎은 제가 덖었어요" 하고 자랑했다.', '{n}님이 "오늘 찻잎은 제가 덖었어요" 하고 자랑했다.'],
+    ['차 거품을 곱게 내어 {n}님께 올렸다.', '{n}님이 차 거품을 곱게 내어 건네주었다.'],
+    ['{n}님과 차 한 잔에 지난 탐사 이야기를 나눴다.', '{n}님과 차 한 잔에 지난 탐사 이야기를 나눴다.'],
+    ['찻잔에 찻줄기가 서자 {n}님께 보여 주었다.', '{n}님이 찻줄기가 섰다며 찻잔을 보여 주었다.'],
+    ['{n}님과 말없이 차 향만 맡았다. 그걸로 충분했다.', '{n}님과 말없이 차 향만 맡았다. 그걸로 충분했다.'],
+    ['화과자를 곁들여 {n}님께 차를 권했다.', '{n}님이 화과자를 곁들여 차를 권했다.'],
+    ['{n}님의 찻잔이 비기 전에 다시 채워 드렸다.', '{n}님이 찻잔이 비기 전에 다시 채워 주었다.'],
+  ],
+  comfort:[
+    ['{n}님 곁에 가만히 앉아 있어 주었다.', '{n}님이 곁에 가만히 앉아 있어 주었다.'],
+    ['{n}님께 "오늘은 그만 쉬어도 돼요" 하고 말했다.', '{n}님이 "오늘은 그만 쉬어도 돼요" 하고 말했다.'],
+    ['{n}님의 어깨를 토닥토닥 두드렸다.', '{n}님이 어깨를 토닥토닥 두드려 주었다.'],
+    ['{n}님께 "제가 들어 드릴게요" 하고 귀를 기울였다.', '{n}님이 "제가 들어 드릴게요" 하며 귀를 기울여 주었다.'],
+    ['{n}님께 따뜻한 수건을 건넸다.', '{n}님이 따뜻한 수건을 건네주었다.'],
+    ['{n}님께 "비 온 뒤에 땅이 굳는대요" 하고 웃어 보였다.', '{n}님이 "비 온 뒤에 땅이 굳는대요" 하고 웃어 보였다.'],
+    ['{n}님과 함께 저녁놀을 바라보았다.', '{n}님과 함께 저녁놀을 바라보았다.'],
+    ['{n}님의 손에 작은 오마모리를 쥐여 주었다.', '{n}님이 손에 작은 오마모리를 쥐여 주었다.'],
+  ],
+  affection:[
+    ['{n}님의 손을 살며시 잡았다.', '{n}님이 손을 살며시 잡았다.'],
+    ['{n}님께 "오늘도 보고 싶었어요" 하고 속삭였다.', '{n}님이 "오늘도 보고 싶었어요" 하고 속삭였다.'],
+    ['{n}님의 머리칼에 꽃 한 송이를 꽂아 주었다.', '{n}님이 머리칼에 꽃 한 송이를 꽂아 주었다.'],
+    ['{n}님의 어깨에 살짝 기대었다.', '{n}님이 어깨에 살짝 기대었다.'],
+    ['{n}님을 위해 손수 싼 도시락 이야기를 꺼냈다.', '{n}님이 당신을 위해 손수 싼 도시락 이야기를 꺼냈다.'],
+    ['{n}님께 "당신이 있어 이 땅이 좋아졌어요" 하고 말했다.', '{n}님이 "당신이 있어 이 땅이 좋아졌어요" 하고 말했다.'],
+    ['{n}님의 하오리 깃을 고쳐 여며 주었다.', '{n}님이 하오리 깃을 고쳐 여며 주었다.'],
+    ['{n}님과 초롱불 아래를 천천히 걸었다.', '{n}님과 초롱불 아래를 천천히 걸었다.'],
+    ['달을 보다가 {n}님께 "달이 참 곱네요" 하고 말했다.', '달을 보던 {n}님이 "달이 참 곱네요" 하고 말했다.'],
+    ['{n}님의 이름을 괜히 한 번 불러 보았다.', '{n}님이 괜히 이름을 한 번 불러 보았다.'],
+    ['{n}님께 오래 쓴 머리끈을 건넸다.', '{n}님이 오래 쓴 머리끈을 건네주었다.'],
+    ['{n}님을 보고 저도 모르게 얼굴이 붉어졌다.', '{n}님이 당신을 보고 얼굴을 붉혔다.'],
+  ],
+  friendReq:[
+    ['{n}님께 "친구가 되어 주실래요?" 하고 물었다.', '{n}님이 "친구가 되어 주실래요?" 하고 물었다.'],
+    ['{n}님께 쑥스럽게 친구 신청을 건넸다.', '{n}님이 쑥스러워하며 친구가 되고 싶어 한다.'],
+    ['{n}님께 "앞으로 자주 봐요" 하고 손을 내밀었다.', '{n}님이 "앞으로 자주 봐요" 하며 손을 내밀었다.'],
+    ['{n}님께 같이 다니자고 말을 꺼냈다.', '{n}님이 앞으로 같이 다니자고 말을 꺼냈다.'],
+  ],
+  friendAcc:[
+    ['{n}님과 친구가 되었다. 손을 맞잡고 웃었다.', '{n}님과 친구가 되었다. 손을 맞잡고 웃었다.'],
+    ['{n}님과 친구가 되었다. 오늘은 경단으로 축하하자.', '{n}님이 신청을 받아 주었다. 오늘은 경단으로 축하하자.'],
+    ['{n}님과 친구가 되었다. 이름을 서로 불러 보았다.', '{n}님과 친구가 되었다. 이름을 서로 불러 보았다.'],
+  ],
+  confess:[
+    ['떨리는 목소리로 {n}님께 마음을 전했다.', '{n}님이 떨리는 목소리로 마음을 고백했다.'],
+    ['벚나무 아래로 {n}님을 불러 마음을 털어놓았다.', '{n}님이 벚나무 아래로 불러내 마음을 털어놓았다.'],
+    ['편지를 접어 {n}님 손에 쥐여 주었다.', '{n}님이 곱게 접은 고백 편지를 손에 쥐여 주었다.'],
+    ['{n}님께 "좋아해요" 하고 겨우 말을 꺼냈다.', '{n}님이 "좋아해요" 하고 겨우 말을 꺼냈다.'],
+    ['초롱불이 꺼지기 전에 {n}님께 고백했다.', '초롱불이 꺼지기 전에 {n}님이 고백했다.'],
+  ],
+  confessAcc:[
+    ['{n}님과 연인이 되었다. 심장 소리가 들리는 듯하다.', '{n}님이 고백을 받아 주었다. 이제 연인이다.'],
+    ['{n}님의 고백을 받아들였다. 둘 다 얼굴이 붉어졌다.', '{n}님이 고개를 끄덕였다. 둘 다 얼굴이 붉어졌다.'],
+    ['{n}님과 연인이 되었다. 오늘 달이 유난히 밝다.', '{n}님이 마음을 받아 주었다. 오늘 달이 유난히 밝다.'],
+  ],
+  propose:[
+    ['직접 세공한 반지를 {n}님께 내밀며 청혼했다.', '{n}님이 직접 세공한 반지를 내밀며 청혼했다.'],
+    ['신사 앞에서 {n}님께 평생을 약속하자고 말했다.', '{n}님이 신사 앞에서 평생을 약속하자고 말했다.'],
+    ['{n}님께 "매일 아침 함께 된장국을 먹고 싶어요" 하고 청혼했다.', '{n}님이 "매일 아침 함께 된장국을 먹고 싶어요" 하며 청혼했다.'],
+    ['무릎을 꿇고 {n}님께 반지를 올렸다.', '{n}님이 무릎을 꿇고 반지를 내밀었다.'],
+  ],
+  proposeAcc:[
+    ['{n}님과 부부가 되었다. 부부 버프: 경험치 +10%', '{n}님이 청혼을 받아들였다. 축하합니다!'],
+    ['{n}님의 손가락에 반지가 빛난다. 부부 버프: 경험치 +10%', '{n}님이 반지를 끼워 달라며 손을 내밀었다. 축하합니다!'],
+  ],
+  reject:[
+    ['{n}님께 정중히 거절했다.', '{n}님이 정중히 거절했다.'],
+    ['{n}님께 미안하다고 고개를 숙였다.', '{n}님이 미안하다며 고개를 숙였다.'],
+    ['{n}님께 "마음만 감사히 받을게요" 하고 말했다.', '{n}님이 "마음만 감사히 받을게요" 하고 말했다.'],
+    ['{n}님께 "지금은 어려울 것 같아요" 하고 답했다.', '{n}님이 "지금은 어려울 것 같아요" 하고 답했다.'],
+  ],
+  breakup:[
+    ['{n}님과의 관계를 정리했다.', '{n}님이 관계를 정리했다.'],
+    ['{n}님과 조용히 다른 길을 가기로 했다.', '{n}님이 조용히 다른 길을 가겠다고 했다.'],
+    ['{n}님께 짧게 고개를 숙이고 돌아섰다.', '{n}님이 짧게 고개를 숙이고 돌아섰다.'],
+  ],
+  partyInv:[
+    ['{n}님께 조사대에 함께하자고 손을 내밀었다.', '{n}님이 조사대에 함께하자며 손을 내밀었다.'],
+    ['{n}님께 "같이 가면 든든할 것 같아요" 하고 청했다.', '{n}님이 "같이 가면 든든할 것 같아요" 하고 조사대에 불렀다.'],
+    ['{n}님께 지도를 펼쳐 보이며 동행을 청했다.', '{n}님이 지도를 펼쳐 보이며 동행을 청했다.'],
+  ],
+  rescue_heal:[
+    ['{n}님을 각성약으로 일으켰다.', '{n}님이 각성약으로 일으켜 주었다.'],
+    ['{n}님의 입에 각성약을 흘려 넣었다.', '{n}님이 입에 각성약을 흘려 넣어 주었다.'],
+    ['{n}님을 흔들어 깨우고 약을 먹였다.', '{n}님이 흔들어 깨우고 약을 먹여 주었다.'],
+  ],
+  rescue_carry:[
+    ['{n}님을 등에 업고 안전한 곳까지 걸었다.', '{n}님이 등에 업고 안전한 곳까지 데려다주었다.'],
+    ['{n}님을 부축해 일으켰다.', '{n}님이 부축해 일으켜 주었다.'],
+    ['{n}님의 팔을 어깨에 걸치고 천천히 걸었다.', '{n}님이 팔을 어깨에 걸치고 천천히 걸어 주었다.'],
+  ],
+  thanks:[
+    ['{n}님께 깊이 고개 숙여 답례했다.', '{n}님이 깊이 고개 숙여 답례했다.'],
+    ['{n}님께 "덕분이에요" 하고 웃어 보였다.', '{n}님이 "덕분이에요" 하고 웃어 보였다.'],
+    ['{n}님께 작은 경단 하나를 건네며 고마워했다.', '{n}님이 작은 경단 하나를 건네며 고마워했다.'],
+    ['{n}님께 "다음엔 제가 살게요" 하고 말했다.', '{n}님이 "다음엔 제가 살게요" 하고 말했다.'],
+    ['{n}님께 양손을 모아 감사를 전했다.', '{n}님이 양손을 모아 감사를 전했다.'],
+    ['{n}님께 활짝 웃으며 손을 흔들었다.', '{n}님이 활짝 웃으며 손을 흔들었다.'],
+  ],
+  // 새 교류
+  highfive:[
+    ['{n}님과 손바닥을 짝 마주쳤다.', '{n}님과 손바닥을 짝 마주쳤다.'],
+    ['{n}님께 뛰어올라 하이파이브를 했다.', '{n}님이 뛰어올라 하이파이브를 했다.'],
+    ['{n}님과 손을 마주치다 빗나가서 함께 웃었다.', '{n}님과 손을 마주치다 빗나가서 함께 웃었다.'],
+    ['{n}님과 양손을 번갈아 마주쳤다.', '{n}님과 양손을 번갈아 마주쳤다.'],
+  ],
+  snack:[
+    ['{n}님과 센베이를 반으로 쪼개 나눠 먹었다.', '{n}님이 센베이를 반으로 쪼개 나눠 주었다.'],
+    ['{n}님께 주머니 속 콘페이토를 건넸다.', '{n}님이 주머니 속 콘페이토를 건네주었다.'],
+    ['{n}님과 경단 꼬치를 하나씩 들었다.', '{n}님과 경단 꼬치를 하나씩 들었다.'],
+    ['{n}님께 우메보시를 권했다. 표정이 볼만했다.', '{n}님이 우메보시를 권했다. 입안이 시큼하다.'],
+    ['{n}님과 주먹밥 하나를 나눠 먹었다.', '{n}님과 주먹밥 하나를 나눠 먹었다.'],
+  ],
+  chat:[
+    ['{n}님과 요즘 잡히는 물고기 이야기를 나눴다.', '{n}님과 요즘 잡히는 물고기 이야기를 나눴다.'],
+    ['{n}님께 겐조 아저씨의 허풍을 흉내 내 보였다.', '{n}님이 겐조 아저씨의 허풍을 흉내 내 보였다.'],
+    ['{n}님과 오늘 날씨 이야기로 한참을 보냈다.', '{n}님과 오늘 날씨 이야기로 한참을 보냈다.'],
+    ['{n}님과 스즈네의 새 메뉴를 두고 입씨름했다.', '{n}님과 스즈네의 새 메뉴를 두고 입씨름했다.'],
+    ['{n}님께 탐사에서 본 이상한 버섯 이야기를 했다.', '{n}님이 탐사에서 본 이상한 버섯 이야기를 해 주었다.'],
+  ],
+  tease:[
+    ['{n}님 등에 몰래 나뭇잎을 붙였다.', '{n}님이 몰래 등에 나뭇잎을 붙이고 갔다.'],
+    ['{n}님의 뒤에서 "왁!" 하고 놀라게 했다.', '{n}님이 뒤에서 "왁!" 하고 놀라게 했다.'],
+    ['{n}님의 삿갓을 슬쩍 돌려 놓았다.', '{n}님이 삿갓을 슬쩍 돌려 놓았다.'],
+    ['{n}님께 너구리에 홀린 표정을 지어 보였다.', '{n}님이 너구리에 홀린 표정을 지어 보였다.'],
+    ['{n}님의 경단을 한 알 슬쩍했다.', '{n}님이 경단을 한 알 슬쩍해 갔다.'],
+  ],
+  pat:[
+    ['{n}님의 머리를 살살 쓰다듬었다.', '{n}님이 머리를 살살 쓰다듬어 주었다.'],
+    ['{n}님께 "잘했어요" 하고 머리를 쓰다듬었다.', '{n}님이 "잘했어요" 하며 머리를 쓰다듬어 주었다.'],
+    ['{n}님의 흐트러진 머리를 정리해 주었다.', '{n}님이 흐트러진 머리를 정리해 주었다.'],
+  ],
+  walk:[
+    ['{n}님과 강둑을 따라 걸었다.', '{n}님과 강둑을 따라 걸었다.'],
+    ['{n}님과 신사 돌계단을 천천히 올랐다.', '{n}님과 신사 돌계단을 천천히 올랐다.'],
+    ['{n}님과 논두렁길을 걸으며 개구리 소리를 들었다.', '{n}님과 논두렁길을 걸으며 개구리 소리를 들었다.'],
+    ['{n}님과 해안을 걸으며 조개를 주웠다.', '{n}님과 해안을 걸으며 조개를 주웠다.'],
+    ['{n}님과 대숲 길을 걸었다. 바람이 시원했다.', '{n}님과 대숲 길을 걸었다. 바람이 시원했다.'],
+  ],
+  advice:[
+    ['{n}님의 고민을 끝까지 들어 주었다.', '{n}님이 고민을 끝까지 들어 주었다.'],
+    ['{n}님께 요즘 고민을 털어놓았다.', '{n}님이 요즘 고민을 털어놓았다. 믿어 주는 것이 고맙다.'],
+    ['{n}님과 다음 탐사 계획을 함께 고민했다.', '{n}님과 다음 탐사 계획을 함께 고민했다.'],
+    ['{n}님께 "제 생각엔요" 하고 조심스레 말을 꺼냈다.', '{n}님이 "제 생각엔요" 하고 조심스레 말을 꺼냈다.'],
+  ],
+  hug:[
+    ['{n}님을 꼭 안아 주었다.', '{n}님이 꼭 안아 주었다.'],
+    ['{n}님과 오랜만이라며 얼싸안았다.', '{n}님과 오랜만이라며 얼싸안았다.'],
+    ['{n}님께 와락 달려들었다. 둘 다 휘청거렸다.', '{n}님이 와락 달려들었다. 둘 다 휘청거렸다.'],
+  ],
+  hand:[
+    ['{n}님과 깍지를 끼고 걸었다.', '{n}님과 깍지를 끼고 걸었다.'],
+    ['{n}님의 차가운 손을 양손으로 감쌌다.', '{n}님이 차가운 손을 양손으로 감싸 주었다.'],
+    ['{n}님의 소매 끝을 살짝 잡았다.', '{n}님이 소매 끝을 살짝 잡았다.'],
+  ],
+  flower:[
+    ['{n}님께 들꽃 한 다발을 건넸다.', '{n}님이 들꽃 한 다발을 건네주었다.'],
+    ['{n}님께 사계절 꽃 이야기와 함께 꽃을 드렸다.', '{n}님이 꽃을 내밀며 꽃말을 알려 주었다.'],
+    ['{n}님의 문 앞에 몰래 꽃을 두고 왔다.', '{n}님이 문 앞에 몰래 꽃을 두고 갔다.'],
+  ],
+};
+const GIFT_MSG = ['작은 정성이에요.', '마음에 드셨으면 좋겠어요.', '지나가다 생각나서요.', '요전번 일은 고마웠어요.', '받아 주세요, 부담 갖지 말고요.', '오늘도 무사하시길.', '탐사 다녀오는 길에 챙겼어요.', '쓸모가 있었으면 좋겠네요.'];
+const socFill = (t, nm) => t.split('{n}').join(nm);
+function socPick(k, nm){ const L = SOC_LINES[k], i = Math.floor(Math.random()*L.length); return {i, me:socFill(L[i][0], nm)}; }
+function socSeen(k, nm, d){ const L = SOC_LINES[k], i = d && Number.isInteger(d.ln) && L[d.ln] ? d.ln : Math.floor(Math.random()*L.length); return socFill(L[i][1], nm); }
+const SOC_REPLY = {greet:'인사', encourage:'격려', heal:'치료', tea:'차 대접', comfort:'위로', affection:'애정 표현', highfive:'하이파이브', snack:'간식', chat:'수다', tease:'장난', pat:'쓰다듬기', walk:'산책', advice:'상담', hug:'포옹', hand:'손잡기', flower:'꽃'};
+function socRecv(k, nm, d, from){ const x = socSeen(k, nm, d); if (from && SOC_REPLY[k]){ S.socIn = [{id:uid36(), from, nm, k, x, ts:now()}, ...(S.socIn || [])].slice(0, 12); stat('socIn'); } return x; }
+
+// ---------- 4. 새 교류 ----------
+const SOC2 = {
+  highfive:{n:'하이파이브', rk:0, aff:1}, snack:{n:'간식 나누기', rk:0, aff:1}, chat:{n:'수다 떨기', rk:0, aff:1},
+  tease:{n:'장난치기', rk:1, aff:1}, pat:{n:'쓰다듬기', rk:1, aff:1}, walk:{n:'산책하기', rk:1, aff:2}, advice:{n:'고민 상담', rk:1, aff:2},
+  hug:{n:'포옹', rk:2, aff:2}, flower:{n:'꽃 건네기', rk:2, aff:2}, hand:{n:'손잡기', rk:3, aff:2},
+};
+const soc2S = () => { const d = dayKey(); if (!S.soc2 || S.soc2.d !== d) S.soc2 = {d, by:{}, n:0, th:0, got:0}; return S.soc2; };
+const soc2Done = (o, k) => !!((soc2S().by[o] || {})[k]);
+async function soc2Do(o, k){
+  if (ST.mode !== 'cloud') return; const K = SOC2[k], nm = PL[o]?.name || '상대', s = soc2S(), why = meetBlock(o); if (why) return toast(why, 'warn');
+  if (stageRank(effStage(getRel(o))) < K.rk || soc2Done(o, k)) return;
+  (s.by[o] = s.by[o] || {})[k] = 1; save();
+  const g = await addAff(o, K.aff, true), L = socPick(k, nm), xp = addXP(3); sendEv(o, k, {ln:L.i}); stat('soc2'); sfx('click'); save(); toast(`${L.me}${g ? ` 호감도 +${g}` : ''} · 경험치 +${xp}`, 'good'); render(); renderSheet(true);
+}
+const soc2Btns = (o, B, rk) => Object.keys(SOC2).filter(k => rk >= SOC2[k].rk).map(k => B(k, soc2Done(o, k) ? `${SOC2[k].n} 완료` : SOC2[k].n, '', soc2Done(o, k), '하루 한 번')).join('');
+const _act_soc = act;
+act = async (o, k) => SOC2[k] ? soc2Do(o, k) : _act_soc(o, k);
+const _handleEvent_soc = handleEvent;
+handleEvent = (id, ev) => {
+  if (!ev || !(SOC2[ev.type] || ev.type === 'thanks')) return _handleEvent_soc(id, ev);
+  if (processed.has(id) || !S || !S.char) return; processed.add(id);
+  const del = () => ST.db.doc('events/' + id).delete().catch(() => {}); if (blocked(ev.from)){ del(); return; }
+  const nm = PL[ev.from]?.name || '누군가';
+  if (ev.type === 'thanks'){ stat('thanksIn'); notify('social', '답례', socSeen('thanks', nm, ev.data)); }
+  else { addXP(2); notify('social', SOC2[ev.type].n, socRecv(ev.type, nm, ev.data, ev.from)); }
+  save(); del(); softRender();
+};
+// 선물 쪽지가 비어 있으면 인사말을 대신 넣는다
+const _giftTo_soc = giftTo;
+giftTo = (o, k, n, msg) => _giftTo_soc(o, k, n, msg || GIFT_MSG[Math.floor(Math.random()*GIFT_MSG.length)]);
+
+// ---------- 5. 답례와 오늘의 교류 ----------
+const SOC_COUNT = new Set(['greet', 'encourage', 'heal', 'tea', 'comfort', 'affection', ...Object.keys(SOC2)]);
+const _sendEv_soc = sendEv;
+sendEv = (to, type, data) => { if (SOC_COUNT.has(type)){ soc2S().n++; save(); } return _sendEv_soc(to, type, data); };
+async function socThank(id){
+  const e = (S.socIn || []).find(x => x.id === id); if (!e) return;
+  S.socIn = S.socIn.filter(x => x.id !== id); const L = socPick('thanks', e.nm), g = await addAff(e.from, 1, true); soc2S().th++; stat('thanks'); sendEv(e.from, 'thanks', {ln:L.i}); sfx('soft'); save(); toast(`${L.me}${g ? ` 호감도 +${g}` : ''}`, 'good'); render();
+}
+const SOC_DAY = [{k:'n', n:3, l:'교류 3번 하기', gold:150, tok:1}, {k:'n', n:6, l:'교류 6번 하기', gold:300, tok:2}, {k:'th', n:2, l:'받은 마음에 답례 2번', gold:200, tok:2}];
+function socDayClaim(i){ const s = soc2S(), T = SOC_DAY[i]; if (s.got & (1 << i) || s[T.k] < T.n) return; s.got |= 1 << i; const txt = qPay(T); sfx('coin'); save(); toast(`오늘의 교류 · ${txt}`, 'good'); render(); }
+const socCards = () => {
+  const s = soc2S(), inn = (S.socIn || []).filter(e => now() - e.ts < 48*H);
+  return `<div class="sec-title"><h2 style="font-size:1.5rem">오늘의 교류</h2></div><div class="card"><div class="list">${SOC_DAY.map((T, i) => claimBtn('socDay', i, s[T.k] >= T.n, s.got & (1 << i), `${Math.min(s[T.k], T.n)}/${T.n} · ${rewTxt(T)}`, T.l)).join('')}</div></div>
+  ${inn.length ? `<div class="sec-title"><h2 style="font-size:1.5rem">받은 마음</h2><span class="small muted">답례하면 호감도가 오른다</span></div><div class="card"><div class="list">${inn.slice(0, 6).map(e => `<div class="li"><div class="t"><b>${SOC_REPLY[e.k]}</b><span class="small">${esc(e.x)}</span></div><button class="btn sm seal" data-act="socThank" data-k="${e.id}">답례</button></div>`).join('')}</div></div>` : ''}`;
+};
+const _social_soc = TABS.social;
+TABS.social = () => { const html = _social_soc(), mark = '<div class="sec-title"><h2 style="font-size:1.5rem">마을 주민</h2>'; return ST.mode === 'cloud' && html.includes(mark) ? html.replace(mark, socCards() + mark) : html; };
+Object.assign(ACT, {socThank:d => socThank(d.k), socDay:d => socDayClaim(+d.i)});
+RK_CAT.push(['pop', '인기', v => `${v}번`]);
+const _rkMine_soc = rkMine;
+rkMine = () => ({..._rkMine_soc(), pop:(S.stats || {}).socIn || 0});
+TITLES.push(
+  {id:'soc_pop', n:'마을의 인기인', d:'다른 개척자에게 마음을 50번 받았다.', c:S => st_(S, 'socIn') >= 50},
+  {id:'soc_thanks', n:'답례의 달인', d:'답례를 30번 했다.', c:S => st_(S, 'thanks') >= 30},
+);
+// ===================== 하우징 3D, 애정 표현 고르기, 연인·부부 집 합치기 =====================
+// 배치 데이터는 2D와 같다(x 0~360, y 0~270). 3D는 그것을 읽고, 끌어서 옮기면 같은 값을 고친다. 규칙 변경 없음.
+// three.js를 못 받거나 WebGL이 없으면 기존 2D 그림 그대로다.
+
+// ---------- 1. 애정 표현 고르기 ----------
+const AFF_OPT = {
+  kiss_fore:{n:'이마에 뽀뽀', kiss:1, l:[['{n}님의 이마에 살짝 뽀뽀했다.', '{n}님이 이마에 살짝 뽀뽀했다.'], ['{n}님의 앞머리를 넘기고 이마에 입을 맞췄다.', '{n}님이 앞머리를 넘기고 이마에 입을 맞췄다.'], ['{n}님께 "오늘도 무사히" 하고 이마에 뽀뽀했다.', '{n}님이 "오늘도 무사히" 하며 이마에 뽀뽀했다.']]},
+  kiss_cheek:{n:'볼에 뽀뽀', kiss:1, l:[['{n}님의 볼에 쪽 하고 뽀뽀했다.', '{n}님이 볼에 쪽 하고 뽀뽀했다.'], ['까치발을 들어 {n}님의 볼에 뽀뽀했다.', '{n}님이 까치발을 들어 볼에 뽀뽀했다.'], ['지나가는 척 {n}님의 볼에 뽀뽀하고 달아났다.', '{n}님이 지나가는 척 볼에 뽀뽀하고 달아났다.']]},
+  kiss_hand:{n:'손등에 뽀뽀', kiss:1, l:[['{n}님의 손을 들어 손등에 입을 맞췄다.', '{n}님이 손을 들어 손등에 입을 맞췄다.'], ['{n}님의 손등에 뽀뽀하며 눈을 맞췄다.', '{n}님이 손등에 뽀뽀하며 눈을 맞췄다.'], ['{n}님의 거친 손등에 고맙다며 뽀뽀했다.', '{n}님이 고맙다며 손등에 뽀뽀했다.']]},
+  kiss_nose:{n:'코끝에 뽀뽀', kiss:1, l:[['{n}님의 코끝에 콕 뽀뽀했다.', '{n}님이 코끝에 콕 뽀뽀했다.'], ['{n}님의 코끝에 뽀뽀하고 혼자 웃었다.', '{n}님이 코끝에 뽀뽀하고 혼자 웃었다.'], ['재채기하던 {n}님의 코끝에 뽀뽀했다.', '{n}님이 재채기하는 코끝에 뽀뽀했다.']]},
+  kiss_quick:{n:'가벼운 입맞춤', kiss:1, l:[['{n}님과 가볍게 입을 맞췄다.', '{n}님과 가볍게 입을 맞췄다.'], ['초롱불 그늘에서 {n}님께 짧게 입을 맞췄다.', '초롱불 그늘에서 {n}님이 짧게 입을 맞췄다.'], ['떠나기 전 {n}님께 쪽 하고 입을 맞췄다.', '떠나기 전 {n}님이 쪽 하고 입을 맞췄다.']]},
+  nose:{n:'콧잔등 맞대기', l:[['{n}님과 콧잔등을 살며시 맞댔다.', '{n}님과 콧잔등을 살며시 맞댔다.'], ['{n}님의 콧잔등에 코를 대고 비볐다.', '{n}님이 콧잔등에 코를 대고 비볐다.'], ['{n}님과 콧잔등을 맞대고 키득거렸다.', '{n}님과 콧잔등을 맞대고 키득거렸다.']]},
+  lean:{n:'어깨에 기대기', l:[['{n}님의 어깨에 머리를 기댔다.', '{n}님이 어깨에 머리를 기댔다.'], ['{n}님 어깨에 기대어 잠깐 눈을 감았다.', '{n}님이 어깨에 기대어 잠깐 눈을 감았다.']]},
+  hair:{n:'머리칼 넘겨 주기', l:[['{n}님의 흘러내린 머리칼을 귀 뒤로 넘겨 주었다.', '{n}님이 흘러내린 머리칼을 귀 뒤로 넘겨 주었다.'], ['{n}님 머리에 앉은 꽃잎을 떼어 주었다.', '{n}님이 머리에 앉은 꽃잎을 떼어 주었다.']]},
+  fingers:{n:'손깍지 끼기', l:[['{n}님의 손가락 사이로 깍지를 꼈다.', '{n}님이 손가락 사이로 깍지를 꼈다.'], ['소매 속에서 {n}님과 몰래 깍지를 꼈다.', '소매 속에서 {n}님이 몰래 깍지를 꼈다.']]},
+  hold:{n:'뒤에서 안아 주기', l:[['{n}님을 뒤에서 살며시 안았다.', '{n}님이 뒤에서 살며시 안아 주었다.'], ['{n}님을 뒤에서 안고 하오리로 함께 덮었다.', '{n}님이 뒤에서 안고 하오리로 함께 덮어 주었다.']]},
+  whisper:{n:'귓속말', l:[['{n}님의 귀에 "좋아해요" 하고 속삭였다.', '{n}님이 귀에 "좋아해요" 하고 속삭였다.'], ['{n}님의 귀에 오늘 저녁 메뉴를 비밀처럼 속삭였다.', '{n}님이 귀에 오늘 저녁 메뉴를 비밀처럼 속삭였다.']]},
+  pet:{n:'애칭 부르기', l:[['{n}님을 둘만 아는 이름으로 불렀다.', '{n}님이 둘만 아는 이름으로 불렀다.'], ['{n}님의 애칭을 작게 불러 보았다.', '{n}님이 애칭을 작게 불러 보았다.']]},
+};
+for (const k in AFF_OPT){ SOC_LINES['aff_' + k] = AFF_OPT[k].l; SOC_REPLY['aff_' + k] = AFF_OPT[k].n; }
+const affAge = v => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : null; };
+// 나이를 밝힌 캐릭터가 19세 미만이면 입맞춤 종류는 보이지 않는다
+const kissOk = o => { const a = affAge(S.char.age), b = affAge(PL[o]?.age); return !(a != null && a < 19) && !(b != null && b < 19); };
+const affList = o => Object.keys(AFF_OPT).filter(k => !AFF_OPT[k].kiss || kissOk(o));
+const AFF_GROUP = [['입맞춤', k => AFF_OPT[k].kiss], ['가까이', k => ['nose', 'lean', 'hold', 'fingers'].includes(k)], ['다정하게', k => ['hair', 'whisper', 'pet'].includes(k)]];
+SHEETS.affPick = o => {
+  const nm = esc(PL[o]?.name || '상대'), list = affList(o), pill = k => `<button class="aff-pill" data-act="affDo" data-u="${esc(o)}" data-k="${k}">${AFF_OPT[k].n}</button>`;
+  return sheetHead('<span style="font-size:.62em">애정 표현</span>', `<button class="aff-back" data-act="sheet" data-s="profile" data-a="${esc(o)}">‹ 프로필</button>`) + `<p class="small muted" style="margin:0">${nm}님에게 무엇을 해 줄까요?</p>${AFF_GROUP.map(([t, f]) => { const ks = list.filter(f); return ks.length ? `<section class="aff-sec"><h4 class="tiny muted">${t}</h4><div class="aff-pills">${ks.map(pill).join('')}</div></section>` : ''; }).join('')}<button class="aff-any" data-act="affDo" data-u="${esc(o)}" data-k="">마음 가는 대로</button>`;
+};
+async function affDo(o, opt){
+  if (ST.mode !== 'cloud') return; const nm = PL[o]?.name || '상대', why = meetBlock(o); if (why) return toast(why, 'warn');
+  if (stageRank(effStage(getRel(o))) < 3 || (opt && !affList(o).includes(opt))) return;
+  const kind = opt ? 'aff_' + opt : 'affection', g = await addAff(o, 2, true), L = socPick(kind, nm); sendEv(o, 'affection', {opt:opt || '', ln:L.i}); stat('affPick'); sfx('click'); toast(`${L.me}${g ? ` 호감도 +${g}` : ''}`, 'good'); openSheet('profile', o); render();
+}
+const affKey = d => d && d.opt && SOC_LINES['aff_' + d.opt] ? 'aff_' + d.opt : 'affection';
+const _socRecv_aff = socRecv;
+socRecv = (k, nm, d, from) => { const r = _socRecv_aff(k === 'affection' ? affKey(d) : k, nm, d, from); return r; };
+
+// ---------- 2. 집 합치기 ----------
+// S.home.mate = 상대 uid. 두 사람의 공개 정보가 서로를 가리킬 때만 합쳐진 것으로 본다. 각자 자기 쪽만 고친다.
+const mateOf = () => { const H = S.home; if (!H || !H.mate) return null; const p = PL[H.mate]; return p && p.home && p.home.mate === ST.uid && stageRank(effStage(getRel(H.mate))) >= 3 ? H.mate : null; };
+const mateHome = () => { const o = mateOf(); return o ? homeClean(PL[o].home) : null; };
+const homeMateBonus = H => { if (H !== S.home) return 0; const m = mateHome(); return m ? cozyOf(m).pts*.5 : 0; };
+const mergeAsked = o => S.home && S.home.mergeAsk === o;
+function mergeAsk(o){ if (ST.mode !== 'cloud') return; const H = homeMine(), r = effStage(getRel(o)); if (stageRank(r) < 3 || H.mate) return; H.mergeAsk = o; sendEv(o, 'homeMergeReq'); save(); toast(`${PL[o]?.name || '상대'}님께 집을 합치자고 말을 꺼냈다.`, 'good'); renderSheet(true); }
+function mergeSet(o){ const H = homeMine(); H.mate = o; H.mergeAsk = null; save(); pubDirty(); writePub(true); render(); renderSheet(true); }
+async function mergeEnd(quiet){ const H = homeMine(), o = H.mate; if (!o) return; if (!quiet && !await ask('집 나누기', '합친 집을 다시 각자의 집으로 나눕니다. 가구는 그대로 남아요.', '나누기', true)) return; H.mate = null; if (!quiet) sendEv(o, 'homeMergeEnd'); save(); pubDirty(); writePub(true); render(); renderSheet(true); }
+const _handleEvent_merge = handleEvent;
+handleEvent = (id, ev) => {
+  if (ev && ev.type === 'breakup' && S && S.home && S.home.mate === ev.from) mergeEnd(true);
+  if (!ev || !String(ev.type).startsWith('homeMerge')) return _handleEvent_merge(id, ev);
+  if (processed.has(id) || !S || !S.char) return; processed.add(id);
+  const del = () => ST.db.doc('events/' + id).delete().catch(() => {}); if (blocked(ev.from)){ del(); return; }
+  const nm = PL[ev.from]?.name || '누군가', H = homeMine();
+  if (ev.type === 'homeMergeReq'){ S.reqs.push({id, from:ev.from, type:'homeMerge', ts:ev.ts}); notify('social', '집 합치기', `${nm}님이 집을 합치자고 합니다.`); }
+  if (ev.type === 'homeMergeAcc' && H.mergeAsk === ev.from){ mergeSet(ev.from); notify('social', '집 합치기', `${nm}님과 집을 합쳤습니다.`); }
+  if (ev.type === 'homeMergeRej' && H.mergeAsk === ev.from){ H.mergeAsk = null; notify('social', '집 합치기', `${nm}님이 아직은 각자의 집이 좋다고 합니다.`); }
+  if (ev.type === 'homeMergeEnd' && H.mate === ev.from){ mergeEnd(true); notify('social', '집 나누기', `${nm}님이 집을 다시 나누었습니다.`); }
+  save(); del(); softRender();
+};
+const _answerReq_merge = answerReq;
+answerReq = async (id, yes) => {
+  const q = S.reqs.find(x => x.id === id); if (!q || q.type !== 'homeMerge') return _answerReq_merge(id, yes);
+  S.reqs = S.reqs.filter(x => x.id !== id); sendEv(q.from, yes ? 'homeMergeAcc' : 'homeMergeRej');
+  if (yes){ mergeSet(q.from); toast(`${PL[q.from]?.name || '상대'}님과 집을 합쳤다.`, 'good'); sfx('rare'); } else { save(); toast('아직은 각자의 집에서 지내기로 했다.'); render(); }
+};
+const _act_break = act;
+act = async (o, k) => { await _act_break(o, k); if (k === 'breakup' && S.home && S.home.mate === o && stageRank(effStage(getRel(o))) < 3) mergeEnd(true); };
+const _pubObj_mate = pubObj;
+pubObj = () => { const o = _pubObj_mate(); if (o && o.home && S.home) o.home.mate = S.home.mate || ''; return o; };
+function mergeCard(){
+  if (ST.mode !== 'cloud') return ''; const H = homeMine(), m = mateOf();
+  if (H.mate) return `<div class="card" style="margin-top:10px"><b>${m ? `${esc(PL[H.mate].name)}님과 함께 사는 집` : '합친 집을 준비하는 중'}</b><p class="tiny muted" style="margin:4px 0 8px">3D로 보면 두 사람의 방과 마당이 이어진다. 각자 자기 쪽만 꾸밀 수 있고, 상대 집 아늑함의 절반이 더해진다.</p><div class="row wrapf" style="gap:6px">${m ? `<button class="btn sm" data-act="homeVisit" data-u="${esc(H.mate)}">상대 쪽 구경</button>` : ''}<button class="btn sm ghost" data-act="mergeEnd">집 나누기</button></div></div>`;
+  const list = Object.values(PL).filter(p => p && p.uid !== ST.uid && p.home && !hideOp(p) && !blocked(p.uid) && stageRank(effStage(getRel(p.uid))) >= 3);
+  return list.length ? `<div class="card" style="margin-top:10px"><b>집 합치기</b><p class="tiny muted" style="margin:4px 0 8px">연인이나 부부라면 집을 합칠 수 있다.</p><div class="list">${list.map(p => `<div class="li"><div class="t"><b>${esc(p.name)}</b></div><button class="btn sm seal" data-act="mergeAsk" data-u="${esc(p.uid)}" ${mergeAsked(p.uid) ? 'disabled' : ''}>${mergeAsked(p.uid) ? '답을 기다리는 중' : '집 합치기'}</button></div>`).join('')}</div></div>` : '';
+};
+
+// ---------- 3. 3D 모형 ----------
+const H3U = 1/40, H3 = {on:false, fail:false, box:null, sig:'', a:.0, e:.62, z:1, loading:false, nodes:[], drag:null, cards:[]};
+const hb = (G, x, y, z, sx, sy, sz, c, r) => { G.add(mesh(new THREE.BoxGeometry(sx, sy, sz), x3Mat(c, r), x, y, z)); };
+const hc = (G, x, y, z, r, h, c, rt = r, seg = 20) => { G.add(mesh(new THREE.CylinderGeometry(rt, r, h, seg), x3Mat(c), x, y, z)); };
+const hk = (G, x, y, z, r, h, c, seg = 12) => { G.add(mesh(new THREE.ConeGeometry(r, h, seg), x3Mat(c), x, y, z)); };
+const hs = (G, x, y, z, r, c, sy = 1) => { const m = mesh(new THREE.SphereGeometry(r, 18, 14), x3Mat(c), x, y, z); m.scale.y = sy; G.add(m); };
+const hglow = (G, x, y, z, r, c, sy = 1) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 14), new THREE.MeshBasicMaterial({color:c})); m.position.set(x, y, z); m.scale.y = sy; G.add(m); };
+const hglowB = (G, x, y, z, sx, sy, sz, c) => { const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), new THREE.MeshBasicMaterial({color:c})); m.position.set(x, y, z); G.add(m); };
+const hlegs = (G, w, d, h, c, r = .04) => { for (const sx of [-1, 1]) for (const sz of [-1, 1]) hc(G, sx*w/2, h/2, sz*d/2, r, h, c); };
+const htree = (G, h, c, c2) => { hc(G, 0, h*.28, 0, .13, h*.56, WD2, .09, 10); for (const [x, y, z, r, k] of [[0, .72, 0, .34, c], [-.22, .6, .1, .26, c2], [.22, .62, -.08, .27, c2], [.05, .88, .05, .22, c]]) hs(G, x*h, y*h, z*h, r*h, k); };
+const H3M = {
+  tatami:(G, w) => { hb(G, 0, .03, 0, w, .06, w*.56, '#c8c48a'); hb(G, 0, .065, w*.28 - .03, w, .012, .06, '#3a6a4a'); hb(G, 0, .065, -w*.28 + .03, w, .012, .06, '#3a6a4a'); },
+  rug:(G, w, h, c) => { hc(G, 0, .02, 0, w/2, .04, c, w/2, 36); hc(G, 0, .045, 0, w*.34, .012, '#f4ecd8', w*.34, 36); },
+  zabuton:(G, w, h, c) => { const m = mesh(new THREE.SphereGeometry(w/2, 20, 12), x3Mat(c), 0, .08, 0); m.scale.y = .16; G.add(m); hb(G, 0, .15, 0, .06, .03, .06, '#e8c858'); },
+  futon:(G, w, h, c) => { hb(G, 0, .07, 0, w*.95, .14, w*.56, '#f4ecd8'); hb(G, w*.1, .17, 0, w*.72, .1, w*.58, c); const p = mesh(new THREE.SphereGeometry(.28, 16, 10), x3Mat('#fff8ec'), -w*.36, .2, 0); p.scale.set(.8, .36, 1.3); G.add(p); },
+  petbed:(G, w, h, c) => { hc(G, 0, .08, 0, w/2, .16, c, w/2, 26); hc(G, 0, .13, 0, w*.34, .08, '#f4ecd8', w*.34, 26); },
+  chabudai:(G, w) => { hc(G, 0, .34, 0, w/2, .06, WD, w/2, 36); for (let i = 0; i < 4; i++) hc(G, Math.cos(i*1.57 + .78)*w*.3, .16, Math.sin(i*1.57 + .78)*w*.3, .05, .32, WD2); },
+  kotatsu:(G, w, h, c) => { hb(G, 0, .19, 0, w*.92, .38, w*.8, c); hb(G, 0, .42, 0, w, .06, w*.88, WD); },
+  tansu:(G, w, h) => { const d = .55; hb(G, 0, h/2, 0, w, h, d, WD); for (let i = 0; i < 4; i++){ hb(G, 0, h*(.14 + i*.235), d/2 + .01, w*.9, h*.2, .03, WD3); hb(G, 0, h*(.14 + i*.235), d/2 + .04, .14, .05, .03, '#3a3a44'); } },
+  shelf:(G, w, h) => { const d = .42; hb(G, -w/2 + .04, h/2, 0, .08, h, d, WD2); hb(G, w/2 - .04, h/2, 0, .08, h, d, WD2); for (let i = 0; i < 4; i++) hb(G, 0, h*(.03 + i*.31), 0, w, .06, d, WD); const cs = ['#b03e2a', '#2d4a6d', '#55743a', '#e8a83a', '#7a4a8a']; for (let f = 0; f < 3; f++) for (let i = 0; i < 6; i++) hb(G, -w*.36 + i*w*.145, h*(.03 + f*.31) + .24, 0, w*.11, .36 - (i % 3)*.05, d*.7, cs[(f*2 + i) % 5]); },
+  byobu:(G, w, h, c) => { const n = 4, pw = w/n; for (let i = 0; i < n; i++){ const p = mesh(new THREE.BoxGeometry(pw*1.04, h, .05), x3Mat(i % 2 ? '#f4ecd8' : '#ece0c4'), -w/2 + pw*(i + .5), h/2, i % 2 ? .1 : -.1); p.rotation.y = i % 2 ? -.4 : .4; G.add(p); } },
+  goldbyobu:(G, w, h) => { const n = 4, pw = w/n; for (let i = 0; i < n; i++){ const p = mesh(new THREE.BoxGeometry(pw*1.04, h, .05), Mt('#d8a838', .35, .7), -w/2 + pw*(i + .5), h/2, i % 2 ? .1 : -.1); p.rotation.y = i % 2 ? -.4 : .4; G.add(p); } },
+  rack:(G, w, h, c) => { hc(G, -w/2 + .05, h/2, 0, .04, h, WD2); hc(G, w/2 - .05, h/2, 0, .04, h, WD2); hb(G, 0, h*.92, 0, w, .05, .05, WD2); hb(G, 0, h*.58, 0, w*.72, h*.6, .05, c); hb(G, 0, .03, 0, w, .05, .36, WD2); },
+  mirror:(G, w, h) => { hb(G, 0, .18, 0, w*.8, .36, .4, WD); hc(G, 0, h*.55, 0, .03, h*.5, WD2); const m = mesh(new THREE.CircleGeometry(w*.32, 28), Mt('#c8dce8', .12, .9), 0, h*.72, .05); G.add(m); },
+  stool:(G, w) => { hc(G, 0, .32, 0, w/2, .07, WD, w/2, 24); hlegs(G, w*.5, w*.5, .3, WD2, .035); },
+  koto:(G, w) => { hb(G, 0, .1, 0, w, .12, .46, WD); for (let i = 0; i < 5; i++) hb(G, 0, .17, -.16 + i*.08, w*.96, .008, .008, '#fff'); },
+  chest:(G, w, h) => { hb(G, 0, h/2, 0, w, h, w*.6, WD); hb(G, -w*.32, h/2, 0, .07, h + .02, w*.62, '#4a4a54'); hb(G, w*.32, h/2, 0, .07, h + .02, w*.62, '#4a4a54'); hb(G, 0, h*.7, w*.3 + .02, .2, .18, .03, '#e8c858'); },
+  andon:(G, w, h) => { hb(G, 0, .05, 0, w, .1, w, WD2); hglowB(G, 0, h*.55, 0, w*.8, h*.72, w*.8, '#fff0c0'); for (const sx of [-1, 1]) for (const sz of [-1, 1]) hb(G, sx*w*.41, h*.55, sz*w*.41, .05, h*.78, .05, WD2); hb(G, 0, h*.94, 0, w*.9, .05, w*.9, WD2); },
+  candle:(G, w, h) => { hc(G, 0, .03, 0, w*.4, .06, '#6a5a3a'); hc(G, 0, h*.35, 0, .03, h*.6, '#6a5a3a'); hc(G, 0, h*.72, 0, .06, h*.2, '#f4ecd8'); hglow(G, 0, h*.92, 0, .06, '#ffc860', 1.6); },
+  bonsai:(G, w, h) => { hb(G, 0, .08, 0, w*.8, .16, w*.5, '#6a7a8a'); hc(G, 0, h*.4, 0, .05, h*.5, WD2, .03); hs(G, -.1, h*.72, 0, h*.22, '#4a7a48', .7); hs(G, .13, h*.82, .03, h*.18, '#5a8a50', .7); },
+  ikebana:(G, w, h, c) => { hc(G, 0, h*.2, 0, w*.26, h*.4, '#3a5a7a', w*.22); for (const [x, y] of [[-.12, .82], [.14, .9], [0, 1]]){ hb(G, x*.5, h*(.4 + (y - .4)/2), 0, .02, h*(y - .4), .02, '#5a8a4a'); hs(G, x, h*y*.95, 0, .08, c || '#e0587a'); } },
+  vase:(G, w, h) => { hs(G, 0, h*.42, 0, w*.46, '#8ab8a8', 1.1); hc(G, 0, h*.88, 0, w*.16, h*.2, '#8ab8a8', w*.22); },
+  maneki:(G, w, h) => { hs(G, 0, h*.3, 0, w*.42, '#fff8ec', 1); hs(G, 0, h*.72, 0, w*.32, '#fff8ec'); hk(G, -w*.2, h*.96, 0, .07, .14, '#f4ecd8', 8); hk(G, w*.2, h*.96, 0, .07, .14, '#f4ecd8', 8); hs(G, w*.34, h*.74, .08, .09, '#fff8ec'); hs(G, 0, h*.42, w*.34, .07, '#e8c858'); },
+  daruma:(G, w, h) => { hs(G, 0, h*.5, 0, w*.48, '#c8342a', 1.08); hs(G, 0, h*.6, w*.3, w*.2, '#f4ecd8', 1); hs(G, -w*.08, h*.64, w*.46, .03, '#2a1d17'); },
+  kokeshi:(G, w, h, c) => { hc(G, 0, h*.3, 0, w*.34, h*.6, c || '#b03e2a', w*.26); hs(G, 0, h*.76, 0, w*.4, '#f4e0c0'); hs(G, 0, h*.84, -.03, w*.38, '#2a1d17', .8); },
+  bookpile:(G, w, h) => { const cs = ['#b03e2a', '#2d4a6d', '#e8a83a']; for (let i = 0; i < 3; i++) hb(G, (i % 2)*.04, h*(.16 + i*.3), 0, w*(.9 - i*.1), h*.28, w*.7, cs[i]); },
+  basket:(G, w, h) => { hc(G, 0, h/2, 0, w*.36, h, '#b89058', w*.46, 18); hc(G, 0, h*.92, 0, w*.4, .03, '#6a5a3a', w*.4, 18); },
+  goldfish:(G, w, h) => { const m = new THREE.Mesh(new THREE.SphereGeometry(w*.44, 20, 16), new THREE.MeshStandardMaterial({color:'#a8d8f0', transparent:true, opacity:.42, roughness:.1})); m.position.y = h*.5; G.add(m); hs(G, -.08, h*.5, 0, .07, '#f07030', .7); hs(G, .1, h*.4, .06, .06, '#f04030', .7); },
+  kamado:(G, w, h) => { hb(G, 0, h*.4, 0, w, h*.8, w*.6, '#a8a498'); hc(G, 0, h*.9, 0, w*.26, h*.2, '#3a3a44', w*.3); hb(G, 0, h*.3, w*.3 + .01, w*.3, h*.3, .02, '#201810'); },
+  cupboard:(G, w, h) => { const d = .5; hb(G, 0, h/2, 0, w, h, d, WD); hb(G, -w*.24, h*.68, d/2 + .01, w*.44, h*.5, .02, '#f4ecd8'); hb(G, w*.24, h*.68, d/2 + .01, w*.44, h*.5, .02, '#f4ecd8'); hb(G, 0, h*.2, d/2 + .01, w*.9, h*.28, .02, WD3); },
+  ricebag:(G, w, h) => { const m = mesh(new THREE.SphereGeometry(w*.46, 18, 12), x3Mat('#d8c088'), 0, h*.48, 0); m.scale.y = h/w*1.05; G.add(m); hb(G, 0, h*.5, 0, w*.94, .05, w*.94, '#8a6a3a'); },
+  barrel:(G, w, h) => { hc(G, 0, h/2, 0, w*.42, h, WD3, w*.42, 22); for (const y of [.2, .8]) hc(G, 0, h*y, 0, w*.435, .05, '#5a4a30', w*.435, 22); hc(G, 0, h + .01, 0, w*.4, .02, WD2, w*.4, 22); },
+  feast:(G, w, h) => { hb(G, 0, h*.5, 0, w, .08, w*.5, '#a8382a'); hlegs(G, w*.8, w*.36, h*.5, '#7a2a1a'); for (let i = 0; i < 5; i++){ hc(G, -w*.34 + i*w*.17, h*.5 + .08, (i % 2)*.14 - .07, .13, .06, ['#f4ecd8', '#3a5a7a'][i % 2], .17); hs(G, -w*.34 + i*w*.17, h*.5 + .13, (i % 2)*.14 - .07, .09, ['#e8703a', '#e8c858', '#6aa050'][i % 3], .6); } },
+  sakura:(G, w, h) => htree(G, h, '#f4b8cc', '#f8c8d8'), f_sakura:(G, w, h) => htree(G, h, '#f4b8cc', '#f8c8d8'),
+  momiji:(G, w, h) => htree(G, h, '#d8502a', '#e87838'),
+  pine:(G, w, h) => { hc(G, 0, h*.3, 0, .11, h*.6, WD2, .08, 10); for (let i = 0; i < 3; i++) hk(G, 0, h*(.52 + i*.17), 0, w*(.46 - i*.1), h*.3, ['#3a6a48', '#44784e', '#4a8054'][i], 14); },
+  bamboo:(G, w, h) => { for (const [x, z, k] of [[-.14, 0, 1], [.1, .08, .85], [0, -.12, .7]]){ hc(G, x, h*k/2, z, .05, h*k, '#7ab060', .05, 10); for (let i = 1; i < 4; i++) hc(G, x, h*k*i/4, z, .058, .02, '#5a8a4a', .058, 10); hk(G, x + .08, h*k*.92, z, .1, .3, '#6aa050', 8); } },
+  lantern:(G, w, h) => { hc(G, 0, .05, 0, w*.34, .1, '#8a8a90', w*.34, 8); hc(G, 0, h*.3, 0, .1, h*.4, '#9a9aa0', .1, 8); hb(G, 0, h*.54, 0, w*.5, .08, w*.5, '#8a8a90'); hglowB(G, 0, h*.68, 0, w*.34, h*.2, w*.34, '#fff0b0'); hk(G, 0, h*.9, 0, w*.48, h*.2, '#7a7a84', 4); },
+  pond:(G, w) => { hc(G, 0, .02, 0, w*.46, .04, '#7a8a70', w*.46, 26); const m = mesh(new THREE.CylinderGeometry(w*.42, w*.42, .02, 26), Mt('#5aa0c0', .15, .2), 0, .05, 0); G.add(m); hs(G, -.3, .08, .1, .1, '#f07030', .4); hs(G, .3, .08, -.2, .09, '#fff0e0', .4); for (let i = 0; i < 8; i++) hs(G, Math.cos(i*.8)*w*.46, .1, Math.sin(i*.8)*w*.46, .14, '#9a9a90', .7); },
+  stones:(G, w) => { for (let i = 0; i < 4; i++) hc(G, -w*.36 + i*w*.24, .04, (i % 2)*.14 - .07, .22, .08, '#a8a498', .2, 10); },
+  torii:(G, w, h) => { const c = '#c8342a'; hc(G, -w*.34, h*.46, 0, .09, h*.92, c, .08, 12); hc(G, w*.34, h*.46, 0, .09, h*.92, c, .08, 12); hb(G, 0, h*.94, 0, w, .12, .16, '#2a1d17'); hb(G, 0, h*.84, 0, w*.9, .1, .12, c); hb(G, 0, h*.66, 0, w*.76, .08, .1, c); },
+  well:(G, w, h) => { hc(G, 0, h*.18, 0, w*.36, h*.36, '#9a9aa0', w*.36, 16); hc(G, 0, h*.36, 0, w*.3, .02, '#3a5a7a', w*.3, 16); for (const s of [-1, 1]) hb(G, s*w*.38, h*.55, 0, .07, h*.9, .07, WD2); const r = mesh(new THREE.ConeGeometry(w*.62, h*.26, 4), x3Mat('#6a5a4a'), 0, h*.96, 0); r.rotation.y = .78; G.add(r); },
+  bench:(G, w) => { hb(G, 0, .4, 0, w, .08, w*.42, WD); hb(G, 0, .45, 0, w*.98, .02, w*.4, '#b03e2a'); hlegs(G, w*.86, w*.3, .38, WD2); },
+  fence:(G, w, h) => { for (let i = 0; i < 6; i++) hc(G, -w/2 + i*w/5, h/2, 0, .04, h, '#a8b868', .04, 8); for (const y of [.35, .75]) hb(G, 0, h*y, 0, w, .04, .05, '#8a6a3a'); },
+  flowers:(G, w) => { const cs = ['#e0587a', '#f0c040', '#fff', '#8a70d0']; for (let i = 0; i < 12; i++){ const x = Math.cos(i*2.4)*(i*.03 + .05)*w, z = Math.sin(i*2.4)*(i*.02 + .03)*w; hb(G, x, .1, z, .02, .2, .02, '#5a8a4a'); hs(G, x, .22, z, .06, cs[i % 4]); } },
+  rock:(G, w, h) => { const m = mesh(new THREE.DodecahedronGeometry(w*.42, 0), x3Mat('#9a9a90'), 0, h*.4, 0); m.scale.y = h/w*1.2; m.rotation.y = .5; G.add(m); },
+  scarecrow:(G, w, h) => { hc(G, 0, h/2, 0, .04, h, WD2, .04, 8); hb(G, 0, h*.68, 0, w, .04, .04, WD2); hs(G, 0, h*.86, 0, .15, '#e8d8a8'); hk(G, 0, h*.98, 0, .24, .13, '#b89058', 12); hb(G, 0, h*.58, 0, w*.5, h*.3, .1, '#4a6a8a'); },
+  logs:(G, w, h) => { for (const [x, y] of [[-.26, .13], [.26, .13], [0, .34]]){ const m = mesh(new THREE.CylinderGeometry(.14, .14, w*.8, 12), x3Mat(WD), x, y, 0); m.rotation.x = 1.57; G.add(m); } },
+  mailbox:(G, w, h) => { hc(G, 0, h*.3, 0, .05, h*.6, WD2, .05, 8); hb(G, 0, h*.76, 0, w, h*.36, w*.8, '#b03e2a'); hb(G, 0, h*.97, 0, w*1.15, .05, w, '#2a1d17'); },
+  doghouse:(G, w, h) => { hb(G, 0, h*.32, 0, w*.8, h*.64, w*.8, WD); const r = mesh(new THREE.ConeGeometry(w*.72, h*.42, 4), x3Mat('#b03e2a'), 0, h*.84, 0); r.rotation.y = .78; G.add(r); hb(G, 0, h*.22, w*.4 + .01, w*.3, h*.42, .02, '#2a1d17'); },
+  bridge:(G, w, h) => { const c = '#c8342a'; for (let i = 0; i < 9; i++){ const t = i/8, y = Math.sin(t*Math.PI)*h*.5; hb(G, -w/2 + t*w, y + .08, 0, w/8.4, .06, .8, c); if (i % 2 === 0) for (const s of [-1, 1]) hc(G, -w/2 + t*w, y + .28, s*.38, .03, .4, c, .03, 8); } },
+  shrine:(G, w, h) => { hb(G, 0, h*.08, 0, w, h*.16, w*.7, '#a8a498'); hb(G, 0, h*.42, 0, w*.66, h*.5, w*.46, WD); hb(G, 0, h*.42, w*.23 + .01, w*.24, h*.42, .02, '#f4ecd8'); const r = mesh(new THREE.ConeGeometry(w*.66, h*.34, 4), x3Mat('#3a4a5a'), 0, h*.82, 0); r.rotation.y = .78; G.add(r); },
+  armor:(G, w, h) => { hb(G, 0, h*.1, 0, w*.8, h*.2, w*.5, WD2); hc(G, 0, h*.5, 0, w*.3, h*.5, '#b03e2a', w*.38, 12); hs(G, 0, h*.84, 0, w*.26, '#2a2a34'); hk(G, 0, h*.98, 0, w*.3, h*.14, '#e8c858', 6); for (const s of [-1, 1]) hb(G, s*w*.42, h*.68, 0, w*.2, h*.14, w*.3, '#2a2a34'); },
+  treasure:(G, w, h) => { hb(G, 0, h*.34, 0, w, h*.68, w*.62, '#8a4a2a'); const m = mesh(new THREE.CylinderGeometry(w*.31, w*.31, w, 18, 1, false, 0, Math.PI), x3Mat('#a85a30'), 0, h*.68, 0); m.rotation.z = 1.57; G.add(m); hb(G, 0, h*.5, w*.31 + .01, .2, .2, .03, '#e8c858'); },
+  snowman:(G, w, h) => { hs(G, 0, h*.3, 0, w*.4, '#fff'); hs(G, 0, h*.74, 0, w*.28, '#fff'); hk(G, 0, h*.76, w*.3, .05, .2, '#e08a30', 8); hc(G, 0, h*.96, 0, w*.2, h*.1, '#c03a30'); }, f_snowman:(G, w, h) => H3M.snowman(G, w, h),
+  sacred:(G, w, h) => { hb(G, 0, .08, 0, w*.7, .16, w*.4, WD2); hc(G, 0, h*.3, 0, .05, h*.3, WD2); const m = mesh(new THREE.CircleGeometry(w*.38, 30), Mt('#e8f0f8', .08, .95), 0, h*.66, .05); G.add(m); const r = mesh(new THREE.TorusGeometry(w*.38, .05, 8, 30), Mt('#d8a838', .3, .8), 0, h*.66, .05); G.add(r); },
+  f_goza:(G, w) => { hb(G, 0, .02, 0, w, .04, w*.6, '#d8b070'); },
+  f_hanabi:(G, w, h) => H3M.byobu(G, w, h),
+  f_kadomatsu:(G, w, h) => { hc(G, 0, h*.08, 0, w*.4, h*.16, '#c8a060', w*.44, 12); for (const [x, z, k] of [[-.14, 0, .95], [.14, 0, .75], [0, .14, .6]]) hc(G, x, h*k/2, z, .08, h*k, '#6aa050', .08, 10); },
+  f_pillar:(G, w, h) => { hc(G, 0, .06, 0, w*.44, .12, '#8a8a9a', w*.44, 18); hc(G, 0, h*.5, 0, w*.26, h*.8, '#c8ccd8', w*.2, 18); hglow(G, 0, h*.97, 0, .12, '#8ad0f0'); },
+};
+
+// 그림을 그대로 쓰는 것: 벽걸이와 납작한 소품
+function h3Svg(svg, w, h, done){ const img = new Image(); img.onload = () => { if (!H3.on) return; const c = document.createElement('canvas'); c.width = w*2; c.height = h*2; const g = c.getContext('2d'); g.drawImage(img, 0, 0, c.width, c.height); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; done(t); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
+function h3Card(it, night){
+  const F = FURN[it.k], m = 3, g = new THREE.Group(), mat = new THREE.MeshStandardMaterial({transparent:true, alphaTest:.45, side:THREE.DoubleSide, roughness:.9, color:'#fff', opacity:0}), w = F.w + m*2, h = F.h + m*2, p = new THREE.Mesh(new THREE.PlaneGeometry(w*H3U, h*H3U), mat);
+  p.position.y = h*H3U/2 - m*H3U; g.add(p); h3Svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-F.w/2 - m} ${-F.h - m} ${w} ${h}" width="${w}" height="${h}">${F.d(TINT[it.t || 0], {night})}</svg>`, w, h, t => { mat.map = t; mat.opacity = 1; mat.needsUpdate = true; });
+  g.userData.card = true; return g;
+}
+const h3IsWall = (F, it, scene) => scene === 'room' && (F.l === 1 || it.y < 150);
+function h3Item(it, scene, night){
+  const F = FURN[it.k], M = H3M[it.k], wall = h3IsWall(F, it, scene); let g;
+  if (M && !wall){ g = new THREE.Group(); M(g, F.w*H3U, F.h*H3U, TINT[it.t || 0]); } else g = h3Card(it, night);
+  const s = (it.s || 100)/100; g.scale.set(it.f ? -s : s, s, s); return {g, wall, bill:!M && !wall};
+}
+// 좌표 변환. 방은 뒤쪽 벽 z=-3, 앞 z=3
+const H3_ROOM = {w:9, d:6, h:3.9}, floorZ = (y, sc) => sc === 'yard' ? (clamp(y, 122, 270) - 122)/148*7 - 3.4 : (clamp(y, 150, 270) - 150)/120*6 - 3;
+const h3Pos = (it, wall, sc, ox) => wall ? [(it.x - 180)*H3U + ox, Math.max(.2, (156 - Math.min(it.y, 150))*H3U), -2.96] : [(it.x - 180)*H3U + ox, 0, floorZ(it.y, sc)];
+function h3Tex(G, mat, svgBody, w, h){ h3Svg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${svgBody}</svg>`, w, h, t => { mat.map = t; mat.color.set('#ffffff'); mat.needsUpdate = true; }); }
+function h3RoomShell(G, H, ox, sides){
+  const W = WALLS[H.w], Fl = FLOORS[H.f], {w, d, h} = H3_ROOM;
+  const fm = x3Mat(Fl.bg), wm = x3Mat(W.bg), f = mesh(new THREE.BoxGeometry(w, .3, d), [x3Mat(WD2), x3Mat(WD2), fm, x3Mat(WD2), x3Mat(WD2), x3Mat(WD2)], ox, -.15, 0); G.add(f);
+  h3Tex(G, fm, `<defs>${hPat('af' + H.f, Fl)}</defs><rect width="360" height="240" fill="${Fl.bg}"/><rect width="360" height="240" fill="url(#af${H.f})"/>`, 360, 240);
+  const back = mesh(new THREE.BoxGeometry(w, h, .12), [x3Mat(WD2), x3Mat(WD2), x3Mat(WD2), x3Mat(WD2), wm, x3Mat(WD2)], ox, h/2, -d/2 - .06); G.add(back);
+  h3Tex(G, wm, `<defs>${hPat('aw' + H.w, W)}</defs><rect width="360" height="156" fill="${W.bg}"/><rect width="360" height="156" fill="url(#aw${H.w})"/>`, 360, 156);
+  hb(G, ox, .09, -d/2 + .01, w, .18, .05, WD2); hb(G, ox, h - .08, -d/2 + .03, w, .16, .1, WD2); for (const x of [-w/2, w/2]) hb(G, ox + x, h/2, -d/2, .16, h, .16, WD2);
+  const side = (sx, key) => { const g = new THREE.Group(); hb(g, ox + sx*(w/2 + .06), h/2, 0, .12, h, d, W.bg); hb(g, ox + sx*(w/2 - .01), .09, 0, .05, .18, d, WD2); G.add(g); H3[key] = g; };
+  if (sides.l) side(-1, 'wallL'); if (sides.r) side(1, 'wallR');
+}
+function h3Yard(G, H, ox, night){
+  const Gd = GROUNDS[H.y], gm = x3Mat(Gd.bg), f = mesh(new THREE.BoxGeometry(9, .3, 8), [x3Mat('#7a6a4a'), x3Mat('#7a6a4a'), gm, x3Mat('#7a6a4a'), x3Mat('#7a6a4a'), x3Mat('#7a6a4a')], ox, -.15, .2); G.add(f);
+  h3Tex(G, gm, `<defs>${hPat('ag' + H.y, Gd)}</defs><rect width="360" height="320" fill="${Gd.bg}"/><rect width="360" height="320" fill="url(#ag${H.y})"/>`, 360, 320);
+  const tile = H.g >= 2, roofC = tile ? '#4a5a6a' : '#b8a068', wide = 5 + H.g*.5;
+  hb(G, ox, 1, -4.1, wide, 2, 1.8, '#e8dcc0'); hb(G, ox, .15, -3.15, wide + .3, .3, .3, WD2); hb(G, ox - .9, .85, -3.18, 1, 1.4, .05, '#f8f2e0'); hb(G, ox + .9, .85, -3.18, 1, 1.4, .05, WD);
+  const sh = new THREE.Shape(); sh.moveTo(-1.45, 0); sh.lineTo(0, 1.25); sh.lineTo(1.45, 0); sh.closePath(); const rg = new THREE.ExtrudeGeometry(sh, {depth:wide + .7, bevelEnabled:false}); const r = mesh(rg, x3Mat(roofC), ox - wide/2 - .35, 2, -4.1); r.rotation.y = Math.PI/2; G.add(r); hb(G, ox, 3.27, -4.1, wide + .9, .14, .24, tile ? '#2f3b48' : '#8a7448');
+}
+function h3Actor(G, av, pos, sc, ox){ const h = x3Hero({a:av || {...AV_DEF}}); h.g.position.set((pos.x - 180)*H3U + ox, 0, floorZ(pos.y, sc)); h.g.rotation.y = pos.f ? -.5 : .5; G.add(h.g); H3.actors.push(h); }
+function h3Pet(G, sp, pos, sc, ox){ if (!SPEC[sp]) return; const r = mdlPet(sp); r.g.scale.setScalar(.36); r.g.position.set((pos.x - 180)*H3U + ox, 0, floorZ(pos.y, sc)); r.g.rotation.y = pos.f ? -.5 : .5; G.add(r.g); H3.pets.push(r); }
+const h3Night = () => { const h = seoul().h; return h >= 19 || h < 5; };
+function h3Spec(){
+  if (!SHEET) return null;
+  if (SHEET.k === 'home'){ const H = homeMine(), scene = HOUSE[H.g].yard && UI.hScene === 'yard' ? 'yard' : 'room', m = mateOf(); return {H, scene, own:true, edit:!!UI.hEdit, av:avMine(), comps:activeComps().map(c => c.sp), mate:m ? {h:homeClean(PL[m].home), av:PL[m].avatar ? avParse(PL[m].avatar) : null, comps:(PL[m].comps || []).map(c => c.sp)} : null}; }
+  if (SHEET.k === 'homeVisit'){ const D = homeVisitData(SHEET.a); if (!D) return null; const scene = HOUSE[D.h.g].yard && UI.hvScene === 'yard' ? 'yard' : 'room', m = !D.npc && D.h.mate && PL[D.h.mate] && PL[D.h.mate].home && PL[D.h.mate].home.mate === SHEET.a ? D.h.mate : null; return {H:D.h, scene, own:false, edit:false, av:D.av, comps:D.comps.map(c => c.sp), mate:m ? {h:homeClean(PL[m].home), av:PL[m].avatar ? avParse(PL[m].avatar) : null, comps:(PL[m].comps || []).map(c => c.sp)} : null}; }
+  return null;
+}
+const h3Sig = o => JSON.stringify([o.scene, o.H.room, o.H.yard, o.H.w, o.H.f, o.H.y, o.H.g, o.H.act, o.av, o.comps, o.mate, h3Night(), seaKey()]);
+function h3Build(o){
+  const G = c3Clear(), night = h3Night(), sc = o.scene, m = o.mate, ox = m ? -4.5 : 0; H3.nodes = []; H3.actors = []; H3.pets = []; H3.wallL = H3.wallR = null; H3.merged = !!m; H3.lights = (H3.lights || []).filter(l => { C3.sc.remove(l); return false; });
+  C3.counter.visible = false; C3.wall.visible = false; const sky = night ? '#141a3a' : sc === 'yard' ? '#bcdcec' : '#efe2c8'; C3.sc.background = new THREE.Color(sky); C3.sc.fog = null;
+  C3.hemi.intensity = night ? .34 : .62; C3.sun.intensity = night ? .22 : .8; C3.sun.color.set(night ? '#8aa8e8' : '#fff0d8'); C3.sun.position.set(night ? -3 : 4, 10, 7); const sh = C3.sun.shadow.camera, ext = m ? 11 : 7; sh.left = -ext; sh.right = ext; sh.top = ext; sh.bottom = -ext; sh.updateProjectionMatrix();
+  const addSide = (H, bx, own, av, comps) => {
+    const items = (H[sc] || []).map((it, i) => { const c = cleanItem(it); return c && {...c, i}; }).filter(Boolean);
+    let glows = 0;
+    for (const it of items){ const F = FURN[it.k]; const {g, wall, bill} = h3Item(it, sc, night), p = h3Pos(it, wall, sc, bx); g.position.set(...p); if (F.l === 0 && !H3M[it.k]) g.position.y = .02; g.userData.i = own ? it.i : -1; G.add(g); H3.nodes.push({i:own ? it.i : -1, g, wall, bill, own}); if (night && F.glow && glows < 3 && H3.lights.length < 5){ const l = new THREE.PointLight('#ffc878', .9, 5.5); l.position.set(p[0], (wall ? p[1] : F.h*H3U*.7) + .1, p[2] + (wall ? .3 : 0)); C3.sc.add(l); H3.lights.push(l); glows++; } }
+    const pos = {...DEF_ACT[sc], ...((H.act && H.act[sc]) || {})};
+    if (av) h3Actor(G, av, pos.me, sc, bx); (comps || []).slice(0, 2).forEach((sp, i) => h3Pet(G, sp, pos['c' + i], sc, bx));
+  };
+  if (sc === 'room'){ h3RoomShell(G, o.H, ox, {l:true, r:!m}); if (m){ h3RoomShell(G, m.h, 4.5, {l:false, r:true}); } }
+  else { h3Yard(G, o.H, ox, night); if (m) h3Yard(G, m.h, 4.5, night); }
+  addSide(o.H, ox, o.own, o.av, o.comps); if (m) addSide(m.h, 4.5, false, m.av, m.comps);
+  h3Mark();
+}
+function h3Mark(){ for (const n of H3.nodes){ n.g.traverse(x => { if (x.isMesh && x.material && 'emissive' in x.material) x.material.emissive.set(H3.spec && H3.spec.edit && n.own && n.i === UI.hSel ? '#a05a20' : '#000000'); }); } }
+function h3Cam(){ const c = C3.cam, base = (c.aspect < 1 ? 16 : 13)*(H3.merged ? 1.85 : 1)*H3.z, a = H3.a, e = H3.e, tx = 0, ty = 1.1; c.position.set(tx + Math.sin(a)*Math.cos(e)*base, ty + Math.sin(e)*base, Math.cos(a)*Math.cos(e)*base); c.lookAt(tx, ty, 0); }
+function h3Pick(n){ const r = new THREE.Raycaster(); r.setFromCamera(n, C3.cam); const hit = r.intersectObjects(H3.nodes.map(x => x.g), true)[0]; if (!hit) return null; let o = hit.object; while (o && o.userData.i === undefined) o = o.parent; return o ? H3.nodes.find(x => x.g === o) : null; }
+function h3Down(n, e){
+  H3.drag = {x:e.clientX, y:e.clientY, a:H3.a, el:H3.e, moved:false, node:null};
+  if (H3.spec && H3.spec.edit){ const hit = h3Pick(n); if (hit && hit.own){ H3.drag.node = hit; if (UI.hSel !== hit.i){ UI.hSel = hit.i; h3Mark(); renderSheet(true); } } }
+}
+function h3Move(n, e){
+  const d = H3.drag; if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (Math.abs(dx) + Math.abs(dy) > 4) d.moved = true;
+  if (d.node){ const it = homeSel().list[d.node.i]; if (!it) return; const sc = H3.spec.scene, ox = H3.merged ? -4.5 : 0;
+    if (d.node.wall){ const ray = new THREE.Raycaster(); ray.setFromCamera(n, C3.cam); const p = ray.ray.intersectPlane(new THREE.Plane(V3(0, 0, 1), 2.96), new THREE.Vector3()); if (!p) return; it.x = clamp(Math.round((p.x - ox)/H3U + 180), 0, 360); it.y = clamp(Math.round(156 - p.y/H3U), 20, 150); }
+    else { const p = c3OnPlane(n, 0); if (!p) return; it.x = clamp(Math.round((p.x - ox)/H3U + 180), 0, 360); it.y = sc === 'yard' ? clamp(Math.round((p.z + 3.4)/7*148 + 122), 122, 270) : clamp(Math.round((p.z + 3)/6*120 + 150), 150, 270); }
+    d.node.g.position.set(...h3Pos(it, d.node.wall, sc, ox)); return; }
+  H3.a = clamp(d.a - dx*.008, -1.25, 1.25); H3.e = clamp(d.el + dy*.005, .22, 1.15);
+}
+function h3Up(){ const d = H3.drag; H3.drag = null; if (d && d.node && d.moved){ H3.sig = h3Sig({...H3.spec}); save(); pubDirty(); renderSheet(true); render(); } }
+function h3Tick(dt){
+  if (!H3.on) return; H3.t = (H3.t || 0) + dt; h3Cam(); H3.actors.forEach((h, i) => { h.body.position.y = Math.sin(H3.t*2 + i)*.012; h.armL.rotation.x = Math.sin(H3.t*1.3 + i)*.05; h.armR.rotation.x = -Math.sin(H3.t*1.3 + i)*.05; });
+  H3.pets.forEach((r, i) => { r.g.position.y = Math.abs(Math.sin(H3.t*2.4 + i))*.03; });
+  const cy = Math.atan2(C3.cam.position.x, C3.cam.position.z); H3.nodes.forEach(n => { if (n.bill) n.g.rotation.y = cy; });
+  if (H3.wallL) H3.wallL.visible = H3.a > -.25; if (H3.wallR) H3.wallR.visible = H3.a < .25;
+}
+function h3Begin(){
+  try {
+    const v = H3.box.querySelector('#h3v'); v.innerHTML = ''; const cv = document.createElement('canvas'); cv.id = 'h3c'; v.appendChild(cv);
+    c3Start({canvas:cv, box:() => H3.box.querySelector('#h3v')}); C3.r.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); C3.noFar = true; C3.toP = null; C3.input = {pd:h3Down, pm:h3Move, pu:h3Up}; H3.on = true; H3.sig = '';
+    let odd = false; C3.skip = () => { odd = !odd; return odd; }; C3.fw = 0; C3.fit(); const f = dt => { if (!H3.on) return false; h3Tick(dt); }; C3.h3 = f; h3Sync();
+  } catch (e){ console.warn('집 3D', e); H3.fail = true; H3.on = false; try { if (C3.on) c3Stop(); } catch (x){} renderSheet(true); }
+}
+function h3Kill(){ if (!H3.on) return; H3.on = false; const r = C3.r; C3.skip = null; C3.input = null; (H3.lights || []).forEach(l => C3.sc.remove(l)); H3.lights = []; c3Stop(); try { r.forceContextLoss(); } catch (e){} }
+const h3Off = () => { try { return localStorage.getItem('h3off') === '1'; } catch (e){ return false; } };
+const h3Can = () => !window.__NOH3 && !window.__no3d && !H3.fail && !h3Off();
+function h3Sync(){
+  const slot = document.getElementById('h3Slot');
+  if (!slot){ if (H3.on) h3Kill(); return; }
+  if (!H3.box){ H3.box = document.createElement('div'); H3.box.className = 'h3-box'; H3.box.innerHTML = '<div id="h3v" style="position:absolute;inset:0"></div><div class="h3-hud"><button class="chip" data-act="h3Zoom" data-d="1" aria-label="멀리">−</button><button class="chip" data-act="h3Zoom" data-d="-1" aria-label="가까이">+</button><button class="chip" data-act="h3Toggle">2D로 보기</button></div>'; }
+  if (H3.box.parentElement !== slot) slot.appendChild(H3.box);
+  if (!H3.on){ if (H3.loading) return; H3.loading = true; c3Ensure().then(ok => { H3.loading = false; if (!ok){ H3.fail = true; renderSheet(true); return; } if (document.getElementById('h3Slot')) h3Begin(); }); return; }
+  C3.fw = 0; C3.fit(); const spec = h3Spec(); if (!spec) return; H3.spec = spec; const sig = h3Sig(spec); if (sig !== H3.sig){ H3.sig = sig; h3Build(spec); if (C3.h3) C3.upd.push(C3.h3); } else h3Mark();
+}
+const h3Slot = hint => `<div class="h-frame h3-slot" id="h3Slot"></div><p class="tiny muted" style="margin:4px 2px 0">${hint}</p>`;
+const h3Swap = (html, hint) => h3Can() ? html.replace(/<div class="h-frame">[\s\S]*?<\/svg><\/div>/, h3Slot(hint)) : html.replace('<div class="h-frame">', `${window.__NOH3 || window.__no3d || H3.fail ? '' : '<button class="chip" style="margin:0 0 6px" data-act="h3Toggle">3D로 보기</button>'}<div class="h-frame">`);
+const _sheet_home3 = SHEETS.home, _sheet_visit3 = SHEETS.homeVisit;
+SHEETS.home = () => { const html = _sheet_home3(); if (!(UI.hTab === 'house' || !UI.hTab)) return html; return h3Swap(html, UI.hEdit ? '가구를 누르면 고르고, 끌면 옮겨진다. 빈 곳을 끌면 시점이 돈다.' : '끌어서 시점을 돌려 보세요.').replace('<div class="card" style="margin-top:10px"><b class="small">문패와 공개</b>', mergeCard() + '<div class="card" style="margin-top:10px"><b class="small">문패와 공개</b>'); };
+SHEETS.homeVisit = o => h3Swap(_sheet_visit3(o), '끌어서 시점을 돌려 보세요.');
+const _renderSheet_h3 = renderSheet;
+renderSheet = soft => { _renderSheet_h3(soft); h3Sync(); };
+Object.assign(ACT, {
+  affDo:d => affDo(d.u, d.k), mergeAsk:d => mergeAsk(d.u), mergeEnd:() => mergeEnd(false),
+  h3Toggle:() => { try { localStorage.setItem('h3off', h3Off() ? '0' : '1'); } catch (e){} renderSheet(true); },
+  h3Zoom:d => { H3.z = clamp(H3.z + +d.d*.14, .55, 1.5); },
+});
+// 애정 표현 단추를 누르면 고르는 창이 열린다
+const _act_aff = act;
+act = async (o, k) => { if (k !== 'affection') return _act_aff(o, k); const why = meetBlock(o); if (why) return toast(why, 'warn'); openSheet('affPick', o); };
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
