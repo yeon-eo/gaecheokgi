@@ -580,6 +580,15 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .c3-res{ margin-top:auto; max-height:62%; overflow:auto; background:rgba(255,250,240,.95); color:#2b241b; border-radius:16px; padding:12px; display:flex; flex-direction:column; }
 .c3-res .list{ width:100%; }
 .c3-res > .row:last-child{ position:sticky; bottom:-12px; margin:0 -12px -12px; padding:8px 12px 12px; background:#fbf5e8; z-index:2; flex:none; }
+/* 둘만의 반려동물 */
+.duo-ic{ flex:none; display:grid; place-items:center; width:84px; height:84px; border-radius:16px; background:radial-gradient(circle at 40% 35%, #a09ca8, #74707e); border:1px solid var(--line); }
+.duo-pix{ image-rendering:pixelated; display:block; }
+.duo-tile .duo-pix{ width:30px; height:30px; }
+.duo-bowl{ display:inline-flex; gap:4px; } .duo-bowl i{ width:18px; height:18px; border-radius:5px; border:1.5px solid var(--line); background:var(--card); } .duo-bowl i.on{ background:#c4a060; border-color:#c4a060; }
+.duo-notes{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:12px; }
+.duo-note{ padding:10px 10px 8px; border-radius:4px; background:#fbe9b0; color:#3a2e1a; box-shadow:0 2px 5px var(--shade); transform:rotate(-1deg); }
+.duo-note:nth-child(even){ transform:rotate(1.2deg); } .duo-note.me{ background:#f6d4d0; }
+.duo-note p{ margin:0 0 4px; font-size:.9rem; line-height:1.45; overflow-wrap:anywhere; } .duo-note span{ opacity:.7; }
 /* 집 3D */
 .h3-slot{ position:relative; aspect-ratio:4/3; overflow:hidden; border-radius:8px; touch-action:none; }
 .h3-box{ position:absolute; inset:0; }
@@ -3335,6 +3344,7 @@ TABS.home = () => {
     ${tile('sheet', 'rest', '온천 (휴식)', `<span class="st ${restActive() ? 'on' : ''}">${restActive() ? `휴식 중 · <span class="num" data-cd="${S.rest.until}"></span>` : curHP() < maxHP() ? `체력 회복 5배 · ${Math.floor(curHP())}/${maxHP()}` : '체력이 가득하다'}</span>`, 'data-s="rest"')}
     ${tile('sheet', 'shop', '잡화점', '<span class="st">사고팔기 · 씨앗 · 축사 먹이</span>', 'data-s="shop"')}
     ${sfTile()}
+    ${duoTile()}
     ${tile('sheet', 'market', '장터', `<span class="st ${blessOn() ? 'on' : ''}">${blessOn() ? `${BLESS[blessOn().k].n} 중` : '거래소 · 행상 · 기원 · 훈련'}</span>`, 'data-s="market"')}
     ${tile('sheet', 'board', '게시판', `<span class="st ${dn?'on':''}">${dn ? `구조 요청 ${dn}` : ST.mode==='cloud' ? '구조 요청 · 토벌대 · 소식' : '마을 소식'}</span>`, 'data-s="board"')}
     ${tile('sheet', 'sub', '신사 (서브 직업)', `<span class="st">${SUBS[S.sub].n}${syn()?' · <b style="color:var(--moss)">궁합 보너스</b>':''}</span>`, 'data-s="subjob"')}
@@ -11284,6 +11294,133 @@ Object.assign(ACT, {
 // 애정 표현 단추를 누르면 고르는 창이 열린다
 const _act_aff = act;
 act = async (o, k) => { if (k !== 'affection') return _act_aff(o, k); const why = meetBlock(o); if (why) return toast(why, 'warn'); openSheet('affPick', o); };
+// ===================== 둘만의 반려동물: 운영자가 정한 두 사람만 함께 키운다 =====================
+// duo/{id} = {a, b, names, pets:{key:{n, hun, hunAt, bowl, aff:{uid}, care:{uid}}}, log:[{u, p, k, ts}]}
+// 규칙이 두 사람(a, b)에게만 읽기·고치기를 허락한다. 공개 프로필(players)에는 아무것도 싣지 않는다.
+// 문서는 운영자만 만들고 지운다(설정 → 운영 도구). 배고픔과 친밀도는 저장된 값과 시각으로 그때그때 계산한다.
+const DUO = {half:{a:[], b:[]}, doc:null, id:null};
+const DUO_PETS = {
+  hachi:{n:'하치', sp:'검은 고양이', d:'밤이면 눈이 빛난다', pal:{K:'#17141a', D:'#3a3440', Y:'#f2d21c', P:'#8a5a66'}, px:['..K..K........K.', '..KKKK.......K.K', '.KYKYK.......K..', '.KKKPK......KK..', '..KKKKKKKKKKK...', '...KKKKKKKKKK...', '...KKDKKKKDKK...', '...KKKKKKKKKK...', '...K.K....K.K...', '...K.K....K.K...', '..KK.KK..KK.KK..'],
+    care:['{n}의 턱 밑을 긁어 주었다. 그르릉 소리가 난다.', '{n}의 등을 쓸어 주었다. 꼬리가 물음표가 되었다.', '{n}에게 실뭉치를 굴려 주었다.', '{n}{가} 무릎 위에 올라와 식빵을 구웠다.', '{n}의 빛나는 눈과 한참 눈싸움을 했다.']},
+  pulse:{n:'펄스멍', sp:'그레이하운드 · 드묾', d:'날렵하고 공을 좋아한다', pal:{K:'#101014', G:'#8e9498', L:'#b4babc', W:'#f4f4f0'}, px:['.KK.............', 'KGGK............', 'KGGGK...........', '.KWGK...........', '..WGGKKKKKK.....', '..WGGGGGGGGK....', '..WWGGGGGGGGK...', '...WGGGLLGGGK.K.', '...G.G...G.GKK..', '...G.G...G.G....', '...G.G...G.G....', '..KK.KK.KK.KK...'],
+    care:['{n}에게 공을 던져 주었다. 바람처럼 물어 왔다.', '{n}의 긴 목을 쓸어 주었다.', '{n}{와} 강둑을 한 바퀴 달렸다. 따라잡을 수가 없다.', '{n}{가} 앞발을 척 올려놓았다.', '{n}의 귀 뒤를 긁어 주자 눈을 가늘게 떴다.']},
+  chisato:{n:'치사토', sp:'생쥐 · 흔함', d:'가끔 작은 물건을 물어 온다', gift:1, pal:{M:'#9a9aa2', P:'#f0a8a0', C:'#f4e4d4', K:'#1c1a20'}, px:['..PP......PP....', '.PMMP....PMMP...', '.PMMMMMMMMMMP...', '..MMKMMMMKMM....', '..MMMMPPMMMM....', '...MMMMMMMM.....', '..MMCCCCCCMM....', '..MCCCCCCCCM..P.', '..MCCCCCCCCM.P..', '..MMCCCCCCMMP...', '...PP....PP.....'],
+    care:['{n}{를} 손바닥에 올려 주었다. 수염이 간질간질하다.', '{n}에게 해바라기 씨를 하나 건넸다. 볼이 빵빵해졌다.', '{n}의 작은 머리를 손가락으로 쓰다듬었다.', '{n}{가} 소매 속으로 쏙 들어갔다.', '{n}{가} 두 발로 서서 코를 벌름거렸다.']},
+};
+const DUO_GIFT = ['berry', 'mushroom', 'clam', 'feather', 'sansai'];
+const DUO_HUN = 4, DUO_BOWL = 5, DUO_IDLE = 12, DUO_CD = 30*MIN;
+const duoPix = (P, size = 72) => { const w = P.px[0].length, h = P.px.length; let r = ''; P.px.forEach((row, y) => { for (let x = 0; x < w; x++){ const c = P.pal[row[x]]; if (c) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${c}"/>`; } }); return `<svg class="duo-pix" width="${size}" height="${size}" viewBox="-1 ${-(w - h)/2 - 1} ${w + 2} ${w + 2}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`; };
+const duoOther = () => DUO.doc ? (DUO.doc.a === ST.uid ? DUO.doc.b : DUO.doc.a) : null;
+const duoName = u => (PL[u] && PL[u].name) || (DUO.doc && DUO.doc.names && DUO.doc.names[u]) || '동거인';
+const duoFill = (t, n) => t.replace(/\{n\}\{(가|를|와)\}/g, (_, j) => n + pp(n, {가:'이', 를:'을', 와:'과'}[j], j)).split('{n}').join(n);
+// 지금의 배고픔과 사료통: 50 아래로 내려가면 사료통에서 알아서 한 끼 먹는다
+function duoHun(p, t = now()){
+  let hun = p.hun ?? 100, bowl = p.bowl || 0, left = Math.max(0, t - (p.hunAt ?? t))/H;
+  while (left > 0){ const toHalf = Math.max(0, hun - 50)/DUO_HUN; if (left < toHalf){ hun -= left*DUO_HUN; break; } left -= toHalf; hun = Math.min(hun, 50); if (bowl > 0){ bowl--; hun = 100; } else { hun = Math.max(0, hun - left*DUO_HUN); break; } }
+  return {hun:Math.round(hun), bowl};
+}
+const duoIdle = (p, u, t = now()) => Math.floor(Math.max(0, t - ((p.care && p.care[u]) || (DUO.doc && DUO.doc.ts) || t))/H);
+const duoAff = (p, u, t = now()) => clamp(Math.round(((p.aff && p.aff[u]) ?? 50) - Math.max(0, duoIdle(p, u, t) - DUO_IDLE)), 0, 100);
+function duoListen(){
+  if (ST.mode !== 'cloud') return;
+  for (const side of ['a', 'b']) unsubs.push(ST.db.collection('duo').where(side, '==', ST.uid).onSnapshot(s => { DUO.half[side] = s.docs.map(d => ({id:d.id, ...JSON.parse(JSON.stringify(d.data()))})); const d = [...DUO.half.a, ...DUO.half.b].filter(x => x && x.pets && (x.a === ST.uid || x.b === ST.uid))[0] || null; DUO.doc = d; DUO.id = d && d.id; softRender(); if (SHEET && SHEET.k === 'duo') renderSheet(true); }, e => console.warn('duo', e)));
+}
+const _tradeListen_duo = tradeListen; tradeListen = (...a) => { _tradeListen_duo(...a); duoListen(); };
+async function duoWrite(k, patch, kind, extra = {}){
+  const D = DUO.doc, p = D.pets[k], hb = duoHun(p), t = now(), log = [{u:ST.uid, p:k, k:kind, ts:t}, ...(D.log || [])].slice(0, 10);
+  const next = {hun:hb.hun, bowl:hb.bowl, hunAt:t, ...patch};
+  Object.assign(p, next, {aff:{...(p.aff || {}), ...(patch.aff || {})}, care:{...(p.care || {}), ...(patch.care || {})}}); D.log = log;
+  try { await ST.db.doc('duo/' + DUO.id).update({pets:{[k]:next}, log, ...extra}); } catch (e){ console.warn('duo', e); toast('전하지 못했습니다. 잠시 후 다시 해 주세요.', 'warn'); }
+  save(); renderSheet(true); render();
+}
+const duoPet = k => DUO.doc && DUO.doc.pets && DUO_PETS[k] ? DUO.doc.pets[k] : null;
+function duoCare(k){
+  const p = duoPet(k); if (!p) return; const t = now(), last = (p.care && p.care[ST.uid]) || 0; if (t - last < DUO_CD) return toast(`${p.n}${pp(p.n, '은', '는')} 방금 돌봐 주었어요. 조금 뒤에 다시!`);
+  const P = DUO_PETS[k], o = duoOther(), both = t - ((p.care && p.care[o]) || 0) < 10*MIN, gain = 3 + Math.floor(duoLv().lv/2) + (both ? 2 : 0), aff = Math.min(100, duoAff(p, ST.uid) + gain); let extra = both ? ` ${duoName(o)} 님과 함께 돌봤다! 유대 +3` : ''; const bp = both ? duoBondAdd(3) : {};
+  if (P.gift && Math.random() < .2){ const it = DUO_GIFT[Math.floor(Math.random()*DUO_GIFT.length)]; addItem(it); extra = ` ${p.n}${pp(p.n, '이', '가')} ${IT[it].n}${pp(IT[it].n, '을', '를')} 물어 왔다!`; }
+  stat('duoCare'); sfx('soft'); toast(duoFill(P.care[Math.floor(Math.random()*P.care.length)], p.n) + ` 친밀도 +${gain}${extra}`, 'good'); duoWrite(k, {aff:{[ST.uid]:aff}, care:{[ST.uid]:t}}, 'care', bp);
+}
+function duoBowl(k){ const p = duoPet(k); if (!p) return; const hb = duoHun(p); if (hb.bowl >= DUO_BOWL) return toast('사료통이 가득 찼어요.'); if (!takeItem('feed')) return toast('배합 사료가 없어요. 잡화점의 「축사 먹이」에서 살 수 있어요.'); sfx('soft'); toast(`${p.n}의 사료통에 한 끼를 채웠다.`, 'good'); duoWrite(k, {bowl:hb.bowl + 1}, 'bowl'); }
+function duoFeed(k){ const p = duoPet(k); if (!p) return; const hb = duoHun(p); if (hb.hun >= 95) return toast(`${p.n}${pp(p.n, '은', '는')} 지금 배가 불러요.`); if (!takeItem('feed')) return toast('배합 사료가 없어요. 잡화점의 「축사 먹이」에서 살 수 있어요.'); const t = now(); sfx('eat'); toast(`${p.n}에게 사료를 먹였다. 친밀도 +2`, 'good'); duoWrite(k, {hun:Math.min(100, hb.hun + 50), aff:{[ST.uid]:Math.min(100, duoAff(p, ST.uid) + 2)}, care:{[ST.uid]:t}}, 'feed'); }
+function duoRename(k){ const p = duoPet(k), el = $('#duoN_' + k); if (!p || !el) return; const n = el.value.trim().slice(0, 12); if (!n) return; toast(`이제 ${n}${pp(n, '이라고', '라고')} 부른다.`, 'good'); duoWrite(k, {n}, 'name'); }
+const DUO_LOG = {care:'돌봐 주었다', bowl:'의 사료통을 채웠다', feed:'에게 사료를 먹였다', name:'의 이름을 지어 주었다'};
+const duoAgo = ts => { const m = Math.floor((now() - ts)/MIN); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m/60)}시간 전` : `${Math.floor(m/1440)}일 전`; };
+SHEETS.duo = () => {
+  const D = DUO.doc; if (!D) return sheetHead('우리 동물') + '<p class="small muted">함께 키우는 동물이 없습니다.</p>';
+  const o = duoOther(), on = esc(duoName(o)), feed = cnt('feed');
+  const card = k => { const p = D.pets[k], P = DUO_PETS[k]; if (!p || !P) return ''; const hb = duoHun(p), mine = duoAff(p, ST.uid), idle = duoIdle(p, ST.uid), cd = now() - ((p.care && p.care[ST.uid]) || 0) < DUO_CD;
+    return `<div class="card duo-card"><div class="row" style="gap:12px;align-items:flex-start"><span class="duo-ic">${duoPix(P)}</span><div class="grow"><b style="font-size:1.1rem">${esc(p.n)}</b><br><span class="small muted">${P.sp}</span><br><span class="small">${P.d}</span></div></div>
+      <div class="row small" style="margin-top:8px"><span class="grow">배고픔</span><b class="num">${hb.hun}</b></div><div class="bar gold"><i style="width:${hb.hun}%"></i></div>
+      <div class="row small" style="margin-top:6px"><span class="grow">내 친밀도</span><b class="num">${mine}</b></div><div class="bar gold"><i style="width:${mine}%"></i></div>
+      <p class="tiny muted" style="margin:6px 0 0">동거인 ${on} 님의 친밀도 ${duoAff(p, o)} · 친밀도는 사람마다 따로 쌓인다</p>
+      ${idle >= DUO_IDLE ? `<p class="tiny" style="margin:2px 0 0;color:var(--seal)">${idle}시간째 돌봐 주지 않아 친밀도가 떨어지고 있다.</p>` : ''}${hb.hun < 30 ? `<p class="tiny" style="margin:2px 0 0;color:var(--seal)">${esc(p.n)}${pp(p.n, '이', '가')} 배고파한다.</p>` : ''}
+      <div class="row small" style="gap:6px;margin-top:8px"><span>사료통</span><span class="duo-bowl" aria-label="사료통 ${hb.bowl}끼">${Array.from({length:DUO_BOWL}, (_, i) => `<i class="${i < hb.bowl ? 'on' : ''}"></i>`).join('')}</span><span class="tiny muted">${hb.bowl}끼 · 배고프면 알아서 먹는다</span></div>
+      <div class="row wrapf" style="gap:6px;margin-top:10px"><button class="btn sm seal" data-act="duoCare" data-k="${k}" ${cd ? 'disabled' : ''}>${cd ? '돌봐 주었다' : '돌보기'}</button><button class="btn sm ghost" data-act="duoBowl" data-k="${k}" ${feed && hb.bowl < DUO_BOWL ? '' : 'disabled'}>사료통 채우기</button><button class="btn sm ghost" data-act="duoFeed" data-k="${k}" ${feed && hb.hun < 95 ? '' : 'disabled'}>바로 먹이기</button></div>
+      <details class="sub" style="margin-top:8px"><summary class="small">이름 짓기</summary><div class="row" style="gap:6px;margin-top:6px"><input type="text" id="duoN_${k}" maxlength="12" value="${esc(p.n)}" aria-label="새 이름"><button class="btn sm" data-act="duoRename" data-k="${k}">바꾸기</button></div></details></div>`; };
+  const log = (D.log || []).filter(l => D.pets[l.p] && DUO_LOG[l.k]).slice(0, 8);
+  return sheetHead('우리 동물', `<span class="chip">배합 사료 ${feed}</span>`) + `<p class="small muted" style="margin-top:0">${on} 님과 둘이서만 키우는 동물들이다. 다른 개척자에게는 보이지 않는다. 사료는 잡화점의 배합 사료를 쓴다.</p><div class="stack">${Object.keys(DUO_PETS).map(card).join('')}</div>
+  ${log.length ? `<h3 style="margin:14px 0 6px">돌본 기록</h3><div class="list">${log.map(l => `<div class="li"><div class="t"><span class="small">${l.u === ST.uid ? '내가' : on + ' 님이'} ${esc(D.pets[l.p].n)}${l.k === 'care' ? pp(D.pets[l.p].n, '을', '를') + ' ' : ''}${DUO_LOG[l.k]}</span></div><span class="tiny muted">${duoAgo(l.ts)}</span></div>`).join('')}</div>` : ''}`;
+};
+const duoNeed = () => DUO.doc ? Object.keys(DUO_PETS).filter(k => { const p = DUO.doc.pets[k]; return p && (duoHun(p).hun < 30 || duoIdle(p, ST.uid) >= DUO_IDLE); }).length : 0;
+const duoTile = () => { if (!DUO.doc) return ''; const n = duoNeed() + (duoNew() ? 1 : 0); return `<button class="tile" data-act="sheet" data-s="duo"><span class="ic duo-tile">${duoPix(DUO_PETS.hachi, 30)}</span><b>우리 동물</b><span class="st ${n ? 'on' : ''}">${n ? (duoNew() ? '새 소식이 있다' : `돌봐 줄 동물 ${n}`) : `${esc(duoName(duoOther()))} 님과 함께`}</span></button>`; };
+// ---------- 운영 도구: 두 사람을 정해 만들고 지운다 ----------
+const duoId = (a, b) => 'duo_' + [a, b].sort().join('_');
+async function opDuoMake(){
+  if (!isOp() || ST.mode !== 'cloud') return; const a = $('#duoA').value, b = $('#duoB').value; if (!a || !b || a === b) return toast('서로 다른 두 사람을 골라 주세요.');
+  const nm = u => u === ST.uid ? S.char.name : (PL[u] && PL[u].name) || '', t = now(), pets = {}; for (const k in DUO_PETS) pets[k] = {n:DUO_PETS[k].n, hun:100, hunAt:t, bowl:2, aff:{[a]:50, [b]:50}, care:{}};
+  try { await ST.db.doc('duo/' + duoId(a, b)).set({a, b, names:{[a]:nm(a), [b]:nm(b)}, pets, log:[], ts:t}); toast(`${nm(a)} 님과 ${nm(b)} 님의 동물을 만들었습니다.`, 'good'); } catch (e){ console.warn('duo', e); toast('만들지 못했습니다. 이미 있으면 먼저 지워 주세요. 규칙을 게시했는지도 확인해 주세요.', 'warn'); }
+}
+async function opDuoDel(){
+  if (!isOp() || ST.mode !== 'cloud') return; const a = $('#duoA').value, b = $('#duoB').value; if (!a || !b || a === b) return;
+  if (!await ask('둘만의 반려동물 지우기', '두 사람이 함께 키운 기록이 모두 사라집니다. 되돌릴 수 없습니다.', '지우기', true)) return;
+  try { await ST.db.doc('duo/' + duoId(a, b)).delete(); toast('지웠습니다.'); } catch (e){ console.warn('duo', e); toast('지우지 못했습니다.', 'warn'); }
+}
+const _settings_duo = SHEETS.settings;
+SHEETS.settings = (...x) => { const h = _settings_duo(...x); if (!isOp() || ST.mode !== 'cloud') return h; const ps = [{uid:ST.uid, name:S.char.name}, ...Object.values(PL).filter(p => p && p.uid && p.uid !== ST.uid && p.name)].sort((a, b) => a.name.localeCompare(b.name, 'ko')), opts = ps.map(p => `<option value="${esc(p.uid)}">${esc(p.name)}</option>`).join('');
+  return h + `<div class="card" style="margin-top:10px"><b>둘만의 반려동물 (운영 도구)</b><p class="tiny muted" style="margin:4px 0 8px">고른 두 사람에게만 「우리 동물」 칸이 생긴다. 고양이·그레이하운드·생쥐 세 마리를 함께 키우고, 다른 사람은 볼 수 없다.</p><div class="row" style="gap:6px"><select id="duoA" class="grow" aria-label="첫 번째 사람">${opts}</select><select id="duoB" class="grow" aria-label="두 번째 사람">${opts}</select></div><div class="row" style="gap:6px;margin-top:8px"><button class="btn sm seal" data-act="opDuoMake">만들기</button><button class="btn sm ghost" data-act="opDuoDel">지우기</button></div></div>`; };
+Object.assign(ACT, {duoCare:d => duoCare(d.k), duoBowl:d => duoBowl(d.k), duoFeed:d => duoFeed(d.k), duoRename:d => duoRename(d.k), opDuoMake:() => opDuoMake(), opDuoDel:() => opDuoDel()});
+
+// ===================== 둘이서: 유대, 함께 산책, 쪽지 =====================
+// 모두 같은 duo 문서에 담겨 두 사람만 본다. 유대는 함께 돌보기와 산책으로 오른다. bond:{uid}로 따로 쌓고 합쳐서 보여 준다(동시에 써도 서로 덮지 않게).
+const DUO_LV = [[0, '서먹한 동거'], [30, '한솥밥 사이'], [80, '단짝'], [160, '찰떡궁합'], [300, '천생연분']];
+const duoBond = () => { const b = (DUO.doc && DUO.doc.bond) || {}; return Object.values(b).reduce((a, v) => a + (+v || 0), 0); };
+function duoLv(){ const n = duoBond(); let lv = 0; DUO_LV.forEach((x, i) => { if (n >= x[0]) lv = i; }); return {lv, n, name:DUO_LV[lv][1], next:DUO_LV[lv + 1] || null}; }
+async function duoPatch(patch, entry){ const D = DUO.doc; if (!D) return; if (entry){ D.log = [{u:ST.uid, ts:now(), ...entry}, ...(D.log || [])].slice(0, 14); patch.log = D.log; } try { await ST.db.doc('duo/' + DUO.id).update(patch); } catch (e){ console.warn('duo', e); toast('전하지 못했습니다. 잠시 후 다시 해 주세요.', 'warn'); } save(); renderSheet(true); render(); }
+function duoBondAdd(n){ const D = DUO.doc, lv0 = duoLv().lv; D.bond = {...(D.bond || {}), [ST.uid]:((D.bond || {})[ST.uid] || 0) + n}; if (duoLv().lv > lv0) setTimeout(() => toast(`두 사람은 이제 「${duoLv().name}」!`, 'good'), 600); return {bond:{[ST.uid]:D.bond[ST.uid]}}; }
+// 함께 산책
+const DUO_WALK = 20*MIN, DUO_WALK_X = ['강둑을 따라 걸었다', '신사 돌계단을 올랐다', '대숲 길을 한 바퀴 돌았다', '해안에서 조개를 주웠다', '논두렁에서 개구리를 쫓았다'];
+const duoWalk = () => { const w = DUO.doc && DUO.doc.walk; return w && w.at ? w : null; };
+const duoWalkMine = w => w && (w.by === ST.uid || w.join === ST.uid);
+const duoWalkGot = w => ((DUO.doc.wgot || {})[ST.uid]) === w.at;
+const duoWalkBusy = () => { const w = duoWalk(); return !!w && (now() < w.until || (duoWalkMine(w) && !duoWalkGot(w) && now() < w.until + 6*H)); };
+function duoWalkStart(k){ const p = duoPet(k); if (!p || duoWalkBusy()) return; const t = now(), w = {p:k, by:ST.uid, at:t, until:t + DUO_WALK, join:'', x:Math.floor(Math.random()*DUO_WALK_X.length)}; DUO.doc.walk = w; sfx('go'); toast(`${p.n}${pp(p.n, '과', '와')} 산책을 나섰다. ${duoName(duoOther())} 님도 따라나설 수 있다.`, 'good'); duoPatch({walk:w}, {k:'walk', pk:k}); }
+function duoWalkJoin(){ const w = duoWalk(); if (!w || w.by === ST.uid || w.join || now() >= w.until) return; w.join = ST.uid; sfx('go'); toast(`${duoName(w.by)} 님을 따라나섰다. 나란히 걷는다.`, 'good'); duoPatch({walk:{join:ST.uid}}, {k:'join', pk:w.p}); }
+function duoWalkClaim(){
+  const w = duoWalk(); if (!w || now() < w.until || !duoWalkMine(w) || duoWalkGot(w)) return; const p = duoPet(w.p), two = !!w.join, gain = two ? 10 : 5, it = DUO_GIFT[Math.floor(Math.random()*DUO_GIFT.length)], t = now();
+  addItem(it, two ? 2 : 1); S.gold += two ? 80 : 40; DUO.doc.wgot = {...(DUO.doc.wgot || {}), [ST.uid]:w.at}; const aff = Math.min(100, duoAff(p, ST.uid) + 5); p.aff = {...(p.aff || {}), [ST.uid]:aff}; p.care = {...(p.care || {}), [ST.uid]:t};
+  stat('duoWalk'); sfx('win'); toast(`${two ? duoName(duoOther()) + ' 님과 ' : ''}${p.n}${pp(p.n, '과', '와')} ${DUO_WALK_X[w.x] || DUO_WALK_X[0]}. ${IT[it].n} ${two ? 2 : 1} · ${two ? 80 : 40}${CUR} · ${p.n} 친밀도 +5 · 유대 +${gain}`, 'good');
+  duoPatch({...duoBondAdd(gain), wgot:{[ST.uid]:w.at}, pets:{[w.p]:{aff:{[ST.uid]:aff}, care:{[ST.uid]:t}}}});
+}
+// 쪽지
+function duoNote(){ const el = $('#duoNoteT'), D = DUO.doc; if (!el || !D) return; const t = el.value.trim().slice(0, 60); if (!t) return; D.notes = [{u:ST.uid, t, ts:now()}, ...(D.notes || [])].slice(0, 12); el.value = ''; sfx('soft'); S.duoSeen = now(); duoPatch({notes:D.notes}); }
+const duoNew = () => { const D = DUO.doc; if (!D) return false; const o = duoOther(), seen = S.duoSeen || 0, w = duoWalk(); return (D.notes || []).some(n => n.u === o && n.ts > seen) || !!(w && w.by === o && !w.join && now() < w.until) || !!(w && duoWalkMine(w) && now() >= w.until && !duoWalkGot(w)); };
+const DUO_TABS = [['pets', '동물'], ['us', '둘이서'], ['note', '쪽지']];
+const _duoSheet = SHEETS.duo;
+SHEETS.duo = () => {
+  const D = DUO.doc; if (!D) return _duoSheet(); const t = UI.duoTab || 'pets', o = duoOther(), on = esc(duoName(o)), nw = duoNew();
+  const seg = `<div class="seg" style="margin-bottom:10px">${DUO_TABS.map(([k, n]) => `<button data-act="duoTab" data-t="${k}" aria-pressed="${t === k}">${n}${k !== 'pets' && nw && t === 'pets' && k === 'us' ? ' ●' : ''}</button>`).join('')}</div>`;
+  if (t === 'pets'){ const h = _duoSheet(), mark = '<p class="small muted" style="margin-top:0">'; return h.replace(mark, seg + mark); }
+  const head = sheetHead('우리 동물', `<span class="chip gold">♥ ${duoBond()}</span>`);
+  if (t === 'note'){ const ns = D.notes || []; return head + seg + `<p class="small muted" style="margin-top:0">${on} 님과 둘만 보는 쪽지판이다. 열두 장까지 붙어 있다.</p><div class="row" style="gap:6px"><input type="text" id="duoNoteT" maxlength="60" placeholder="한마디 남기기 (60자)" aria-label="쪽지 내용"><button class="btn sm seal" data-act="duoNote">붙이기</button></div>${ns.length ? `<div class="duo-notes">${ns.map(n => `<div class="duo-note ${n.u === ST.uid ? 'me' : ''}"><p>${esc(n.t)}</p><span class="tiny">${n.u === ST.uid ? '나' : on} · ${duoAgo(n.ts)}</span></div>`).join('')}</div>` : '<p class="small muted" style="margin-top:10px">아직 붙은 쪽지가 없다. 첫 쪽지를 남겨 보자.</p>'}`; }
+  const L = duoLv(), days = Math.floor((seoul().day0 - seoul(D.ts || now()).day0)/(24*H)) + 1, w = duoWalk(), act = w && now() < w.until, done = w && now() >= w.until && duoWalkMine(w) && !duoWalkGot(w), online = PL[o] && now() - (PL[o].seen || 0) < 3*MIN;
+  const walk = act ? `<p class="small" style="margin:0 0 6px">${w.by === ST.uid ? '내가' : on + ' 님이'} ${esc(D.pets[w.p].n)}${pp(D.pets[w.p].n, '과', '와')} 산책 중${w.join ? ' · 둘이 나란히 걷는 중' : ''} · <span class="num" data-cd="${w.until}"></span></p>${w.by !== ST.uid && !w.join ? '<button class="btn sm seal" data-act="duoWalkJoin">따라나서기</button>' : w.by === ST.uid && !w.join ? `<span class="tiny muted">${on} 님이 따라나서면 보상이 두 배가 된다.</span>` : ''}`
+    : done ? `<p class="small" style="margin:0 0 6px">산책에서 돌아왔다.</p><button class="btn sm seal" data-act="duoWalkClaim">다녀온 이야기 듣기</button>`
+    : `<p class="tiny muted" style="margin:0 0 6px">20분 동안 다녀온다. 상대가 따라나서면 유대와 보상이 두 배.</p><div class="row wrapf" style="gap:6px">${Object.keys(DUO_PETS).map(k => `<button class="btn sm ghost" data-act="duoWalkStart" data-k="${k}">${esc(D.pets[k].n)}${pp(D.pets[k].n, '과', '와')}</button>`).join('')}</div>`;
+  return head + seg + `<div class="card"><div class="row"><b class="grow">${L.name}</b><span class="small muted">함께한 지 ${days}일째${online ? ' · <b style="color:var(--moss)">지금 접속 중</b>' : ''}</span></div><div class="bar gold" style="margin-top:6px"><i style="width:${L.next ? Math.min(100, (L.n - DUO_LV[L.lv][0])/(L.next[0] - DUO_LV[L.lv][0])*100) : 100}%"></i></div><p class="tiny muted" style="margin:6px 0 0">유대 ${L.n}${L.next ? ` · ${L.next[0]}이 되면 「${L.next[1]}」` : ' · 더할 나위 없다'} · 단계가 오르면 돌보기 친밀도가 더 많이 오른다</p></div>
+  <div class="card" style="margin-top:10px"><h3 style="margin:0 0 6px">함께 산책</h3>${walk}</div>
+  <p class="tiny muted" style="margin:10px 2px 0">같은 동물을 10분 안에 둘 다 돌보면 유대 +3. 함께 산책하면 유대가 더 많이 오른다.</p>`;
+};
+Object.assign(ACT, {duoTab:d => { UI.duoTab = d.t; if (d.t !== 'pets'){ S.duoSeen = now(); save(); } renderSheet(true); render(); }, duoWalkStart:d => duoWalkStart(d.k), duoWalkJoin:() => duoWalkJoin(), duoWalkClaim:() => duoWalkClaim(), duoNote:() => duoNote()});
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
