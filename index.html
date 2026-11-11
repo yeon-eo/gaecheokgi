@@ -1950,6 +1950,7 @@ function finishShort(){
   const coin = rng() < Math.min(0.8, 0.15 + L*0.02) ? Math.round((3 + L) * (1 + ri*0.3)) : 0; S.gold += coin;
   let jackpot = null;
   if (rng() < (0.03 + L*0.006) * (S.job==='thief'?1.4:1) * (tiredActive()?0.7:1)){ jackpot = pick(rng, rarePool(ri, ['gem','scroll','soul','pot2','talisman'])); got[jackpot] = (got[jackpot]||0) + 1; }
+  { const b = regBonus(ri), more = Math.floor(b*k) + (rng() < (b*k) % 1 ? 1 : 0); for (let i = 0; i < more; i++){ const it = wpick(rng, R.mats.filter(([x]) => IT[x].p < 50)); got[it] = (got[it]||0) + 1; } }
   for (const x in got) addItem(x, got[x]);
   setHP(curHP() - 2*(tiredActive()?1.5:1));
   const xp = addXP(5 + ri*2);
@@ -2178,7 +2179,7 @@ function titleList(){
   for (const t of myTitles()) out.push({id:'rel:' + t, n:t, d:'인연으로 얻은 칭호'});
   return out;
 }
-function curTitle(){ const l = titleList(); return (l.find(t => t.id === S.title) || l[0]).n; }
+function curTitle(){ if (S.title === 'none') return ''; const l = titleList(); return (l.find(t => t.id === S.title) || l[0]).n; }
 let titleCheckT = 0;
 function checkTitles(){
   if (!S || !S.char || now() - titleCheckT < 3000) return; titleCheckT = now();
@@ -3238,7 +3239,7 @@ function viewTop(){
   if (S.pts > 0) chips.push(`<button class="chip gold" data-act="tab" data-t="me">스탯 포인트 ${S.pts}</button>`);
   if (window.PWA && PWA.update) chips.push('<button class="chip good" data-act="pwaUpdate">새 버전이 나왔어요 · 눌러서 받기</button>');
   const pU = postUnread(), nU = notiUnread(), cU = ST.mode === 'cloud' ? noticeUnread() : 0;
-  return `<header class="top wrap"><div class="who">${PHOTO(S.char.photo)}<div class="grow"><div class="name">${esc(S.char.name)} <span class="muted small num">Lv.${S.lv}</span></div><div class="tiny muted">${JOBS[S.job].n} · ${SUBS[S.sub].n} · 「${esc(curTitle())}」</div><div class="tgold num"><span class="sclk tiny" id="sClk">${seoulClock()}</span>${S.settings.infGold && isOp() ? '∞' : S.gold.toLocaleString()}<span class="tiny"> ${CUR}</span></div></div>
+  return `<header class="top wrap"><div class="who">${PHOTO(S.char.photo)}<div class="grow"><div class="name">${esc(S.char.name)} <span class="muted small num">Lv.${S.lv}</span></div><div class="tiny muted">${JOBS[S.job].n} · ${SUBS[S.sub].n}${curTitle() ? ` · 「${esc(curTitle())}」` : ''}</div><div class="tgold num"><span class="sclk tiny" id="sClk">${seoulClock()}</span>${S.settings.infGold && isOp() ? '∞' : S.gold.toLocaleString()}<span class="tiny"> ${CUR}</span></div></div>
     <div class="topbtns">
     <button class="ib" data-act="sheet" data-s="help" aria-label="도움말">${ICO.help}</button>
     <button class="ib" data-act="sheet" data-s="notices" aria-label="공지${cU ? ` ${cU}개 새 글` : ''}">${ICO.notice}<b class="badge" id="bNotice" ${cU ? '' : 'hidden'}>${cU}</b></button>
@@ -3604,7 +3605,7 @@ TABS.me = () => {
   return `<div class="sec-title"><h2>나</h2><button class="btn sm ghost" data-act="sheet" data-s="settings">설정</button></div>
   <div class="card"><div class="row" style="align-items:flex-start">${PHOTO(c.photo,'lg')}<div class="grow"><h2 style="font-size:2rem">${esc(c.name)}</h2>
     <div class="small">${[c.age?`${esc(c.age)}세`:'', c.gender, c.height?`${esc(c.height)}cm`:''].filter(Boolean).join(' · ')}</div>
-    <div class="row wrapf" style="gap:6px;margin-top:6px"><span class="stamp" style="width:1.8rem;height:1.8rem;font-size:.95rem">${J.seal}</span><span class="chip">${J.n}</span><span class="chip">${SUBS[S.sub].n}</span><button class="chip gold" data-act="sheet" data-s="titles">「${esc(curTitle())}」 바꾸기</button></div></div></div>
+    <div class="row wrapf" style="gap:6px;margin-top:6px"><span class="stamp" style="width:1.8rem;height:1.8rem;font-size:.95rem">${J.seal}</span><span class="chip">${J.n}</span><span class="chip">${SUBS[S.sub].n}</span><button class="chip gold" data-act="sheet" data-s="titles">${curTitle() ? `「${esc(curTitle())}」 바꾸기` : '칭호 달기'}</button></div></div></div>
     ${c.bio ? `<p style="margin:10px 0 0">${esc(c.bio)}</p>` : ''}
     <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-act="editChar">프로필 고치기</button><button class="btn sm ghost" data-act="sheet" data-s="codex">도감</button></div></div>
   <div class="card" style="margin-top:10px"><div class="row"><span class="stamp">${J.seal}</span><div class="grow"><b>고유 스킬 「${J.sk.n}」</b> <span class="tiny muted">${J.sk.k}</span><br><span class="small">${J.sk.d}</span></div></div></div>
@@ -3843,9 +3844,10 @@ SHEETS.pen = () => {
   <div class="list">${Object.entries(ANIMALS).map(([k,A]) => `<div class="li"><span class="stamp" style="width:2rem;height:2rem;font-size:1rem">${A.k}</span><div class="t"><b>${A.n}</b><span class="flav">${esc(A.f)}</span><span>${A.feed ? `먹이 ${A.feed.map(x => IT[x].n).join('·')}` : '먹이 없음'} · ${A.h}시간마다 ${IT[A.out[0]].n} ${A.out[1]}~${A.out[2]}개</span></div><button class="btn sm" data-act="buyAnimal" data-k="${k}" ${free <= 0 || S.gold < A.buy ? 'disabled' : ''}>${A.buy}${CUR}</button></div>`).join('')}</div>`;
 };
 SHEETS.titles = () => {
-  const l = titleList(), cur = l.find(t => t.id === S.title) ? S.title : l[0].id;
+  const l = titleList(), cur = S.title === 'none' ? 'none' : l.find(t => t.id === S.title) ? S.title : l[0].id;
   const locked = TITLES.filter(t => !l.find(x => x.id === t.id));
   return sheetHead('칭호') + `<p class="small muted" style="margin-top:0">고른 칭호는 이름 옆과 다른 개척자의 교류 화면에 보인다.</p>
+  <div class="row" style="gap:8px;margin-bottom:10px"><span class="small grow">${cur === 'none' ? '지금은 칭호를 달지 않았다.' : `지금 「${esc(curTitle())}」`}</span>${cur === 'none' ? '' : '<button class="btn sm ghost" data-act="setTitle" data-k="none">칭호 해제</button>'}</div>
   <div class="list">${l.map(t => `<div class="li"><div class="t"><b>「${esc(t.n)}」</b><span>${esc(t.d)}</span></div>${t.id === cur ? '<span class="chip good">달고 있음</span>' : `<button class="btn sm" data-act="setTitle" data-k="${esc(t.id)}">달기</button>`}</div>`).join('')}</div>
   ${locked.length ? `<div class="card" style="margin-top:12px;text-align:center"><b>숨겨진 칭호 ${locked.length}개</b><p class="small muted" style="margin:4px 0 0">이름도 조건도 얻기 전까지는 알 수 없다. 탐사하고, 만들고, 사람들과 어울리다 보면 하나씩 드러난다.</p><p class="tiny muted" style="margin:6px 0 0">모은 칭호 ${l.filter(t => !t.id.startsWith('rel:')).length} / ${TITLES.length}</p></div>` : ''}`;
 };
@@ -6927,7 +6929,7 @@ const ACT = {
   eat: d => eat(d.k), use: d => useItem(d.k), equip: d => equip(d.k), sell: d => sell(d.k), sellAll: d => sell(d.k, true),
   unequip: d => equip(null, d.s), shopTab: d => { UI.shopTab = d.t; renderSheet(); }, compost: d => compost(+d.i),
   buyAnimal: d => buyAnimal(d.k), feedAnimal: d => feedAnimal(d.id), collectAnimal: d => collectAnimal(d.id), releaseAnimal: d => releaseAnimal(d.id),
-  setTitle: d => { S.title = d.k; save(); pubDirty(); renderSheet(); render(); toast(`칭호 「${curTitle()}」를 달았다.`, 'good'); },
+  setTitle: d => { S.title = d.k; save(); pubDirty(); renderSheet(); render(); toast(d.k === 'none' ? '칭호를 해제했다.' : `칭호 「${curTitle()}」${pp(curTitle(), '을', '를')} 달았다.`, 'good'); },
   fav: d => toggleFav(d.u),
   exTab: d => { UI.exTab = d.t; render(); window.scrollTo(0, 0); },
   hdStart: async d => { const m = +d.m; if (!await ask(`고난도 탐사 ${m === 60 ? '1시간' : m + '분'}`, '사건이 나타나면 1분 안에 골라야 합니다. 고르지 않으면 자동으로 진행되며, 자동 진행은 위험이 1.5배라 빈사 확률이 크게 높아집니다. 떠날까요?', '떠나기', true)) return; hardStart(m); },
@@ -10065,7 +10067,7 @@ async function mkBuy(id){
 }
 
 // ---------- 떠돌이 행상: 날마다 바뀌는 귀한 물건 (모두 같은 물건을 본다) ----------
-const MERCH_POOL = [['gem', 900], ['rareore', 700], ['scroll', 1200], ['soul', 1500], ['talisman', 600], ['rareherb', 500], ['dragonore', 2600], ['skyore', 5200], ['t_lantern', 900], ['t_torch', 600], ['silk_fine', 700], ['royal', 800], ['egg_pet', 5000], ['egg_summon', 6500]];
+const MERCH_POOL = [['gem', 900], ['rareore', 700], ['scroll', 1200], ['soul', 1500], ['talisman', 600], ['rareherb', 500], ['dragonore', 18000], ['skyore', 22000], ['t_lantern', 900], ['t_torch', 600], ['silk_fine', 700], ['royal', 800], ['egg_pet', 5000], ['egg_summon', 6500]];
 function merchToday(){
   const d = dayKey(); let h = hashStr('merch' + d); const rnd = () => { h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909); return ((h >>>= 0) % 10000)/10000; };
   const pool = MERCH_POOL.filter(([k]) => k.startsWith('egg_') || IT[k]), out = [];
@@ -11421,6 +11423,12 @@ SHEETS.duo = () => {
   <p class="tiny muted" style="margin:10px 2px 0">같은 동물을 10분 안에 둘 다 돌보면 유대 +3. 함께 산책하면 유대가 더 많이 오른다.</p>`;
 };
 Object.assign(ACT, {duoTab:d => { UI.duoTab = d.t; if (d.t !== 'pets'){ S.duoSeen = now(); save(); } renderSheet(true); render(); }, duoWalkStart:d => duoWalkStart(d.k), duoWalkJoin:() => duoWalkJoin(), duoWalkClaim:() => duoWalkClaim(), duoNote:() => duoNote()});
+
+// ===================== 높은 고장일수록 보상이 많다 =====================
+// 권장 레벨 1당 장기 탐사 보상 +1.2% (천주봉 Lv48이면 +57.6%). makeSnap 값만 바꾼다. 단기 탐사는 같은 비율로 물건이 더 나온다.
+const regBonus = ri => { const R = REG[ri]; return R ? +(R.lv*.012).toFixed(3) : 0; };
+const _makeSnap_reg = makeSnap;
+makeSnap = (region, ...a) => { const s = _makeSnap_reg(region, ...a), b = regBonus(region == null ? S.loc : region); return b ? {...s, rew:+(s.rew*(1 + b)).toFixed(3)} : s; };
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
