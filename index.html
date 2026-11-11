@@ -589,6 +589,7 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .duo-note{ padding:10px 10px 8px; border-radius:4px; background:#fbe9b0; color:#3a2e1a; box-shadow:0 2px 5px var(--shade); transform:rotate(-1deg); }
 .duo-note:nth-child(even){ transform:rotate(1.2deg); } .duo-note.me{ background:#f6d4d0; }
 .duo-note p{ margin:0 0 4px; font-size:.9rem; line-height:1.45; overflow-wrap:anywhere; } .duo-note span{ opacity:.7; }
+.ho-lock .m-node{ opacity:.55; }
 /* 집 3D */
 .h3-slot{ position:relative; aspect-ratio:4/3; overflow:hidden; border-radius:8px; touch-action:none; }
 .h3-box{ position:absolute; inset:0; }
@@ -2533,7 +2534,7 @@ function hpChip(p){ const h = hpOf(p); if (!h) return ''; if (h.hp == null) retu
 // 지도 위 고장 좌표 (viewBox 360×420)
 const MAPPOS = [[70,362],[140,318],[224,352],[104,248],[232,274],[304,302],[176,202],[292,196],[86,160],[150,104],[70,66],[268,108],[200,42]];
 const ROADS = [[0,1],[1,2],[1,3],[2,4],[2,5],[4,5],[3,6],[4,6],[4,7],[5,7],[3,8],[6,8],[8,9],[9,10],[9,12],[6,11],[7,11],[11,12],[10,12]];
-const travelMin = (a, b) => { const [x1,y1] = MAPPOS[a], [x2,y2] = MAPPOS[b]; return Math.round(clamp(6 + Math.hypot(x2-x1, y2-y1)/40, 6, 15)); };
+let travelMin = (a, b) => { const [x1,y1] = MAPPOS[a], [x2,y2] = MAPPOS[b]; return Math.round(clamp(6 + Math.hypot(x2-x1, y2-y1)/40, 6, 15)); };
 function travelState(){
   const T = S.travel; if (!T) return null;
   if (now() >= T.arrive){
@@ -3327,7 +3328,7 @@ TABS.home = () => {
   const tile = (act, ic, name, st, extra='') => `<button class="tile" data-act="${act}" ${extra} ${lock && act !== 'sheet-free' ? 'aria-disabled="true"' : ''}><span class="ic">${ICO[ic]}</span><b>${name}</b>${st}</button>`;
   const es = expState();
   return `
-  <div class="sec-title"><h2>거점</h2><span class="small muted">토벌 ${Object.keys(S.bosses).length} / 13 고장</span></div>
+  <div class="sec-title"><h2>거점</h2><span class="small muted">토벌 ${Object.keys(S.bosses).length} / ${REG.length} 고장</span></div>
   ${journalBanner()}
   ${MUSIC.yt && MUSIC.ytFail && !MUSIC.cfg ? `<p class="small" style="margin:-2px 2px 10px">배경음악 · <a href="${esc(MUSIC.yt.url)}" target="_blank" rel="noopener" style="color:var(--indigo)">유튜브 새 탭에서 듣기 ↗</a></p>` : ''}
   ${es && es.st === 'down' ? `<div class="card" style="border-color:var(--seal);margin-bottom:10px"><b style="color:var(--seal)">행동불능 상태</b><p class="small" style="margin:4px 0 0">${REG[S.exp.region].n}에서 쓰러졌습니다. ${ST.mode==='cloud'?'같은 고장의 동료가 구조하러 오길 기다리는 중입니다.':'잠시 뒤 마을 사람들이 실어 옵니다.'} 자동 귀환까지 <span class="num" data-cd="${es.autoAt}"></span></p></div>` : ''}
@@ -3385,10 +3386,11 @@ function mapSVG(sel){
     g(40, 44, '<path d="M0 16l4-14 4 14M8 16l5-18 5 18"/>'),
     g(282, 82, '<path d="M0 16l8-14 8 14M10 16l8-12 8 12"/><path d="M18 -6l-4 7h5l-4 7" class="m-bolt"/>'),
     g(222, 14, '<path d="M0 30V2h8v28M-3 2h14"/>'),
+    REG.length > 13 ? g(22, 378, '<path d="M0 8h22l-4 6H4z M10 8V-6l9 9h-9"/>') : '',
   ].join('');
-  const roads = ROADS.map(([a, b]) => `<line class="m-road" x1="${P[a][0]}" y1="${P[a][1]}" x2="${P[b][0]}" y2="${P[b][1]}"/>`).join('');
-  const trail = T ? `<line class="m-trail" x1="${P[T.from][0]}" y1="${P[T.from][1]}" x2="${P[T.to][0]}" y2="${P[T.to][1]}"/>` : '';
-  const nodes = REG.map((r, i) => { const [x, y] = P[i]; const here = !T && S.loc === i, cl = !!S.bosses[i];
+  const roads = ROADS.filter(([a, b]) => typeof contOf !== 'function' || (contOf(a) === 0 && contOf(b) === 0)).map(([a, b]) => `<line class="m-road" x1="${P[a][0]}" y1="${P[a][1]}" x2="${P[b][0]}" y2="${P[b][1]}"/>`).join('');
+  const trail = T && (typeof contOf !== 'function' || (contOf(T.from) === 0 && contOf(T.to) === 0)) ? `<line class="m-trail" x1="${P[T.from][0]}" y1="${P[T.from][1]}" x2="${P[T.to][0]}" y2="${P[T.to][1]}"/>` : '';
+  const nodes = REG.map((r, i) => { if (typeof contOf === 'function' && contOf(i) !== 0) return ''; const [x, y] = P[i]; const here = !T && S.loc === i, cl = !!S.bosses[i];
     return `<g class="m-node ${i===sel?'sel':''} ${here?'here':''} ${cl?'clear':''}" data-act="region" data-r="${i}" role="button" tabindex="0" aria-label="${esc(r.n)}, 난이도 별 ${STARS[i]}개, 권장 ${recLv(i)}${here?', 지금 있는 곳':''}"><circle class="hit" cx="${x}" cy="${y}" r="20"/><circle class="dot" cx="${x}" cy="${y}" r="8"/><text class="m-label" x="${x}" y="${y+22}" text-anchor="middle">${esc(r.n)}</text></g>`; }).join('');
   return `<svg class="map-svg" viewBox="0 0 360 420" role="group" aria-label="옛 지방 지도">
     <rect class="m-sea" x="0" y="0" width="360" height="420" rx="6"/>
@@ -3454,7 +3456,7 @@ TABS.explore = () => {
     ${lead && !g ? `<button class="btn seal full" data-act="partyGather">조사대원 모아 ${hours}시간 떠나기</button><button class="btn ghost full" data-act="startLong">혼자 ${hours}시간 떠나기</button>`
       : `<button class="btn seal full" data-act="startLong" ${g ? 'disabled' : ''}>${R.n}${pp(R.n,'으로','로')} ${hours}시간 떠나기</button>`}` : ''}`;
   } else {
-    act = `<hr class="rule" style="margin:2px 0"><button class="btn seal full" data-act="travel" data-r="${ri}" ${S.exp || T || (inParty && !lead) ? 'disabled' : ''}>${inParty && lead ? '조사대와 함께 ' : ''}${josa(R.n,'으로','로')} 걸어가기 · 약 ${tmin}분</button>
+    act = `<hr class="rule" style="margin:2px 0">${typeof hoLocked === 'function' && hoLocked(ri) ? '<p class="small" style="margin:0 2px 6px;color:var(--seal)">봉래 대륙으로 가는 배가 아직 뜨지 않는다. 천주봉의 우두머리를 쓰러뜨리면 백사 해안에서 배가 뜬다.</p>' : typeof contOf === 'function' && contOf(ri) !== contOf(S.loc) ? '<p class="small muted" style="margin:0 2px 6px">항구까지 걸어가 배를 타고 바다를 건넌다.</p>' : ''}<button class="btn seal full" data-act="travel" data-r="${ri}" ${S.exp || T || (inParty && !lead) || (typeof hoLocked === 'function' && hoLocked(ri)) ? 'disabled' : ''}>${inParty && lead ? '조사대와 함께 ' : ''}${josa(R.n,'으로','로')} 걸어가기 · 약 ${tmin}분</button>
     ${S.exp ? '<p class="tiny muted" style="margin:0">장기 탐사를 마친 뒤 떠날 수 있다.</p>' : T ? '<p class="tiny muted" style="margin:0">지금 길을 걷는 중이다.</p>' : inParty && !lead ? '<p class="tiny muted" style="margin:0">조사대의 이동은 대장이 정한다.</p>' : ''}`;
   }
   return `
@@ -4701,7 +4703,7 @@ function hardMePos(H){
 const hHash = n => { let x = Math.sin(n*12.9898)*43758.5453; return x - Math.floor(x); };
 function hardMapSVG(H){
   const off = hardOff(H), pts = H.path, last = pts[pts.length - 1];
-  const tone = ['sea','bamboo','swamp','forest','rock','lake','maple','volcano','ruin','snow','ice','thunder','sky'][H.ri] || 'forest';
+  const tone = ['sea','bamboo','swamp','forest','rock','lake','maple','volcano','ruin','snow','ice','thunder','sky','sea','forest','swamp','volcano','sky','sky'][H.ri] || 'forest';
   // 배경 장식: 절대 x 좌표에 묶여 있어 길을 따라 함께 흘러간다
   let deco = '';
   const x0 = Math.floor(off/40) - 1;
@@ -7103,7 +7105,7 @@ function tick(){
   document.querySelectorAll('[data-cd]').forEach(el => { el.textContent = fmtDur(+el.dataset.cd - now()); });
   tickLog();
   travelState();
-  const mk = document.getElementById('meMk'); if (mk){ const [x, y] = travelPos(); mk.setAttribute('transform', `translate(${x.toFixed(1)} ${(y-12).toFixed(1)})`); }
+  const mk = document.getElementById('meMk'); if (mk && (typeof travelCont !== 'function' || (mk.closest('svg')?.getAttribute('aria-label') === '봉래 대륙 지도') === (travelCont() === 1))){ const [x, y] = travelPos(); mk.setAttribute('transform', `translate(${x.toFixed(1)} ${(y-12).toFixed(1)})`); }
   const tb = document.getElementById('travBar'); if (tb && S.travel) tb.style.width = clamp((now()-S.travel.start)/(S.travel.arrive-S.travel.start)*100, 0, 100) + '%';
   if (ST.mode === 'cloud') partySync();
   const es = expState();
@@ -11429,6 +11431,113 @@ Object.assign(ACT, {duoTab:d => { UI.duoTab = d.t; if (d.t !== 'pets'){ S.duoSee
 const regBonus = ri => { const R = REG[ri]; return R ? +(R.lv*.012).toFixed(3) : 0; };
 const _makeSnap_reg = makeSnap;
 makeSnap = (region, ...a) => { const s = _makeSnap_reg(region, ...a), b = regBonus(region == null ? S.loc : region); return b ? {...s, rew:+(s.rew*(1 + b)).toFixed(3)} : s; };
+// ===================== 두 번째 대륙: 봉래 대륙 =====================
+// 천주봉 우두머리를 쓰러뜨리면 백사 해안에서 배가 뜬다. 고장 여섯 곳(13~18)을 고장 표(REG·BOSS·STARS·MAPPOS·ROADS·AMB_REG·X3_THEME)에 덧붙인다.
+// 지도는 대륙마다 따로 그린다. MAPPOS는 대륙마다 자기 지도 좌표다. 대륙을 건너는 길은 항구까지 걷고 배를 탄다.
+// 새 고장은 새로 떠나는 탐사에만 쓰이므로 진행 중인 탐사 결과는 바뀌지 않는다.
+const HO0 = REG.length, HO_SEA = 20, PORTS = [0, HO0];
+const contOf = ri => ri >= HO0 ? 1 : 0;
+const CONT_N = ['옛 지방', '봉래 대륙'];
+const hoOpen = () => !!(S && S.bosses && S.bosses[HO0 - 1]) || isOp();
+const hoLocked = ri => contOf(ri) === 1 && !hoOpen();
+Object.assign(IT, {
+  peach:{n:'선도 복숭아', t:'mat', p:300, f:'도원 골짜기에서만 열리는 복숭아. 한 입 베어 물면 십 년이 젊어진다는 말이 있다. 비싸게 팔린다.'},
+  jade:{n:'비취 원석', t:'mat', p:500, f:'비취 늪 바닥에서 건진 푸른 돌. 갈면 물빛이 돈다. 비싸게 팔린다.'},
+  phoenix:{n:'봉황 깃털', t:'mat', p:800, f:'봉황 화구에서 주운 따뜻한 깃털. 꺼지지 않는 불씨를 품고 있다. 비싸게 팔린다.'},
+  moonstone:{n:'월광석', t:'mat', p:600, f:'운해 신궁의 달빛이 굳어 생긴 돌. 어둠 속에서 은은하게 빛난다. 비싸게 팔린다.'},
+});
+Object.assign(ICON, {peach:['apple', '#f4a8b8', '#6ab04a'], jade:['orb', '#5ab08a', '#c8f0d8'], phoenix:['feather', '#e8603a', '#f6c84a'], moonstone:['orb', '#c8d4f0', '#f4f8ff']});
+Object.assign(MON, {
+  umibozu:{n:'솟구치는검은물결', t:'y', L:53, hm:1.7, am:1.1, gm:.7, dr:[['soul', .1], ['clam', .5]], w:'바다에서 거대한 머리를 내민다'},
+  kappa2:{n:'물속으로끄는손', t:'y', L:52, hm:1, am:1.2, gm:1.3, dr:[['talisman', .4], ['clam', .4]], w:'발목을 잡아 물속으로 끈다'},
+  bigcrab:{n:'바위를부수는집게', t:'a', L:54, hm:1.5, am:1.2, gm:.8, dr:[['clam', .7], ['ore', .3]], w:'집게 한 번에 바위가 갈라진다'},
+  peachape:{n:'복숭아를훔치는원숭이', t:'a', L:56, hm:.9, am:1.1, gm:1.6, dr:[['peach', .3], ['hide', .4]], w:'짐을 뒤져 복숭아만 가져간다'},
+  kodama:{n:'숲에울리는메아리', t:'y', L:57, hm:.9, am:1.2, gm:1.4, dr:[['talisman', .5], ['herb', .5]], w:'말을 따라 하며 길을 잃게 한다'},
+  whitedeer:{n:'선녀의흰사슴', t:'a', L:58, hm:1.2, am:1.1, gm:1.4, dr:[['hide', .5], ['rareherb', .2]], w:'눈부시게 희다. 쫓으면 사라진다'},
+  jadeserp:{n:'비취비늘이무기', t:'y', L:61, hm:1.5, am:1.3, gm:1, dr:[['jade', .15], ['soul', .1]], w:'비늘이 비취처럼 빛난다'},
+  toadking:{n:'울려퍼지는두꺼비왕', t:'a', L:60, hm:1.6, am:1, gm:.8, dr:[['hide', .5], ['sansai', .5]], w:'울음소리에 귀가 멍해진다'},
+  hotaru:{n:'홀리는반딧불', t:'y', L:62, hm:.8, am:1.3, gm:1.6, dr:[['talisman', .5], ['jade', .06]], w:'불빛을 따라가면 늪에 빠진다'},
+  firebird:{n:'불꽃깃의새', t:'a', L:64, hm:1, am:1.3, gm:1.6, dr:[['feather', .7], ['phoenix', .06]], w:'날갯짓마다 불티가 흩날린다'},
+  lavaoni:{n:'용암을두른오니', t:'y', L:66, hm:1.8, am:1.5, gm:.8, dr:[['ore', .6], ['dragonore', .08]], w:'몸에서 용암이 흘러내린다'},
+  onibi:{n:'타오르는도깨비불', t:'y', L:65, hm:.8, am:1.4, gm:1.5, dr:[['soul', .12], ['talisman', .4]], w:'떠다니며 불을 붙인다'},
+  kujira:{n:'떠다니는구름고래', t:'y', L:68, hm:1.9, am:1.1, gm:.6, dr:[['soul', .12], ['feather', .4]], w:'구름 사이를 헤엄친다. 몸집이 산만 하다'},
+  raicho:{n:'번쩍이는뇌조', t:'a', L:69, hm:.9, am:1.3, gm:1.7, dr:[['feather', .8], ['skyore', .04]], w:'번개를 두르고 내리꽂힌다'},
+  hagoromo:{n:'날개옷의망령', t:'y', L:70, hm:1.1, am:1.2, gm:1.5, dr:[['silk', .5], ['moonstone', .08]], w:'잃어버린 날개옷을 찾아 떠돈다'},
+  komainu:{n:'지키는돌사자', t:'y', L:72, hm:2, am:1.2, gm:.7, dr:[['ore', .6], ['gem', .12]], w:'신궁 문을 지킨다. 매우 단단하다'},
+  daitengu:{n:'산을다스리는대천구', t:'y', L:73, hm:1.3, am:1.4, gm:1.5, dr:[['feather', .7], ['soul', .14]], w:'부채 한 번에 폭풍이 인다'},
+  kyubi:{n:'천년묵은여우', t:'y', L:74, hm:1.2, am:1.5, gm:1.6, dr:[['talisman', .6], ['moonstone', .1]], w:'꼬리마다 다른 환술을 쓴다'},
+  ryukage:{n:'용의그림자', t:'y', L:76, hm:1.6, am:1.6, gm:1.2, dr:[['skyore', .08], ['soul', .16]], w:'몸은 없고 그림자만 덮쳐 온다'},
+});
+const HO_REG = [
+  {n:'봉래 나루', k:'蓬萊津', g:'봉래 대륙의 항구', lv:52, d:'바다를 건너온 배가 닿는 첫 항구. 낯선 돛과 말소리가 뒤섞인다.', mons:['umibozu', 'kappa2', 'bigcrab'], mats:[['clam', 2], ['feather', 1], ['gem', .8], ['soul', .6], ['skyore', .5]],
+    pos:[78, 352], x3:{sky:['#78b8e0', '#eaf4f0'], ground:'#e4d4a8', path:'#f0e4c4', far:'sea', near:['palm', 'rock', 'shell', 'stoneLamp', 'grassT'], fx:null}, tone:'sea', boss:{n:'파도를삼키는바다승려', d:'항구 앞바다에서 배를 뒤집는 거대한 바다 요괴', t:'y'},
+    amb:['갈매기 대신 처음 보는 흰 새가 돛대 위를 돈다.', '부둣가 상인이 낯선 말로 값을 부른다.', '짠 바람에 복숭아 향이 섞여 있다.', '건너온 바다가 아득하게 푸르다.']},
+  {n:'도원 골짜기', k:'桃源', g:'복숭아꽃 골짜기', lv:56, d:'일 년 내내 복숭아꽃이 피는 골짜기. 시간이 느리게 흐르는 것 같다.', mons:['peachape', 'kodama', 'whitedeer'], mats:[['peach', 1], ['herb', 2], ['rareherb', 1], ['silk', 1], ['gem', .6]],
+    pos:[168, 296], x3:{sky:['#f4c4d4', '#fdf0f0'], ground:'#8ab868', path:'#d8c8a0', far:'hill', farC:'#e8a8c0', near:['oldtree', 'grassT', 'pine', 'rock', 'grassT'], fx:'leaf', leaf:'#f4b8cc'}, tone:'forest', boss:{n:'천년도원의원숭이왕', d:'선도 복숭아를 혼자 차지하려는 원숭이들의 왕', t:'a'},
+    amb:['꽃잎이 개울을 따라 끝없이 흘러간다.', '나무 그늘에서 누군가 바둑을 두다 사라졌다.', '복숭아 하나가 발 앞에 툭 떨어졌다.', '바람이 불 때마다 분홍 눈이 내린다.']},
+  {n:'비취 늪', k:'翡翠沼', g:'푸른 돌의 늪', lv:60, d:'물빛이 비취처럼 푸른 늪. 바닥에 구슬 같은 돌이 깔려 있다.', mons:['jadeserp', 'toadking', 'hotaru'], mats:[['jade', 1], ['sansai', 2], ['soul', 1], ['talisman', 1], ['skyore', .6]],
+    pos:[274, 330], x3:{sky:['#a8c8b8', '#e4f0e4'], ground:'#5a8a68', path:'#8a9a70', far:'lake', near:['reed', 'pond', 'reed', 'rock'], fx:'mist', fog:'#c8e0d0'}, tone:'swamp', boss:{n:'늪을다스리는두꺼비신', d:'비취 늪 한가운데에 앉아 비를 부르는 두꺼비 신', t:'y'},
+    amb:['물 밑에서 푸른 돌이 반짝인다.', '두꺼비 울음이 사방에서 메아리친다.', '반딧불이 일부러 길을 비켜 주지 않는다.', '물안개가 무릎까지 차오른다.']},
+  {n:'봉황 화구', k:'鳳凰', g:'불새의 분화구', lv:64, d:'봉황이 깃든다는 거대한 분화구. 땅이 따뜻하고 불티가 꽃잎처럼 날린다.', mons:['firebird', 'lavaoni', 'onibi'], mats:[['phoenix', .5], ['ore', 3], ['dragonore', 1], ['skyore', 1], ['gem', 1]],
+    pos:[250, 214], x3:{sky:['#c87858', '#f0c8a0'], ground:'#4a3a38', path:'#7a6050', far:'volcano', near:['ash', 'vent', 'redrock', 'ash'], fx:'ember'}, tone:'volcano', boss:{n:'잿불을두른봉황', d:'분화구 깊은 곳에서 불길을 품고 잠든 불새', t:'a'},
+    amb:['발밑의 돌이 손난로처럼 따뜻하다.', '불티 하나가 소매에 앉았다가 꺼졌다.', '저 멀리 붉은 날개가 스쳐 지나간 것 같다.', '유황 냄새 속에 달콤한 향이 섞여 있다.']},
+  {n:'운해 신궁', k:'雲海', g:'구름 바다의 신궁', lv:68, d:'구름 다리를 건너면 닿는 곳. 구름 바다 위에 하얀 신궁이 떠 있다.', mons:['kujira', 'raicho', 'hagoromo', 'komainu'], mats:[['skyore', 1], ['moonstone', .6], ['soul', 1.2], ['gem', 1], ['feather', 1.5], ['silk', .8]],
+    pos:[112, 178], x3:{sky:['#a8d0f4', '#fdf4ec'], ground:'#ecebf4', path:'#d8d4e8', far:'cloud', near:['pillar', 'cloudP', 'torii', 'cloudP', 'stoneLamp'], fx:'sparkle'}, tone:'sky', boss:{n:'구름을삼키는용왕', d:'운해 깊은 곳에서 신궁을 지키는 늙은 용왕', t:'y'},
+    amb:['발아래로 구름이 파도처럼 밀려간다.', '신궁의 방울 소리가 바람에 실려 온다.', '구름 다리가 발걸음마다 살짝 출렁인다.', '달이 손에 닿을 듯 가깝다.']},
+  {n:'봉래산', k:'蓬萊山', g:'신선의 산', lv:72, d:'신선이 산다는 봉래 대륙의 가장 높은 산. 꼭대기에 무엇이 있는지 아는 사람은 없다.', mons:['daitengu', 'kyubi', 'ryukage', 'komainu'], mats:[['moonstone', .8], ['phoenix', .4], ['jade', .6], ['skyore', 1.2], ['soul', 1.4], ['gem', 1.2]],
+    pos:[212, 84], x3:{sky:['#8ab0e0', '#f4f4fa'], ground:'#c8c8c4', path:'#e0dcd4', far:'peak', near:['pillar', 'pine', 'torii', 'rock', 'stoneLamp'], fx:'sparkle'}, tone:'sky', boss:{n:'봉래산의아홉꼬리여우', d:'봉래산 꼭대기에서 천 년을 기다린 아홉 꼬리 여우', t:'y'},
+    amb:['구름이 산허리를 감고 돈다.', '바위에 새겨진 글씨가 읽을 때마다 바뀐다.', '어디선가 거문고 소리가 들린다.', '숨을 쉴 때마다 몸이 가벼워진다.']},
+];
+HO_REG.forEach(R => { const {pos, x3, tone, boss, amb, ...r} = R; REG.push(r); BOSS.push(boss); STARS.push(5); MAPPOS.push(pos); AMB_REG.push(amb); X3_THEME.push(x3); });
+ROADS.push(...[[0, 1], [1, 2], [1, 4], [2, 3], [3, 4], [3, 5], [4, 5]].map(([a, b]) => [HO0 + a, HO0 + b]));
+SEA_REG[HO0 + 3] = ['clear', 'cloud', 'wind']; SEA_REG[HO0 + 4] = ['clear', 'wind', 'fog', 'cloud']; SEA_REG[HO0 + 5] = ['clear', 'wind', 'fog', 'cloud', 'snow'];
+const _seaHazard_ho = seaHazard;
+seaHazard = (ri = S.loc) => ri === HO0 + 3 ? {kind:'hot', lv:seaKey() === 'summer' ? 2 : 1} : ri >= HO0 + 4 ? {kind:'cold', lv:seaKey() === 'winter' ? 2 : 1} : _seaHazard_ho(ri);
+// ---------- 대륙을 건너는 길: 항구까지 걷고 배로 20분 ----------
+const _travelMin_ho = travelMin;
+travelMin = (a, b) => { const ca = contOf(a), cb = contOf(b); if (ca === cb) return _travelMin_ho(a, b); const leg = (x, p) => x === p ? 0 : _travelMin_ho(x, p); return leg(a, PORTS[ca]) + HO_SEA + leg(b, PORTS[cb]); };
+const _travelPos_ho = travelPos;
+travelPos = () => { const T = S.travel; if (!T || now() >= T.arrive || contOf(T.from) === contOf(T.to)) return _travelPos_ho(); const f = clamp((now() - T.start)/(T.arrive - T.start), 0, 1), a = f < .5 ? MAPPOS[T.from] : MAPPOS[PORTS[contOf(T.to)]], b = f < .5 ? MAPPOS[PORTS[contOf(T.from)]] : MAPPOS[T.to], k = f < .5 ? f*2 : f*2 - 1; return [a[0] + (b[0] - a[0])*k, a[1] + (b[1] - a[1])*k]; };
+const travelCont = () => { const T = S.travel; if (!T || now() >= T.arrive) return contOf(S.loc); return contOf(clamp((now() - T.start)/(T.arrive - T.start), 0, 1) < .5 ? T.from : T.to); };
+const _travelLines_ho = travelLines;
+travelLines = T => { const L = _travelLines_ho(T); if (contOf(T.from) === contOf(T.to)) return L; const mid = T.start + (T.arrive - T.start)*.45, to = contOf(T.to) === 1; L.push({at:mid, x:to ? '백사 해안에서 배에 올랐다. 동쪽 바다 너머로 봉래 대륙이 보인다.' : '봉래 나루에서 배에 올랐다. 서쪽으로 옛 지방의 해안선이 보인다.'}); return L.sort((x, y) => x.at - y.at); };
+const _startTravel_ho = startTravel;
+startTravel = async to => { if (hoLocked(to)) return toast('봉래 대륙으로 가는 배가 아직 뜨지 않는다. 천주봉의 우두머리를 쓰러뜨려야 한다.'); return _startTravel_ho(to); };
+// ---------- 봉래 대륙 지도 ----------
+const HO_COAST = smoothPath([[42, 372], [26, 318], [52, 262], [64, 206], [52, 152], [84, 112], [136, 72], [178, 40], [238, 30], [288, 58], [300, 108], [318, 158], [330, 222], [318, 282], [338, 332], [318, 380], [258, 402], [184, 392], [112, 404], [62, 398]]);
+function hoMapSVG(sel){
+  const P = MAPPOS, T = S.travel && now() < S.travel.arrive ? S.travel : null, [mx, my] = travelPos(), meHere = travelCont() === 1;
+  const g = (x, y, d) => `<g transform="translate(${x} ${y})" class="m-glyph">${d}</g>`;
+  const glyphs = [g(30, 384, '<path d="M0 8h22l-4 6H4z M10 8V-6l9 9h-9"/>'), g(150, 330, '<path d="M0 6c2-6 8-6 10 0-2 6-8 6-10 0zM12 10c2-5 7-5 9 0-2 5-7 5-9 0z"/>'), `<ellipse class="m-lake" cx="300" cy="352" rx="13" ry="7"/>`, g(274, 180, '<path d="M0 18l10-16h6l10 16"/><path d="M12 -2c-2-4 2-6 0-10M16 -2c2-4-2-6 0-10" class="m-smoke"/>'), g(78, 140, '<path d="M0 10q4-8 10-4q4-6 10 0q6-2 6 4z"/>'), g(236, 50, '<path d="M0 22l12-20 12 20M8 22l10-14 10 14"/>')].join('');
+  const roads = ROADS.filter(([a, b]) => contOf(a) === 1 && contOf(b) === 1).map(([a, b]) => `<line class="m-road" x1="${P[a][0]}" y1="${P[a][1]}" x2="${P[b][0]}" y2="${P[b][1]}"/>`).join('');
+  const trail = T && contOf(T.from) === 1 && contOf(T.to) === 1 ? `<line class="m-trail" x1="${P[T.from][0]}" y1="${P[T.from][1]}" x2="${P[T.to][0]}" y2="${P[T.to][1]}"/>` : '';
+  const nodes = REG.map((r, i) => { if (contOf(i) !== 1) return ''; const [x, y] = P[i], here = !T && S.loc === i, cl = !!S.bosses[i];
+    return `<g class="m-node ${i === sel ? 'sel' : ''} ${here ? 'here' : ''} ${cl ? 'clear' : ''}" data-act="region" data-r="${i}" role="button" tabindex="0" aria-label="${esc(r.n)}, 난이도 별 ${STARS[i]}개, 권장 ${recLv(i)}${here ? ', 지금 있는 곳' : ''}"><circle class="hit" cx="${x}" cy="${y}" r="20"/><circle class="dot" cx="${x}" cy="${y}" r="8"/><text class="m-label" x="${x}" y="${y + 22}" text-anchor="middle">${esc(r.n)}</text></g>`; }).join('');
+  return `<svg class="map-svg ${hoOpen() ? '' : 'ho-lock'}" viewBox="0 0 360 420" role="group" aria-label="봉래 대륙 지도">
+    <rect class="m-sea" x="0" y="0" width="360" height="420" rx="6"/>
+    <path class="m-wave" d="M300 20q6-5 12 0t12 0M10 40q6-5 12 0t12 0M330 300q6-5 12 0t12 0M8 230q6-5 12 0t12 0"/>
+    <path class="m-shore" d="${HO_COAST}"/><path class="m-land" d="${HO_COAST}"/>
+    ${glyphs}${roads}${trail}${nodes}
+    ${meHere ? `<g id="meMk" transform="translate(${mx.toFixed(1)} ${(my - 12).toFixed(1)})" aria-hidden="true"><path class="m-me" d="M0 8C-6 0 -8-4 -8-8a8 8 0 0 1 16 0c0 4-2 8-8 16z"/><circle cx="0" cy="-8" r="3" class="m-me-dot"/></g>` : ''}
+    <text class="m-title" x="350" y="414" text-anchor="end">봉래 대륙</text>
+    <g transform="translate(330 30)" class="m-glyph"><circle r="12"/><path d="M0-10v20M-10 0h20"/><text class="m-n" y="-15" text-anchor="middle">北</text></g>
+    ${hoOpen() ? '' : '<g class="b-lockmsg"><rect x="50" y="186" width="260" height="48" rx="8"/><text x="180" y="206" text-anchor="middle">천주봉의 우두머리를 쓰러뜨리면</text><text x="180" y="223" text-anchor="middle">백사 해안에서 배가 뜬다</text></g>'}
+  </svg>`;
+}
+const _mapSVG_ho = mapSVG;
+mapSVG = sel => { const c = UI.mapC ?? contOf(sel ?? S.loc); if (c === 1) return hoMapSVG(sel); const h = _mapSVG_ho(sel); return travelCont() === 0 ? h : h.replace(/<g id="meMk"[\s\S]*?<\/g>/, ''); };
+const contSeg = () => { const c = UI.mapC ?? contOf(UI.region ?? S.loc); return `<div class="seg" style="margin-bottom:8px">${CONT_N.map((n, i) => `<button data-act="mapC" data-c="${i}" aria-pressed="${c === i}">${n}${i === 1 && !hoOpen() ? ' 🔒' : ''}</button>`).join('')}</div>`; };
+const _explore_ho = TABS.explore;
+TABS.explore = () => { const h = _explore_ho(); return UI.exTab === 'hard' ? h : h.replace('<div class="card map-card">', contSeg() + '<div class="card map-card">'); };
+ACT.mapC = d => { const c = +d.c; UI.mapC = c; if (contOf(UI.region ?? S.loc) !== c) UI.region = c === contOf(S.loc) ? S.loc : PORTS[c]; render(); };
+const _region_ho = ACT.region;
+ACT.region = d => { UI.mapC = contOf(+d.r); return _region_ho(d); };
+// ---------- 부탁과 칭호 ----------
+SUBQ.push({id:'re4', who:'렌타로', t:'바다 건너', x:'"동쪽 바다 너머에 봉래라는 땅이 있다 하오. 그곳 항구의 바다 요괴부터 잠재워 주시오."', g:{k:'boss', r:HO0}, r:{gold:6000, xp:600, tok:15, items:[['phoenix', 1], ['jade', 2]]}});
+TITLES.push(
+  {id:'ho_arrive', n:'바다를 건넌 개척자', d:'봉래 대륙에 발을 디뎠다.', c:S => S.loc >= HO0 || Object.keys(S.bosses).some(k => +k >= HO0)},
+  {id:'ho_all', n:'봉래의 영웅', d:'봉래 대륙의 우두머리를 모두 쓰러뜨렸다.', c:S => HO_REG.every((_, i) => S.bosses[HO0 + i])},
+);
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
