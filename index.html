@@ -590,6 +590,15 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .duo-note:nth-child(even){ transform:rotate(1.2deg); } .duo-note.me{ background:#f6d4d0; }
 .duo-note p{ margin:0 0 4px; font-size:.9rem; line-height:1.45; overflow-wrap:anywhere; } .duo-note span{ opacity:.7; }
 .ho-lock .m-node{ opacity:.55; }
+/* 개척 위키 */
+.wk-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; }
+.wk-tile{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-height:92px; padding:12px; border:1px solid var(--line); border-radius:var(--r); background:var(--card); color:var(--ink); font:inherit; text-align:left; cursor:pointer; box-shadow:inset 0 0 18px var(--burn); }
+.wk-tile > span:first-child{ font-size:1.4rem; line-height:1; } .wk-tile b{ font-size:1rem; }
+.wk-tile:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
+.wk-star{ color:var(--gold-ink, #a8741a); letter-spacing:.05em; white-space:nowrap; }
+.wk-doc p, .wk-doc li{ line-height:1.7; } .wk-doc h4{ margin:14px 0 4px; font-size:1rem; } .wk-doc ul, .wk-doc ol{ margin:4px 0; padding-left:1.3em; } .wk-doc li{ margin:3px 0; }
+.comp-pic{ flex:none; padding:0; border:0; background:none; cursor:pointer; border-radius:50%; }
+.comp-pic:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
 /* 집 3D */
 .h3-slot{ position:relative; aspect-ratio:4/3; overflow:hidden; border-radius:8px; touch-action:none; }
 .h3-box{ position:absolute; inset:0; }
@@ -4061,7 +4070,7 @@ SHEETS.fx = k => {
 
 function compList(){
   const sorted = S.comps.slice().sort((a, b) => (b.out !== false) - (a.out !== false));
-  return `<div class="list">${sorted.map(x => { const on = activeComps().includes(x); return `<div class="li">${art(x.sp)}<button class="t click" style="background:none;border:0;padding:0;text-align:left;color:inherit" data-act="sheet" data-s="comp" data-a="${x.id}"><b>${esc(x.name)} <span class="small muted">Lv.${x.lv}</span> ${on ? '<span class="chip good">동행</span>' : '<span class="chip">쉬는 중</span>'}</b><span>${SPEC[x.sp].n} · ${SPEC[x.sp].k === 'pet' ? '펫' : '소환수'} · ${bondTier(x.bond)} ${x.bond} · ${compMood(x)[0]}</span></button><button class="btn sm ${on ? 'ghost' : ''}" data-act="compOut" data-id="${x.id}">${on ? '쉬게 하기' : '데리고 다니기'}</button></div>`; }).join('')}</div>`;
+  return `<div class="list">${sorted.map(x => { const on = activeComps().includes(x); return `<div class="li"><button class="comp-pic" data-act="sheet" data-s="comp" data-a="${x.id}" aria-label="${esc(x.name)} 메뉴 열기">${art(x.sp)}</button><button class="t click" style="background:none;border:0;padding:0;text-align:left;color:inherit" data-act="sheet" data-s="comp" data-a="${x.id}"><b>${esc(x.name)} <span class="small muted">Lv.${x.lv}</span> ${on ? '<span class="chip good">동행</span>' : '<span class="chip">쉬는 중</span>'}</b><span>${SPEC[x.sp].n} · ${SPEC[x.sp].k === 'pet' ? '펫' : '소환수'} · ${bondTier(x.bond)} ${x.bond} · ${compMood(x)[0]}</span></button><button class="btn sm ${on ? 'ghost' : ''}" data-act="compOut" data-id="${x.id}">${on ? '쉬게 하기' : '데리고 다니기'}</button></div>`; }).join('')}</div>`;
 }
 
 // 레시피를 배우는 곳
@@ -10584,8 +10593,12 @@ Object.assign(ACT, {journalGo:d => { UI.jt = d.t; openSheet('journal'); }, hallG
 // 규칙 변경 없음: 대회 기록은 hallc/{uid}의 wc·wcp에 쓴다. 패치마다 GUIDE_V와 GUIDE를 고치면 모두에게 한 번 뜬다.
 
 // ---------- 1. 업데이트 길잡이 ----------
-const GUIDE_V = '2026-11-08d';
+const GUIDE_V = '2026-11-13';
 const GUIDE = [
+  ['📚', '개척 위키가 생겼어요', '화면 위 물음표(도움말) → 「위키」 탭에서 모든 아이템의 구하는 곳·쓰이는 곳·구하기 난이도, 고장·몬스터 사전, 탐사·장비·요리·교류 안내와 자주 묻는 질문을 볼 수 있어요. 궁금한 건 위키에서 먼저 찾아보세요!'],
+  ['⛵', '두 번째 대륙 「봉래 대륙」', '천주봉의 우두머리를 쓰러뜨리면 백사 해안에서 배가 떠요. 고장 여섯 곳(Lv52~72), 새 몬스터와 우두머리, 비싸게 팔리는 새 재료가 기다려요. 탐사 탭 지도 위에서 대륙을 골라 볼 수 있어요.'],
+  ['⛰', '높은 고장일수록 보상이 많아요', '권장 레벨 1당 장기 탐사 보상이 1.2%씩 늘어요. 단기 탐사도 같은 비율로 물건이 더 나와요.'],
+  ['🏷', '칭호 해제', '칭호 창 맨 위의 「칭호 해제」로 칭호를 떼어 둘 수 있어요.'],
   ['🏠', '집이 3D가 되었어요', '내 집과 이웃 집을 입체로 둘러볼 수 있어요. 끌어서 시점을 돌리고, 꾸미기에서는 가구를 직접 끌어 옮겨 보세요. 2D로도 볼 수 있어요.'],
   ['💞', '집 합치기', '연인이나 부부라면 내 집 화면에서 집을 합칠 수 있어요. 두 사람의 방과 마당이 이어지고, 상대 집 아늑함의 절반이 더해져요.'],
 ];
@@ -11538,6 +11551,259 @@ TITLES.push(
   {id:'ho_arrive', n:'바다를 건넌 개척자', d:'봉래 대륙에 발을 디뎠다.', c:S => S.loc >= HO0 || Object.keys(S.bosses).some(k => +k >= HO0)},
   {id:'ho_all', n:'봉래의 영웅', d:'봉래 대륙의 우두머리를 모두 쓰러뜨렸다.', c:S => HO_REG.every((_, i) => S.bosses[HO0 + i])},
 );
+// ===================== 개척 위키: 도움말의 「위키」 탭 =====================
+// 아이템 입수처·쓰임새·난이도는 게임 데이터(SHOP·CRAFT·RECIPES·REG·MON·FISH·SEEDS·ANIMALS…)를 읽어 자동으로 만든다.
+// 데이터가 바뀌면 위키도 따라 바뀐다. 손으로 쓴 글(WK_DOC)은 규칙이 바뀌면 함께 고칠 것.
+
+// ---------- 1. 봉래 대륙 고장 장비와 높은 고장 떨굼 (옛 지방과 같은 규칙) ----------
+const HO_GEAR = [
+  {p:'파랑', a:'돛천 갑옷', x:{n:'닻 모양 목걸이', slot:'neck', st:{AGI:3, LUK:2}}, f:'봉래 나루의 부두에 걸려 있던 물건. 바닷바람에 바래 있다.'},
+  {p:'도화', a:'복숭아꽃 갑옷', x:{n:'선도 씨앗 반지', slot:'ring', st:{LUK:3, VIT:2}}, f:'도원 골짜기의 꽃그늘에 놓여 있던 물건. 은은한 복숭아 향이 난다.'},
+  {p:'비취', a:'옥비늘 갑옷', x:{n:'비취 팔찌', slot:'wrist', st:{SPI:3, INT:2}}, f:'비취 늪 바닥에서 건져 올린 물건. 물빛이 돈다.'},
+  {p:'봉익', a:'불새 깃 갑옷', x:{n:'불씨 목걸이', slot:'neck', st:{STR:3, AGI:2}}, f:'봉황 화구의 재 속에서 찾은 물건. 아직 따뜻하다.'},
+  {p:'운해', a:'구름 비단 갑옷', x:{n:'월광 반지', slot:'ring', st:{INT:3, SEN:3}}, f:'운해 신궁의 회랑에 놓여 있던 물건. 달빛처럼 차갑게 빛난다.'},
+  {p:'선인', a:'신선 도포', x:{n:'아홉 꼬리 방울', slot:'wrist', st:{LUK:3, STR:2, INT:2, SEN:2}}, f:'봉래산 꼭대기의 바위 위에 놓여 있던 물건. 흔들면 맑은 방울 소리가 난다.'},
+];
+HO_GEAR.forEach((g, j) => { const i = HO0 + j, lv = REG[i].lv; REGION_GEAR[i] = g; REG_TINT[i] = [['#3a7ab0', '#e8f0f4'], ['#e888a8', '#fbe8ee'], ['#3a9a78', '#d8f0e4'], ['#d8502a', '#f6c84a'], ['#8aa0d8', '#f4f6fc'], ['#c8a040', '#fff4d8']][j];
+  IT['gw' + i] = {n:`${g.p} 무기`, t:'weapon', p:20 + lv*14, atk:Math.round(3 + lv*.42), f:g.f, drop:i};
+  IT['ga' + i] = {n:g.a, t:'armor', p:24 + lv*14, def:Math.round(3 + lv*.36), f:g.f, drop:i};
+  IT['gx' + i] = {n:g.x.n, t:'acc', slot:g.x.slot, p:120 + lv*12, st:g.x.st, f:g.f, drop:i}; });
+// 옛 지방처럼 높은 고장 요괴는 용혈석을, 모든 몬스터는 성운석을 가끔 떨군다(새로 떠나는 탐사부터)
+for (const [k, m] of Object.entries(MON)){ const ri = REG.findIndex(r => r.mons.includes(k)); if (ri < HO0 || m.dr6) continue; m.dr6 = m.dr.slice(); if (m.t === 'y' && !m.dr.some(([x]) => x === 'dragonore')) m.dr6.push(['dragonore', .06]); if (!m.dr.some(([x]) => x === 'skyore')) m.dr6.push(['skyore', .03]); }
+
+// ---------- 2. 입수처·쓰임새 색인 ----------
+let WK = null;
+const wkNeedTxt = need => need.map(([k, n]) => `${Array.isArray(k) ? k.map(x => IT[x] ? IT[x].n : x).join('/') : k === '#fish' ? '아무 생선' : k === '#mat' ? '아무 재료' : IT[k] ? IT[k].n : k} ${n}`).join(', ');
+function wkBuild(){
+  const src = {}, use = {}, add = (m, k, o) => { if (!IT[k]) return; (m[k] = m[k] || []).push(o); };
+  const S_ = (k, t, lv, kind) => add(src, k, {t, lv, kind}), U = (k, t) => add(use, k, {t});
+  const needU = (need, t) => need.forEach(([k]) => (Array.isArray(k) ? k : [k]).forEach(x => U(x, t)));
+  new Set(SHOP).forEach(k => IT[k] && S_(k, `거점 잡화점에서 산다 (${IT[k].p}${CUR})`, 1, 'shop'));
+  [['ore', '채광'], ['silver', '채광 (채광 숙련도 10부터)'], ['gem', '채광 (가끔)'], ['rareore', '채광 (채광 숙련도 25 · Lv20부터 드물게)'], ['wood', '벌목'], ['sap', '벌목'], ['herb', '채집'], ['mushroom', '채집'], ['sansai', '채집'], ['berry', '채집'], ['mulberry', '채집'], ['rareherb', '채집 (수행승 + 채집꾼 궁합일 때 가끔)']].forEach(([k, t]) => S_(k, `거점 「뒷산 일터」의 ${t}`, k === 'rareore' ? 20 : 1, 'task'));
+  Object.values(ERRANDS).forEach(E => { E.loot.forEach(([k]) => S_(k, `동료 심부름 「${E.n}」 (동료 Lv${E.lv}부터)`, 1, 'errand')); (E.rare || []).forEach(([k]) => S_(k, `동료 심부름 「${E.n}」 (드물게)`, 1, 'rare')); });
+  REG.forEach((R, i) => { const tot = R.mats.reduce((a, [, w]) => a + w, 0); R.mats.forEach(([k, w]) => S_(k, `${R.n} 탐사에서 발견 · 그 고장 재료 중 ${Math.round(w/tot*100)}%`, R.lv, 'region')); });
+  for (const [id, m] of Object.entries(MON)){ const ri = REG.findIndex(r => r.mons.includes(id)); if (ri < 0) continue; (m.dr6 || m.dr).forEach(([k, ch]) => S_(k, `${REG[ri].n} · 「${m.n}」 처치 시 ${ch < .1 ? (ch*100).toFixed(1) : Math.round(ch*100)}%`, REG[ri].lv, ch < .1 ? 'rare' : 'mon')); }
+  const firstRare = {}; REG.forEach((R, i) => rarePool(i).forEach(k => { if (firstRare[k] == null) firstRare[k] = i; })); for (const k in firstRare) S_(k, `장기 탐사 중 희귀 발견 「반짝이는 것」 (${REG[firstRare[k]].n}부터)`, REG[firstRare[k]].lv, 'rare');
+  [['gem', 0], ['scroll', 0], ['soul', 2], ['rareore', 5], ['dragonore', 8], ['skyore', 11]].forEach(([k, i]) => S_(k, `우두머리 첫 토벌 보상 (${REG[i].n}의 우두머리부터)`, bossReqLv(i), 'boss'));
+  for (const k in IT){ const g = /^g[wax](\d+)$/.exec(k); if (g && REG[+g[1]]) S_(k, `${REG[+g[1]].n} 장기 탐사 중 가끔 발견 (1시간 약 25%, 3시간 약 60%)`, REG[+g[1]].lv, 'gear'); }
+  for (const C of Object.values(CRAFT)) C.list.forEach(rc => { S_(rc.out, `공방 「${C.n}」에서 제작 · ${wkNeedTxt(rc.need)}`, 0, 'craft'); needU(rc.need, `「${C.n}」 ${IT[rc.out] ? IT[rc.out].n : rc.out} 재료`); });
+  RECIPES.forEach(r => { const o = 'f_' + r.id; if (IT[o]) S_(o, `부엌에서 요리 (요리 숙련도 ${r.lv}) · ${wkNeedTxt(r.need)}`, 0, 'cook'); needU(r.need, `요리 「${r.n}」 재료`); });
+  FEST_FOOD.forEach(r => { const th = Object.values(FEST_THEME).filter(T => T.foods.includes(r.id)).map(T => T.n); S_('m_' + r.id, `밤 마츠리 노점 (매일 밤 8~10시${th.length && th.length < 4 ? ' · ' + th.join('·') : ''}) ${r.p}${CUR}`, 1, 'fest'); });
+  SF_FOOD.forEach(r => S_('m_' + r.id, `계절 축제 「${SF[r.s].n}」 노점 (계절 마지막 3일) ${r.p}${CUR}`, 1, 'fest'));
+  for (const s in SEEDS){ const sd = SEEDS[s]; S_(sd.crop, `논밭에 「${SEEDS[s].n}」을 심어 거둔다 (${sd.h}시간)`, 1, 'farm'); S_(s, '수확할 때 40% 확률로 씨앗이 돌아온다', 1, 'farm'); }
+  FISH.forEach(f => S_(f.id, `${SPOTN[f.spot]} 낚시 · ${f.season ? SEA[f.season].n + '에만' : TIMEN[f.time]}${f.rare ? ' · 희귀' : ''}`, 1, f.rare ? 'rare' : 'fish'));
+  for (const [a, A] of Object.entries(ANIMALS)){ S_(A.out[0], `축사의 ${A.n}`, 1, 'ranch'); if (A.bonus) S_(A.bonus[0], `축사의 ${A.n} (가끔 덤으로)`, 1, 'ranch'); if (RANCH_RARE[a]) S_(RANCH_RARE[a][0], `축사의 ${A.n} (애정도 100일 때 가끔)`, 1, 'rare'); (A.feed || []).forEach(k => U(k, `축사 ${A.n}의 먹이`)); }
+  ['feed', 'feed2'].forEach(k => U(k, '축사 가축의 먹이 (꿀벌통 제외)'));
+  TOKEN_SHOP.forEach(([k, c]) => IT[k] && S_(k, `마을회관 증표 교환소 (개척 증표 ${c}개)`, 1, 'token'));
+  MERCH_POOL.forEach(([k, p]) => IT[k] && S_(k, `장터 떠돌이 행상 (${p.toLocaleString()}${CUR} · 그날 물건에 있을 때)`, 1, 'merch'));
+  SF_SHOP.forEach(([k, n, c]) => IT[k] && S_(k, `계절 축제 교환소 (축제 패 ${c}개)`, 1, 'token'));
+  HARD_RARE.filter(k => k !== 'rareore').forEach(k => S_(k, '고난도 탐사의 보물 상자·갈림길 보상 (가끔)', 1, 'rare'));
+  ORE_TIER.forEach(([k, i]) => S_(k, `고난도 탐사의 보물 상자 (${REG[i].n}부터)`, REG[i].lv, 'rare'));
+  for (const k in IT) if (k.startsWith('f_fail_')) S_(k, '손맛 요리에서 점수가 40점 아래면 나오는 실패작', 1, 'cook2');
+  if (typeof ING === 'object') for (const k in ING) if (IT[k] && IT[k].t === 'mat') U(k, '자유 요리 재료 (재료 성질에 따라 이름과 효과가 정해진다)');
+  S_('token', '마을회관 납품 (20점마다 1개), 납품 의뢰, 이야기·부탁·출석·주간 대회·공동 토벌 보상', 1, 'token');
+  S_('fcoin', '계절 축제 놀이 (하루 3번), 주간 대회 3단계 목표', 1, 'token');
+  S_('ticket', '증표 교환소 (증표 60개), 이야기 완결 선물', 1, 'token');
+  S_('ring', '공방 「세공소」에서 직접 만든다', 0, 'craft');
+  // 쓰임새: 강화·집·대비·부탁·장비
+  Object.values(PREP).forEach(P => needU(P.need, `추위·더위 대비 「${P.n}」 재료`));
+  HOUSE.forEach(Hh => Hh.need && needU(Hh.need, `집 넓히기 「${Hh.n}」 재료`));
+  PEN_UP.forEach((p, i) => needU(p.need, `축사 넓히기 ${i + 1}단계 재료`));
+  const furnUse = {}; Object.values(FURN).forEach(F => (F.need || []).forEach(([k]) => { furnUse[k] = (furnUse[k] || 0) + 1; })); for (const k in furnUse) U(k, `집 가구 ${furnUse[k]}종의 재료`);
+  SUBQ.forEach(q => q.g.k === 'give' && U(q.g.i, `주민 부탁 「${q.t}」 (${q.who})`));
+  for (const k in IT){ const t = IT[k].t; if (t === 'weapon' || t === 'armor' || t === 'acc') U(k, '장착하면 능력치가 오른다 · 공방 「강화」에서 +10까지'); if (t === 'food') U(k, '먹으면 식사 버프 · 선물하면 호감도'); if (t === 'pot') U(k, '체력 회복 · 장기 탐사에 챙기면 위험할 때 알아서 먹는다'); if (t === 'fish') U(k, '요리 재료 · 생선 주문 · 마을회관 납품'); if (t === 'mat' && !MAT_KEEP.includes(k)) U(k, '마을회관 납품 · 잡화점에 팔기 · 거래소'); }
+  // 난이도: 가장 낮은 진입 레벨. 제작·요리는 재료의 진입 레벨을 따른다
+  const lvOf = {}; for (const k in src){ const real = src[k].filter(s => !['craft', 'cook', 'merch', 'token'].includes(s.kind)); lvOf[k] = real.length ? Math.min(...real.map(s => s.lv)) : src[k].some(s => s.kind === 'merch' || s.kind === 'token') ? 1 : 999; }
+  const needLv = need => Math.max(1, ...need.map(([k]) => (Array.isArray(k) ? Math.min(...k.map(x => lvOf[x] ?? 999)) : k[0] === '#' ? 1 : lvOf[k] ?? 999)));
+  for (let pass = 0; pass < 5; pass++){ for (const C of Object.values(CRAFT)) C.list.forEach(rc => { lvOf[rc.out] = Math.min(lvOf[rc.out] ?? 999, needLv(rc.need)); }); RECIPES.forEach(r => { const o = 'f_' + r.id; if (IT[o]) lvOf[o] = Math.min(lvOf[o] ?? 999, needLv(r.need)); }); }
+  WK = {src, use, lvOf};
+  return WK;
+}
+const wk = () => WK || wkBuild();
+const WK_DIFF = [[5, '아주 쉬움'], [15, '쉬움'], [30, '보통'], [48, '어려움'], [999, '아주 어려움']];
+function wkDiff(k){ const W = wk(), lv = W.lvOf[k], s = W.src[k] || []; if (lv == null || lv >= 999) return {n:'구할 수 없음', star:0, lv:null}; const i = WK_DIFF.findIndex(([m]) => lv <= m), only = s.length && s.every(x => ['rare', 'merch', 'token'].includes(x.kind)); return {n:WK_DIFF[i][1] + (only ? ' · 드묾' : ''), star:i + 1, lv}; }
+const WK_KIND = {mat:'재료', food:'음식', fish:'물고기', seed:'씨앗', weapon:'무기', armor:'갑옷', acc:'장신구', pot:'약', cure:'약', tool:'탐사 도구', sp:'특별한 물건', elix:'비약'};
+const wkKind = k => WK_KIND[IT[k].t] || '기타';
+
+// ---------- 3. 위키 글 ----------
+const WK_DOC = {
+  start:{n:'처음 시작하기', ic:'🌱', b:() => `
+<p>「개척기」는 시간이 흐르는 동안 탐사를 보내고, 돌아온 재료로 요리·제작·집 꾸미기를 하며 개척자를 키우는 게임이에요. 창을 닫아도 탐사와 농사는 계속 진행돼요.</p>
+<h4>첫날 이렇게 해 보세요</h4><ol>
+<li><b>개척 일지</b>(거점 맨 위 빨간 띠)를 열어 출석 도장을 찍고, 이야기 서장을 읽어요.</li>
+<li><b>부엌</b>에서 주먹밥을 만들어 먹어요. 탐사 체력 소모가 15% 줄어요.</li>
+<li><b>탐사 탭</b> → 백사 해안 → <b>단기 탐사(훑어보기)</b>를 몇 번 해 재료를 모아요. 하루 10번, 몬스터가 없어 안전해요.</li>
+<li>잡화점에서 <b>${IT.pot1.n}</b>을 사서 <b>장기 탐사 1시간</b>을 떠나요. 환약은 위험할 때 알아서 먹어요.</li>
+<li>기다리는 동안 <b>논밭</b>에 씨앗을 심고, <b>뒷산 일터</b>에서 채광·벌목·채집을 돌려요.</li>
+<li>레벨이 오르면 <b>나 탭</b>에서 능력치를 찍어요. 칠각형 그래프의 점선과 ★ 표시가 직업 추천이에요.</li></ol>
+<h4>알아 두면 좋은 것</h4><ul>
+<li>장기 탐사 중에는 거점이 잠겨요. 시설·가방·교류를 쓸 수 없고, 조기 귀환하면 보상이 절반이 돼요.</li>
+<li>지도에서 고장을 누르면 별(난이도)과 권장 레벨이 보여요. 권장 레벨보다 낮으면 쓰러지기 쉬워요.</li>
+<li>하루 첫 접속 때 출석 창이 열리고, 업데이트가 있으면 「이번 업데이트」 창이 한 번 떠요.</li></ul>`},
+  explore:{n:'탐사', ic:'🧭', b:() => `
+<h4>장기 탐사</h4><ul>
+<li>1·2·3시간 중에서 골라 떠나요. 3분마다 일지가 한 줄씩 쌓이고, 창을 닫아도 진행돼요.</li>
+<li>재료 발견, 몬스터와의 전투, 희귀 발견(「반짝이는 것」), 알, 고장 장비(1시간 약 25%, 3시간 약 60%)가 나와요.</li>
+<li>가방에 담을 수 있는 양은 <b>20 + 힘×2</b>개예요.</li>
+<li>떠날 때의 식사 버프·동료·날씨·추위와 더위·기원이 탐사 내내 적용돼요.</li>
+<li>높은 고장일수록 보상이 많아요. 권장 레벨 1당 장기 탐사 보상이 1.2%씩 늘어요.</li></ul>
+<h4>단기 탐사 (훑어보기)</h4><ul><li>6초 만에 끝나고 하루 10번, 몬스터가 없어요.</li><li><b>운 10마다 물건이 하나 더</b> 나오고 엽전·대박 확률이 올라요.</li></ul>
+<h4>고난도 탐사</h4><ul><li>10·30·60분 동안 사건이 계속 이어지고 갈림길을 직접 골라요. 하루 횟수 제한은 없어요.</li><li>보물 상자에서 귀한 재료가 자주 나와요.</li></ul>
+<h4>쓰러졌을 때</h4><ul>
+<li>체력이 0이 되면 <b>행동불능</b>이 돼요. 같은 고장의 개척자가 부축하거나 ${IT.cure.n}으로 일으켜 줄 수 있어요.</li>
+<li>3시간 동안 아무도 오지 않으면 치료비를 내고 자동으로 돌아와요.</li>
+<li>돌아오면 <b>지친 몸</b>(12시간 · 체력 소모 +50%, 보상 −30%)이 걸려요. 약초죽·단팥죽을 먹거나 친구에게 위로를 받으면 줄어들어요.</li></ul>
+<h4>이동</h4><ul><li>고장 사이는 거리에 따라 6~15분 걸어요.</li><li>봉래 대륙은 항구(백사 해안 ↔ 봉래 나루)까지 걷고 배로 20분 건너요. 천주봉의 우두머리를 쓰러뜨리면 배가 떠요.</li></ul>`},
+  battle:{n:'토벌과 전투', ic:'⚔', b:() => `
+<ul><li>고장마다 우두머리가 한 마리 있어요. <b>권장 레벨 +3</b>부터 도전할 수 있어요.</li>
+<li>턴제 전투예요. 「강공 예고」가 뜨면 피하기·숨기로 대비하고, 「숨 고르기」 턴에 스킬을 쓰세요.</li>
+<li>처음 쓰러뜨리면 보석 원석·요리 비전서 조각, 높은 고장에서는 영혼석·정령석·용혈석·성운석을 줘요.</li>
+<li>조사대원과 함께 토벌 원정대를 꾸리면 훨씬 쉬워요.</li>
+<li>요괴에게 받는 피해는 <b>정신</b>이 높을수록 줄어요(최대 30%).</li></ul>`},
+  gear:{n:'장비·제작·강화', ic:'🗡', b:() => `
+<h4>장비 얻는 법</h4><ul>
+<li><b>대장간</b>: 무기·갑옷 6단계. 마지막 두 단계가 용혈(공격 ${IT.w5.atk}·방어 ${IT.a5.def})과 성운(공격 ${IT.w6.atk}·방어 ${IT.a6.def})이에요.</li>
+<li><b>세공소</b>: 반지·목걸이·팔찌 같은 장신구와 청혼 반지.</li>
+<li><b>고장 장비</b>: 장기 탐사 중 그 고장 이름이 붙은 무기·갑옷·장신구가 가끔 나와요. 능력치는 고장 레벨을 따라가요.</li></ul>
+<h4>강화</h4><ul><li>공방에서 +${ENH_MAX}까지 강화할 수 있어요. 단계마다 기본 능력치의 7%씩 올라요.</li>
+<li>재료와 엽전이 들고, <b>+6부터 실패할 수 있어요</b>(단계마다 12%씩, 최대 50%).</li></ul>
+<h4>탐사 도구</h4><ul><li>도구방에서 흔한 재료로 만들어 장기 탐사에 하나 챙겨 가요. 횃불은 몬스터와 덜 마주치게 해 줘요.</li></ul>`},
+  money:{n:'엽전 벌고 쓰기', ic:'🪙', b:() => `
+<h4>버는 법</h4><ul><li>탐사에서 얻은 재료·장비를 가방에서 팔기</li><li>마을회관 <b>납품 의뢰</b> (매일 바뀜)</li><li>뒷산 일터 <b>청소</b> (10분에 약 30냥)</li><li>장터 <b>거래소</b>에 올려 다른 개척자에게 팔기 (등록 2%, 판매 5% 수수료)</li><li>주간 대회·공동 토벌·출석·이야기 보상</li><li>비싸게 팔리는 재료: 월광석·봉황 깃털·비취 원석·선도 복숭아·금빛 달걀·로열젤리</li></ul>
+<h4>쓰는 곳</h4><ul><li>잡화점 재료·씨앗·사료, 집 가구와 집 넓히기, 축사 가축과 넓히기</li><li>장터 행상(귀한 물건), 신사 기원(3시간 버프), 동료 훈련</li><li>추위·더위 대비, 회관 잔치, 장비 강화</li></ul>`},
+  cook:{n:'요리', ic:'🍙', b:() => `
+<ul><li>부엌에서 아는 레시피로 요리해요. <b>요리 숙련도</b>가 오르거나 「요리 비전서 조각」을 읽으면 새 레시피를 배워요.</li>
+<li>먹으면 몇 시간 동안 <b>식사 버프</b>가 걸려요. 한 번에 하나만 유지되고, 새로 먹으면 바뀌어요.</li>
+<li><b>손맛 요리</b>(3D 부엌)에서 70점 이상이면 「정성 가득」: 효과 1.5배, 시간 1.25배예요.</li>
+<li>제철 재료가 든 요리는 효과 시간이 25% 길어요.</li>
+<li>자유 요리로 재료 2~4개를 섞어 나만의 요리를 만들 수 있어요.</li></ul>`},
+  life:{n:'낚시·농사·축사·일터', ic:'🎣', b:() => `
+<h4>낚시</h4><ul><li>강·바다·호수마다, 아침·낮·밤마다 다른 물고기가 낚여요. 물고기 도감에서 확률을 볼 수 있어요.</li><li>계절마다 그 계절에만 낚이는 물고기가 있고, 비 오는 날은 입질이 빠르고 희귀 물고기가 늘어요.</li></ul>
+<h4>논밭</h4><ul><li>4칸에 씨앗을 심으면 실제 시간이 지나 자라요. 물을 주면 +1, 퇴비를 주면 +2개.</li><li>제철 작물은 20% 빨리 자라고 하나 더 나와요. 비 오는 날은 저절로 물이 들어요.</li></ul>
+<h4>축사</h4><ul><li>닭·오리·누에·꿀벌·소·산양·양을 길러요. 먹이를 주면 시간이 지나 산물이 나와요. 잡화점 「축사 먹이」(배합 사료·고급 사료)를 쓸 수 있어요.</li><li>4시간마다 쓰다듬으면 애정도가 올라요. 50 이상이면 산물이 하나 더 나올 때가 있고, 100이면 귀한 산물이 나와요.</li></ul>
+<h4>뒷산 일터</h4><ul><li>채광(철광석·은광석·보석 원석), 벌목(목재·옻진), 채집(약초·버섯·산나물·산열매·뽕잎), 청소(엽전)를 시간 단위로 맡겨요.</li><li>서브 직업이 맞으면 30% 더 많이 나와요.</li></ul>`},
+  comp:{n:'동료와 알', ic:'🐾', b:() => `
+<ul><li>탐사에서 알을 주워 <b>둥지</b>에서 부화시키면 동료가 돼요. 야생동물의 알은 펫, 요괴의 알은 소환수가 나와요.</li>
+<li>동료는 ${COMP_MAX}마리까지 기르고, 그중 <b>${COMP_OUT}마리</b>를 데리고 다녀요.</li>
+<li>펫: 탐사 체력 소모 감소, 보상 +5%. 소환수: 전투마다 함께 공격 (음양사는 1.5배).</li>
+<li>교감(쓰다듬기·놀아 주기·먹이)으로 친밀도를 올리면 효과가 세져요. 심부름을 보내면 재료를 물어 와요.</li>
+<li>장터에서 하루 3번 훈련시켜 경험치를 줄 수 있어요.</li></ul>`},
+  social:{n:'교류·조사대', ic:'🤝', b:() => `
+<ul><li>교류는 <b>같은 고장</b>에 있을 때 할 수 있어요. 선물과 쪽지는 어디서든 우편으로 보낼 수 있어요.</li>
+<li>인사·차 대접·격려·치료·하이파이브·산책 같은 교류로 호감도가 올라요. 한 사람에게 하루에 올릴 수 있는 호감도에는 상한이 있어요.</li>
+<li>호감도 <b>30</b>이면 친구 신청, <b>60</b>이면 절친, <b>80</b>이면 고백할 수 있어요. 연인이 되면 청혼 반지로 청혼하고, 부부가 되면 경험치 +10%.</li>
+<li>받은 교류는 교류 탭의 「받은 마음」에서 답례할 수 있고, 「오늘의 교류」 목표를 채우면 보상을 받아요.</li>
+<li><b>조사대</b>: 함께 장기 탐사를 떠나 서로 돕고, 대원 한 명당 보상 +5%. 이동은 대장이 정해요.</li>
+<li>쓰러진 개척자를 구조하면 경험치와 호감도를 많이 받아요.</li></ul>`},
+  village:{n:'마을회관·장터', ic:'🏯', b:() => `
+<h4>마을회관</h4><ul><li>남는 재료를 납품하면 모두의 회관이 자라요. 단계마다 마을 전체에 혜택이 생겨요.</li><li>납품 20점마다 <b>개척 증표</b> 1개. 증표 교환소에서 환약·영약·알·전직 증서로 바꿔요.</li><li>매일 바뀌는 <b>납품 의뢰</b>, 매주 바뀌는 <b>주간 사업</b>(다 함께 모으면 단계 보상), 하루 한 번 <b>회관 잔치</b>(1000냥).</li><li>토·일요일에는 <b>공동 토벌</b>이 열려요. 하루 3번 칠 수 있고 모두의 피해가 합쳐져요.</li></ul>
+<h4>장터</h4><ul><li><b>거래소</b>: 물건을 올려 다른 개척자에게 팔아요. 6묶음까지, 3일 뒤 안 팔리면 돌아와요.</li><li><b>떠돌이 행상</b>: 날마다 귀한 물건 4개를 하나씩만 팔아요.</li><li><b>신사 기원</b>: 3시간 동안 탐사 보상·희귀 발견·무사 중 하나를 빌어요.</li><li><b>동료 훈련</b>: 하루 3번.</li></ul>`},
+  season:{n:'계절·날씨·축제', ic:'🍂', b:() => `
+<ul><li>계절은 <b>2주</b>마다 봄→여름→가을→겨울로 바뀌어요. 거점 맨 위 계절 표시를 누르면 제철 작물·물고기와 고장별 오늘·내일 날씨가 보여요.</li>
+<li>날씨 효과: ${['clear', 'rain', 'fog', 'wind', 'snow'].map(k => `${WX[k].n}(${WX[k].d})`).join(', ')}.</li>
+<li>여름·겨울과 험한 고장에서는 <b>추위·더위</b>가 있어요. 대비 없이 떠나면 탐사가 고되니 계절 창에서 옷을 챙기세요(6시간).</li>
+<li><b>마츠리</b>: 매일 밤 8~10시. 계절마다 이름과 노점 음식이 바뀌어요. 운세 뽑기는 축제마다 한 번 공짜.</li>
+<li><b>계절 축제</b>: 계절 마지막 3일 동안 하나미·하나비·츠키미·오쇼가츠가 열려요. 놀이로 축제 패를 모아 한정 가구로 바꿔요.</li></ul>`},
+  journal:{n:'개척 일지·대회', ic:'📖', b:() => `
+<ul><li><b>이야기</b>: 고장 우두머리를 쓰러뜨리며 이어지는 메인 이야기 ${STORY.length}장. 끝까지 보면 큰 선물과 탐사 보상 영구 +5%.</li>
+<li><b>부탁</b>: 주민들의 부탁이 차례로 이어지고, 계절마다 새 부탁이 생겨요.</li>
+<li><b>출석</b>: 하루 한 번 도장. 빠진 날이 있어도 칸이 이어지고 28칸째에 알을 줘요.</li>
+<li><b>순위표</b>: 레벨·토벌·대물·요리·수확·회관·이야기·인기.</li>
+<li><b>주간 대회</b>: 매주 월요일 종목이 바뀌어요(대물 낚시→요리→수확→회관 납품). 목표마다 보상, 다음 주에 순위 상품.</li></ul>`},
+  home:{n:'내 집', ic:'🏠', b:() => `
+<ul><li>가구점에서 가구를 사거나 재료로 만들어 방과 마당을 꾸며요. 3D로 둘러볼 수 있고, 꾸미기에서 끌어서 옮겨요.</li>
+<li><b>아늑함</b>이 오를수록 체력 자연 회복이 빨라져요(단계마다 +10%). 같은 가구는 겹칠수록 아늑함이 절반씩 줄어요.</li>
+<li>이부자리가 있으면 하루 한 번 낮잠, 아늑함이 있으면 집안일로 엽전을 받아요. 주민이 손님으로 놀러 오기도 해요.</li>
+<li>집을 넓히면 놓을 수 있는 가구가 늘고 마당이 열려요. 연인·부부는 집을 합칠 수 있어요.</li></ul>`},
+  faq:{n:'자주 묻는 질문', ic:'❓', b:() => {
+    const qa = [
+      ['거점 버튼이 눌리지 않아요.', '장기 탐사 중에는 거점이 잠겨요. 탐사가 끝나거나 조기 귀환(보상 절반)하면 풀려요.'],
+      ['레시피는 어떻게 배우나요?', '요리할수록 요리 숙련도가 올라 새 레시피가 열려요. 「요리 비전서 조각」을 읽으면 모르는 레시피 하나를 바로 배워요.'],
+      ['직업을 바꾸고 싶어요.', `「${IT.ticket.n}」이 있으면 바꿀 수 있어요. 레벨은 그대로이고 스탯은 다시 찍어요. 증표 교환소(증표 60개)나 이야기 완결 선물로 얻어요.`],
+      ['능력치를 잘못 찍었어요.', `잡화점의 「${IT.reset.n}」(${IT.reset.p}${CUR})으로 찍은 포인트를 모두 돌려받을 수 있어요.`],
+      ['봉래 대륙에 못 가요.', '천주봉의 우두머리를 쓰러뜨려야 백사 해안에서 배가 떠요.'],
+      ['친구 신청 버튼이 회색이에요.', '호감도가 30이 되어야 해요. 같은 고장에서 인사·차 대접 등으로 호감도를 올려 보세요.'],
+      ['다른 고장에 있는 사람과 교류하고 싶어요.', '교류는 같은 고장에서만 돼요. 선물·쪽지는 우편으로 어디서든 보낼 수 있어요.'],
+      ['동료가 탐사에서 효과가 없어요.', `둥지에서 데리고 다닐 동료 ${COMP_OUT}마리를 골라야 효과가 있어요.`],
+      ['지친 몸이 너무 길어요.', '약초죽(−3시간)·단팥죽(−2시간)을 먹거나 친구의 위로(−2시간)·연인의 애정 표현(−4시간)을 받으면 줄어요.'],
+      ['장비가 약해요.', '대장간에서 다음 단계 장비를 만들거나 공방에서 강화하세요. 고장 장비는 높은 고장일수록 강해요.'],
+      ['업데이트가 안 보여요.', '앱을 완전히 껐다 켜거나, 화면 위 「새 버전이 나왔어요」를 눌러 주세요.'],
+      ['어떤 아이템을 어디서 구하나요?', '이 위키의 「아이템 사전」에서 이름을 찾으면 입수처·쓰임새·난이도가 모두 나와요.'],
+    ];
+    return `<div class="list">${qa.map(([q, a]) => `<div class="li"><div class="t"><b>Q. ${q}</b><span>${a}</span></div></div>`).join('')}</div>`; }},
+  route:{n:'레벨별 추천 진행', ic:'🗺', b:() => `<p class="small muted" style="margin-top:0">권장 레벨에 맞는 고장으로 옮겨 가며 장비를 한 단계씩 올리면 무리 없이 진행돼요.</p><div class="list">${REG.map((R, i) => `<button class="li click" data-act="wkGo" data-p="reg:${i}"><div class="t"><b>${esc(R.n)} <span class="tiny muted">${recLv(i)}</span></b><span>${contOf(i) ? '봉래 대륙 · ' : ''}우두머리 ${esc(BOSS[i].n)} · ${R.mats.slice(0, 3).map(([k]) => IT[k].n).join('·')}</span></div></button>`).join('')}</div>`},
+};
+const WK_CATS = [['start', 'route', 'faq'], ['explore', 'battle', 'gear', 'money'], ['cook', 'life', 'comp', 'home'], ['social', 'village', 'season', 'journal']];
+
+// ---------- 4. 화면 ----------
+const wkStars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '—';
+const wkBack = () => `<button class="chip" data-act="wkGo" data-p="${esc(UI.wkPrev || 'home')}">‹ 뒤로</button>`;
+function wkItem(k){
+  const it = IT[k], W = wk(), d = wkDiff(k), s = W.src[k] || [], u = W.use[k] || [];
+  const stat = it.atk ? `공격 +${it.atk}` : it.def ? `방어 +${it.def}` : it.st ? Object.entries(it.st).map(([a, v]) => `${STN[a]} +${v}`).join(', ') : it.heal ? `체력 ${it.heal} 회복` : '';
+  const uniq = arr => [...new Map(arr.map(x => [x.t, x])).values()];
+  return `${wkBack()}<div class="card" style="margin-top:8px"><div class="row" style="gap:12px">${itemIcon(k)}<div class="grow"><b style="font-size:1.15rem">${esc(it.n)}</b><br><span class="small muted">${wkKind(k)} · 파는 값 ${it.p || 0}${CUR}</span></div></div>
+    ${it.d ? `<p class="small" style="margin:8px 0 0">${esc(it.d)}</p>` : ''}${stat ? `<p class="small" style="margin:6px 0 0"><b>${stat}</b></p>` : ''}${it.f ? `<p class="small muted" style="margin:6px 0 0">${esc(it.f)}</p>` : ''}</div>
+  <div class="card" style="margin-top:8px"><div class="row"><b class="grow">구하기 난이도</b><span class="wk-star" aria-label="별 ${d.star}개">${wkStars(d.star)}</span></div><p class="small" style="margin:4px 0 0">${d.n}${d.lv ? ` · 대략 Lv${d.lv}부터` : ''}</p></div>
+  <h3 style="margin:12px 0 6px">구하는 곳</h3>${s.length ? `<div class="list">${uniq(s).sort((a, b) => a.lv - b.lv).slice(0, 24).map(x => `<div class="li"><div class="t"><span>${esc(x.t)}</span></div></div>`).join('')}</div>` : '<p class="small muted">지금은 정해진 입수처가 없다. 거래소에서 찾아보자.</p>'}
+  <h3 style="margin:12px 0 6px">쓰이는 곳</h3>${u.length ? `<div class="list">${uniq(u).slice(0, 24).map(x => `<div class="li"><div class="t"><span>${esc(x.t)}</span></div></div>`).join('')}</div>` : '<p class="small muted">특별히 쓰이는 곳은 없다. 팔거나 마을회관에 납품할 수 있다.</p>'}
+  <p class="tiny muted" style="margin:10px 2px 0">모든 물건은 장터 거래소에서 다른 개척자와 사고팔 수 있다.</p>`;
+}
+function wkReg(i){
+  const R = REG[i], w = seaWeather(i), hz = seaHazard(i), tot = R.mats.reduce((a, [, x]) => a + x, 0);
+  return `${wkBack()}<div class="card" style="margin-top:8px"><b style="font-size:1.15rem">${esc(R.n)}</b> <span class="small muted">${esc(R.k)} · ${esc(R.g)}</span><p class="small" style="margin:6px 0">${esc(R.d)}</p>
+    <p class="small" style="margin:0">${CONT_N[contOf(i)]} · 권장 ${recLv(i)} · 난이도 ${wkStars(STARS[i])}<br>오늘 날씨 ${w.n}${hz ? ` · ${HZ_N[hz.kind]} ${hz.lv}단계` : ''} · 장기 탐사 보상 +${Math.round(regBonus(i)*100)}%${hoLocked(i) ? '<br><b style="color:var(--seal)">천주봉 우두머리를 쓰러뜨려야 갈 수 있다</b>' : ''}</p></div>
+  <h3 style="margin:12px 0 6px">나오는 재료</h3><div class="list">${R.mats.map(([k, x]) => `<button class="li click" data-act="wkGo" data-p="item:${k}">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)}</b><span>그 고장 재료 중 ${Math.round(x/tot*100)}%</span></div></button>`).join('')}</div>
+  <h3 style="margin:12px 0 6px">몬스터</h3><div class="list">${R.mons.map(m => `<button class="li click" data-act="wkGo" data-p="mon:${m}"><div class="t"><b>${esc(MON[m].n)}</b><span>Lv${MON[m].L} · ${MON[m].t === 'y' ? '요괴' : '야생동물'} · ${esc(MON[m].w)}</span></div></button>`).join('')}</div>
+  <h3 style="margin:12px 0 6px">우두머리</h3><div class="card"><b>${esc(BOSS[i].n)}</b><p class="small" style="margin:4px 0 0">${esc(BOSS[i].d)} · Lv${bossReqLv(i)}부터 도전</p></div>
+  <h3 style="margin:12px 0 6px">이 고장의 장비</h3><div class="list">${['gw', 'ga', 'gx'].filter(p => IT[p + i]).map(p => `<button class="li click" data-act="wkGo" data-p="item:${p + i}">${itemIcon(p + i)}<div class="t"><b>${esc(itemName(p + i))}</b><span>${IT[p + i].atk ? '공격 +' + IT[p + i].atk : IT[p + i].def ? '방어 +' + IT[p + i].def : Object.entries(IT[p + i].st || {}).map(([a, v]) => `${STN[a]} +${v}`).join(', ')}</span></div></button>`).join('')}</div>`;
+}
+function wkMon(id){
+  const m = MON[id], ri = REG.findIndex(r => r.mons.includes(id));
+  return `${wkBack()}<div class="card" style="margin-top:8px"><b style="font-size:1.15rem">${esc(m.n)}</b> <span class="chip">${m.t === 'y' ? '요괴' : '야생동물'}</span><p class="small" style="margin:6px 0 0">Lv${m.L} · ${esc(m.w)}${ri >= 0 ? ` · ${esc(REG[ri].n)}` : ''}</p>
+    <p class="tiny muted" style="margin:6px 0 0">${m.t === 'y' ? '요괴에게 받는 피해는 정신이 높을수록 줄어든다.' : '수렵꾼(사냥꾼) 계열은 야생동물에게 강하다.'}</p></div>
+  <h3 style="margin:12px 0 6px">떨구는 것</h3><div class="list">${(m.dr6 || m.dr).map(([k, c]) => `<button class="li click" data-act="wkGo" data-p="item:${k}">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)}</b><span>${c < .1 ? (c*100).toFixed(1) : Math.round(c*100)}%</span></div></button>`).join('')}</div>`;
+}
+function wkList(kind){
+  const q = (UI.wkQ || '').trim(), keys = Object.keys(IT).filter(k => !k.endsWith('*') && IT[k].n && (kind === 'all' || wkKind(k) === kind) && (!q || IT[k].n.includes(q))).sort((a, b) => (wk().lvOf[a] ?? 999) - (wk().lvOf[b] ?? 999) || IT[a].n.localeCompare(IT[b].n, 'ko'));
+  const kinds = ['all', ...new Set(Object.values(WK_KIND))];
+  return `<div class="row wrapf" style="gap:4px;margin:8px 0">${kinds.map(x => `<button class="chip ${x === kind ? 'gold' : ''}" data-act="wkKind" data-k="${x}" aria-pressed="${x === kind}">${x === 'all' ? '전체' : x}</button>`).join('')}</div>
+  <p class="tiny muted" style="margin:0 2px 6px">${keys.length}개 · 쉬운 것부터</p><div class="list">${keys.slice(0, 120).map(k => { const d = wkDiff(k); return `<button class="li click" data-act="wkGo" data-p="item:${k}">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)}</b><span>${wkKind(k)} · ${d.n}${d.lv ? ` · Lv${d.lv}~` : ''}</span></div><span class="wk-star tiny">${wkStars(d.star)}</span></button>`; }).join('')}</div>${keys.length > 120 ? '<p class="small muted">결과가 많다. 위에서 이름으로 찾아보자.</p>' : ''}`;
+}
+function wkSearch(q){
+  const items = Object.keys(IT).filter(k => !k.endsWith('*') && IT[k].n && IT[k].n.includes(q)).slice(0, 30), regs = REG.map((r, i) => i).filter(i => REG[i].n.includes(q)), mons = Object.keys(MON).filter(k => MON[k].n.includes(q)).slice(0, 15), docs = Object.keys(WK_DOC).filter(k => WK_DOC[k].n.includes(q) || WK_DOC[k].b().replace(/<[^>]+>/g, '').includes(q));
+  const sec = (t, a) => a.length ? `<h3 style="margin:12px 0 6px">${t}</h3><div class="list">${a.join('')}</div>` : '';
+  const out = sec('글', docs.map(k => `<button class="li click" data-act="wkGo" data-p="doc:${k}"><span aria-hidden="true">${WK_DOC[k].ic}</span><div class="t"><b>${WK_DOC[k].n}</b></div></button>`)) + sec('아이템', items.map(k => `<button class="li click" data-act="wkGo" data-p="item:${k}">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)}</b><span>${wkKind(k)} · ${wkDiff(k).n}</span></div></button>`)) + sec('고장', regs.map(i => `<button class="li click" data-act="wkGo" data-p="reg:${i}"><div class="t"><b>${esc(REG[i].n)}</b><span>${recLv(i)}</span></div></button>`)) + sec('몬스터', mons.map(k => `<button class="li click" data-act="wkGo" data-p="mon:${k}"><div class="t"><b>${esc(MON[k].n)}</b><span>Lv${MON[k].L}</span></div></button>`));
+  return out || '<p class="small muted" style="margin-top:10px">찾는 것이 없다. 다른 말로 찾아보자.</p>';
+}
+function wkView(){
+  const p = UI.wkP || 'home', [kind, arg] = p.split(':');
+  const bar = `<div class="row" style="gap:6px;margin-bottom:10px"><input type="search" id="wkQ" placeholder="아이템·고장·몬스터·글 찾기" value="${esc(UI.wkQ || '')}" aria-label="위키에서 찾기"><button class="btn sm" data-act="wkFind">찾기</button></div>`;
+  if (kind === 'item' && IT[arg]) return bar + wkItem(arg);
+  if (kind === 'reg' && REG[+arg]) return bar + wkReg(+arg);
+  if (kind === 'mon' && MON[arg]) return bar + wkMon(arg);
+  if (kind === 'doc' && WK_DOC[arg]) return bar + `${wkBack()}<div class="card wk-doc" style="margin-top:8px"><h3 style="margin:0 0 8px">${WK_DOC[arg].ic} ${WK_DOC[arg].n}</h3>${WK_DOC[arg].b()}</div>`;
+  if (kind === 'find') return bar + wkBack() + wkSearch(UI.wkQ || '');
+  if (kind === 'items') return bar + `${wkBack()}<h3 style="margin:10px 0 0">아이템 사전</h3>` + wkList(UI.wkKind || 'all');
+  if (kind === 'regs') return bar + `${wkBack()}<h3 style="margin:10px 0 6px">고장 사전</h3><div class="list">${REG.map((R, i) => `<button class="li click" data-act="wkGo" data-p="reg:${i}"><div class="t"><b>${esc(R.n)}</b><span>${CONT_N[contOf(i)]} · ${recLv(i)} · ${wkStars(STARS[i])}</span></div></button>`).join('')}</div>`;
+  if (kind === 'mons') return bar + `${wkBack()}<h3 style="margin:10px 0 6px">몬스터 사전</h3><div class="list">${Object.keys(MON).sort((a, b) => MON[a].L - MON[b].L).map(k => { const ri = REG.findIndex(r => r.mons.includes(k)); return `<button class="li click" data-act="wkGo" data-p="mon:${k}"><div class="t"><b>${esc(MON[k].n)}</b><span>Lv${MON[k].L} · ${MON[k].t === 'y' ? '요괴' : '야생동물'}${ri >= 0 ? ' · ' + esc(REG[ri].n) : ''}</span></div></button>`; }).join('')}</div>`;
+  const big = (pp_, ic, n, d) => `<button class="wk-tile" data-act="wkGo" data-p="${pp_}"><span aria-hidden="true">${ic}</span><b>${n}</b><span class="tiny muted">${d}</span></button>`;
+  return bar + `<p class="small muted" style="margin:0 0 10px">개척에 필요한 모든 것을 모아 둔 사전이에요. 궁금한 것을 위에서 찾거나 아래에서 골라 보세요.</p>
+  <div class="wk-grid">${big('items', '📦', '아이템 사전', `${Object.keys(IT).filter(k => IT[k].n).length}개 · 입수처·쓰임새·난이도`)}${big('regs', '🗾', '고장 사전', `${REG.length}곳 · 재료·몬스터·우두머리`)}${big('mons', '👹', '몬스터 사전', `${Object.keys(MON).length}종 · 떨구는 것`)}${big('doc:faq', '❓', '자주 묻는 질문', '막혔을 때 먼저 보기')}</div>
+  ${WK_CATS.map(row => `<div class="list" style="margin-top:10px">${row.map(k => `<button class="li click" data-act="wkGo" data-p="doc:${k}"><span aria-hidden="true" style="width:26px;text-align:center;font-size:1.15rem">${WK_DOC[k].ic}</span><div class="t"><b>${WK_DOC[k].n}</b></div><span aria-hidden="true">›</span></button>`).join('')}</div>`).join('')}`;
+}
+const _help_wk = SHEETS.help;
+SHEETS.help = () => {
+  if ((UI.helpTab || 'wiki') !== 'wiki'){ const h = _help_wk(); return h.replace('<button data-act="helpTab" data-t="effects"', '<button data-act="helpTab" data-t="wiki" aria-pressed="false">위키</button><button data-act="helpTab" data-t="effects"'); }
+  const saved = UI.helpTab; UI.helpTab = 'effects'; const h = _help_wk(); UI.helpTab = saved || 'wiki';
+  const seg = (h.match(/<div class="seg"[^>]*role="group" aria-label="도움말 분류">[\s\S]*?<\/div>/) || [''])[0].replace(/aria-pressed="true"/g, 'aria-pressed="false"').replace('<button data-act="helpTab" data-t="effects"', '<button data-act="helpTab" data-t="wiki" aria-pressed="true">위키</button><button data-act="helpTab" data-t="effects"');
+  return sheetHead('도움말') + seg + wkView();
+};
+Object.assign(ACT, {
+  wkGo:d => { UI.wkPrev = UI.wkP || 'home'; if (['items', 'regs', 'mons', 'home'].includes(d.p) || d.p.startsWith('doc:')) UI.wkPrev = 'home'; if (d.p.startsWith('item:') && UI.wkP && !UI.wkP.startsWith('item:')) UI.wkPrev = UI.wkP; UI.wkP = d.p; renderSheet(true); const pn = $('#sheet .panel'); if (pn) pn.scrollTop = 0; },
+  wkFind:() => { const q = ($('#wkQ')?.value || '').trim(); UI.wkQ = q; if (!q) return; UI.wkPrev = 'home'; UI.wkP = 'find'; renderSheet(true); },
+  wkKind:d => { UI.wkKind = d.k; UI.wkQ = ''; renderSheet(true); },
+});
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
