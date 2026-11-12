@@ -597,6 +597,7 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .wk-tile:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
 .wk-star{ color:var(--gold-ink, #a8741a); letter-spacing:.05em; white-space:nowrap; }
 .wk-doc p, .wk-doc li{ line-height:1.7; } .wk-doc h4{ margin:14px 0 4px; font-size:1rem; } .wk-doc ul, .wk-doc ol{ margin:4px 0; padding-left:1.3em; } .wk-doc li{ margin:3px 0; }
+.comp-acts{ display:flex; flex-direction:column; gap:4px; flex:none; } .comp-acts .btn{ white-space:nowrap; }
 .comp-pic{ flex:none; padding:0; border:0; background:none; cursor:pointer; border-radius:50%; }
 .comp-pic:focus-visible{ outline:2px solid var(--seal); outline-offset:2px; }
 /* 집 3D */
@@ -4070,7 +4071,7 @@ SHEETS.fx = k => {
 
 function compList(){
   const sorted = S.comps.slice().sort((a, b) => (b.out !== false) - (a.out !== false));
-  return `<div class="list">${sorted.map(x => { const on = activeComps().includes(x); return `<div class="li"><button class="comp-pic" data-act="sheet" data-s="comp" data-a="${x.id}" aria-label="${esc(x.name)} 메뉴 열기">${art(x.sp)}</button><button class="t click" style="background:none;border:0;padding:0;text-align:left;color:inherit" data-act="sheet" data-s="comp" data-a="${x.id}"><b>${esc(x.name)} <span class="small muted">Lv.${x.lv}</span> ${on ? '<span class="chip good">동행</span>' : '<span class="chip">쉬는 중</span>'}</b><span>${SPEC[x.sp].n} · ${SPEC[x.sp].k === 'pet' ? '펫' : '소환수'} · ${bondTier(x.bond)} ${x.bond} · ${compMood(x)[0]}</span></button><button class="btn sm ${on ? 'ghost' : ''}" data-act="compOut" data-id="${x.id}">${on ? '쉬게 하기' : '데리고 다니기'}</button></div>`; }).join('')}</div>`;
+  return `<div class="list">${sorted.map(x => { const on = activeComps().includes(x); return `<div class="li"><button class="comp-pic" data-act="sheet" data-s="comp" data-a="${x.id}" aria-label="${esc(x.name)} 메뉴 열기">${art(x.sp)}</button><button class="t click" style="background:none;border:0;padding:0;text-align:left;color:inherit" data-act="sheet" data-s="comp" data-a="${x.id}"><b>${esc(x.name)} <span class="small muted">Lv.${x.lv}</span> ${on ? '<span class="chip good">동행</span>' : '<span class="chip">쉬는 중</span>'}</b><span>${SPEC[x.sp].n} · ${SPEC[x.sp].k === 'pet' ? '펫' : '소환수'} · ${bondTier(x.bond)} ${x.bond} · ${compMood(x)[0]}</span></button><div class="comp-acts"><button class="btn sm seal" data-act="sheet" data-s="comp" data-a="${x.id}">돌보기 ›</button><button class="btn sm ${on ? 'ghost' : ''}" data-act="compOut" data-id="${x.id}">${on ? '쉬게 하기' : '데리고 다니기'}</button></div></div>`; }).join('')}</div><p class="tiny muted" style="margin:6px 2px 0">「돌보기」를 누르거나 동료 그림·이름을 누르면 먹이 주기·교감·이름 짓기·진화 메뉴가 열린다.</p>`;
 }
 
 // 레시피를 배우는 곳
@@ -10078,7 +10079,7 @@ async function mkBuy(id){
 }
 
 // ---------- 떠돌이 행상: 날마다 바뀌는 귀한 물건 (모두 같은 물건을 본다) ----------
-const MERCH_POOL = [['gem', 900], ['rareore', 700], ['scroll', 1200], ['soul', 1500], ['talisman', 600], ['rareherb', 500], ['dragonore', 18000], ['skyore', 22000], ['t_lantern', 900], ['t_torch', 600], ['silk_fine', 700], ['royal', 800], ['egg_pet', 5000], ['egg_summon', 6500]];
+const MERCH_POOL = [['gem', 900], ['rareore', 700], ['scroll', 1200], ['soul', 1500], ['talisman', 600], ['rareherb', 500], ['dragonore', 9000], ['skyore', 11000], ['t_lantern', 900], ['t_torch', 600], ['silk_fine', 700], ['royal', 800], ['egg_pet', 5000], ['egg_summon', 6500]];
 function merchToday(){
   const d = dayKey(); let h = hashStr('merch' + d); const rnd = () => { h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909); return ((h >>>= 0) % 10000)/10000; };
   const pool = MERCH_POOL.filter(([k]) => k.startsWith('egg_') || IT[k]), out = [];
@@ -10579,7 +10580,7 @@ TITLES.push(
   {id:'vbwin', n:'마지막 일격', d:'공동 토벌의 마지막 일격을 넣었다.', c:S => st_(S, 'vbWin') >= 1},
 );
 if (typeof ICO !== 'undefined') ICO.journal = ico('<path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h12"/><path d="M9 8h6M9 11h4"/>');
-function lifeChips(){
+let lifeChips = () => {
   const out = [];
   if (!attToday()) out.push('<button class="chip gold" data-act="journalGo" data-t="att">📅 출석 도장</button>');
   if (storyReady()) out.push('<button class="chip gold" data-act="journalGo" data-t="story">📖 이야기 진행</button>');
@@ -10587,14 +10588,18 @@ function lifeChips(){
   if (wcReady()) out.push('<button class="chip gold" data-act="journalGo" data-t="wc">🏆 대회 보상</button>');
   if (vbOpen()) out.push(`<button class="chip bad" data-act="hallGo" data-t="raid">👹 공동 토벌</button>`);
   return out;
-}
+};
 Object.assign(ACT, {journalGo:d => { UI.jt = d.t; openSheet('journal'); }, hallGo:d => { UI.hallTab = d.t; openSheet('hall'); }});
 // ===================== 계절 축제, 주간 대회, 이야기 완결 보상, 출석 자동 창, 업데이트 길잡이 =====================
 // 규칙 변경 없음: 대회 기록은 hallc/{uid}의 wc·wcp에 쓴다. 패치마다 GUIDE_V와 GUIDE를 고치면 모두에게 한 번 뜬다.
 
 // ---------- 1. 업데이트 길잡이 ----------
-const GUIDE_V = '2026-11-13';
+const GUIDE_V = '2026-11-14';
 const GUIDE = [
+  ['📋', '일일 퀘스트', '개척 일지에 「일일」 탭이 생겼어요. 날마다 네 가지 할 일이 나오고, 하나 끝낼 때마다 엽전(150 + 레벨×25냥), 모두 끝내면 덤으로 엽전과 개척 증표를 더 줘요.'],
+  ['💰', '탐사 수당', '장기 탐사를 마치면 탐사 시간과 고장 레벨에 따라 수당을 따로 받아요. 백사 해안 1시간 170냥, 천주봉 3시간 3,330냥, 봉래산 3시간 4,770냥이에요.'],
+  ['🪨', '행상 값 인하', '떠돌이 행상의 용혈석은 9,000냥, 성운석은 11,000냥으로 내렸어요.'],
+  ['🐾', '둥지 「돌보기」 단추', '둥지의 동료마다 「돌보기」 단추가 생겼어요. 먹이 주기·교감·이름 짓기·진화 메뉴가 열려요.'],
   ['📚', '개척 위키가 생겼어요', '화면 위 물음표(도움말) → 「위키」 탭에서 모든 아이템의 구하는 곳·쓰이는 곳·구하기 난이도, 고장·몬스터 사전, 탐사·장비·요리·교류 안내와 자주 묻는 질문을 볼 수 있어요. 궁금한 건 위키에서 먼저 찾아보세요!'],
   ['⛵', '두 번째 대륙 「봉래 대륙」', '천주봉의 우두머리를 쓰러뜨리면 백사 해안에서 배가 떠요. 고장 여섯 곳(Lv52~72), 새 몬스터와 우두머리, 비싸게 팔리는 새 재료가 기다려요. 탐사 탭 지도 위에서 대륙을 골라 볼 수 있어요.'],
   ['⛰', '높은 고장일수록 보상이 많아요', '권장 레벨 1당 장기 탐사 보상이 1.2%씩 늘어요. 단기 탐사도 같은 비율로 물건이 더 나와요.'],
@@ -10781,7 +10786,7 @@ for (const r of MF_FOOD){ FEST_FOOD.push(r); IT['m_' + r.id] = {n:r.n, t:'food',
 const festFoods = () => festTheme().foods.map(id => FEST_FOOD.find(x => x.id === id));
 
 // ---------- 2. 개척 일지 띠 ----------
-const lifeCount = () => (attToday() ? 0 : 1) + (storyReady() ? 1 : 0) + subReady() + wcReady();
+let lifeCount = () => (attToday() ? 0 : 1) + (storyReady() ? 1 : 0) + subReady() + wcReady();
 const journalBanner = () => { const n = lifeCount(), q = qS(), C = STORY[q.main]; return `<button class="j-banner" data-act="sheet" data-s="journal"><span class="ic" aria-hidden="true">${ICO.journal}</span><span class="t"><b>개척 일지</b><span>${C ? `지금 이야기 · ${C.t}` : '이야기 완결 · 부탁 · 출석 · 주간 대회'}</span></span>${n ? `<i>${n}</i>` : ''}<span class="arr" aria-hidden="true">›</span></button>`; };
 
 // ---------- 3. 교류 대사 ----------
@@ -11644,7 +11649,7 @@ const WK_DOC = {
 <h4>장기 탐사</h4><ul>
 <li>1·2·3시간 중에서 골라 떠나요. 3분마다 일지가 한 줄씩 쌓이고, 창을 닫아도 진행돼요.</li>
 <li>재료 발견, 몬스터와의 전투, 희귀 발견(「반짝이는 것」), 알, 고장 장비(1시간 약 25%, 3시간 약 60%)가 나와요.</li>
-<li>가방에 담을 수 있는 양은 <b>20 + 힘×2</b>개예요.</li>
+<li>가방에 담을 수 있는 양은 <b>20 + 힘×2</b>개예요.</li><li>마치면 <b>탐사 수당</b>을 따로 받아요: 시간 × (150 + 고장 레벨×20)냥. 조기 귀환·부축은 절반이에요.</li>
 <li>떠날 때의 식사 버프·동료·날씨·추위와 더위·기원이 탐사 내내 적용돼요.</li>
 <li>높은 고장일수록 보상이 많아요. 권장 레벨 1당 장기 탐사 보상이 1.2%씩 늘어요.</li></ul>
 <h4>단기 탐사 (훑어보기)</h4><ul><li>6초 만에 끝나고 하루 10번, 몬스터가 없어요.</li><li><b>운 10마다 물건이 하나 더</b> 나오고 엽전·대박 확률이 올라요.</li></ul>
@@ -11669,7 +11674,7 @@ const WK_DOC = {
 <li>재료와 엽전이 들고, <b>+6부터 실패할 수 있어요</b>(단계마다 12%씩, 최대 50%).</li></ul>
 <h4>탐사 도구</h4><ul><li>도구방에서 흔한 재료로 만들어 장기 탐사에 하나 챙겨 가요. 횃불은 몬스터와 덜 마주치게 해 줘요.</li></ul>`},
   money:{n:'엽전 벌고 쓰기', ic:'🪙', b:() => `
-<h4>버는 법</h4><ul><li>탐사에서 얻은 재료·장비를 가방에서 팔기</li><li>마을회관 <b>납품 의뢰</b> (매일 바뀜)</li><li>뒷산 일터 <b>청소</b> (10분에 약 30냥)</li><li>장터 <b>거래소</b>에 올려 다른 개척자에게 팔기 (등록 2%, 판매 5% 수수료)</li><li>주간 대회·공동 토벌·출석·이야기 보상</li><li>비싸게 팔리는 재료: 월광석·봉황 깃털·비취 원석·선도 복숭아·금빛 달걀·로열젤리</li></ul>
+<h4>버는 법</h4><ul><li><b>일일 퀘스트</b>: 개척 일지 「일일」 탭. 날마다 네 가지, 하나에 150 + 레벨×25냥, 모두 끝내면 덤</li><li><b>탐사 수당</b>: 장기 탐사를 마치면 시간 × (150 + 고장 레벨×20)냥. 천주봉 3시간이면 3,000냥이 넘는다</li><li>탐사에서 얻은 재료·장비를 가방에서 팔기</li><li>마을회관 <b>납품 의뢰</b> (매일 바뀜)</li><li>뒷산 일터 <b>청소</b> (10분에 약 30냥)</li><li>장터 <b>거래소</b>에 올려 다른 개척자에게 팔기 (등록 2%, 판매 5% 수수료)</li><li>주간 대회·공동 토벌·출석·이야기 보상</li><li>비싸게 팔리는 재료: 월광석·봉황 깃털·비취 원석·선도 복숭아·금빛 달걀·로열젤리</li></ul>
 <h4>쓰는 곳</h4><ul><li>잡화점 재료·씨앗·사료, 집 가구와 집 넓히기, 축사 가축과 넓히기</li><li>장터 행상(귀한 물건), 신사 기원(3시간 버프), 동료 훈련</li><li>추위·더위 대비, 회관 잔치, 장비 강화</li></ul>`},
   cook:{n:'요리', ic:'🍙', b:() => `
 <ul><li>부엌에서 아는 레시피로 요리해요. <b>요리 숙련도</b>가 오르거나 「요리 비전서 조각」을 읽으면 새 레시피를 배워요.</li>
@@ -11705,7 +11710,7 @@ const WK_DOC = {
 <li><b>마츠리</b>: 매일 밤 8~10시. 계절마다 이름과 노점 음식이 바뀌어요. 운세 뽑기는 축제마다 한 번 공짜.</li>
 <li><b>계절 축제</b>: 계절 마지막 3일 동안 하나미·하나비·츠키미·오쇼가츠가 열려요. 놀이로 축제 패를 모아 한정 가구로 바꿔요.</li></ul>`},
   journal:{n:'개척 일지·대회', ic:'📖', b:() => `
-<ul><li><b>이야기</b>: 고장 우두머리를 쓰러뜨리며 이어지는 메인 이야기 ${STORY.length}장. 끝까지 보면 큰 선물과 탐사 보상 영구 +5%.</li>
+<ul><li><b>일일</b>: 날마다 네 가지 퀘스트. 하나 끝낼 때마다 엽전, 모두 끝내면 덤(엽전·증표).</li><li><b>이야기</b>: 고장 우두머리를 쓰러뜨리며 이어지는 메인 이야기 ${STORY.length}장. 끝까지 보면 큰 선물과 탐사 보상 영구 +5%.</li>
 <li><b>부탁</b>: 주민들의 부탁이 차례로 이어지고, 계절마다 새 부탁이 생겨요.</li>
 <li><b>출석</b>: 하루 한 번 도장. 빠진 날이 있어도 칸이 이어지고 28칸째에 알을 줘요.</li>
 <li><b>순위표</b>: 레벨·토벌·대물·요리·수확·회관·이야기·인기.</li>
@@ -11804,6 +11809,71 @@ Object.assign(ACT, {
   wkFind:() => { const q = ($('#wkQ')?.value || '').trim(); UI.wkQ = q; if (!q) return; UI.wkPrev = 'home'; UI.wkP = 'find'; renderSheet(true); },
   wkKind:d => { UI.wkKind = d.k; UI.wkQ = ''; renderSheet(true); },
 });
+// ===================== 일일 퀘스트와 탐사 수당 =====================
+// 일일 퀘스트: 날마다 네 개를 고른다(사람마다 다름). 진행은 S.stats 등 기존 숫자의 오늘 증가분으로 센다.
+// 탐사 수당: 장기 탐사를 마치면 시간과 고장 레벨에 따라 엽전을 따로 준다. simulate와 난수는 건드리지 않는다.
+
+// ---------- 1. 탐사 수당 ----------
+const expPay = (E, mult = 1) => { const R = REG[E.region], h = Math.max(1, Math.round(E.dur*SPD()/H)); return Math.round(h*(150 + R.lv*20)*mult); };
+const PAY_MULT = {done:1, early:.5, carry:.5, heal:1, auto:.3};
+const _settleExp_pay = settleExp;
+settleExp = kind => {
+  const E = S.exp, m = PAY_MULT[kind] ?? 0; const r = _settleExp_pay(kind);
+  if (E && m && !S.exp){ const g = expPay(E, m); S.gold += g; stat('expPay', g); save(); setTimeout(() => toast(`${REG[E.region].n} 탐사 수당 +${g.toLocaleString()}${CUR}${m < 1 ? ' (일부만)' : ''}`, 'good'), 400); }
+  return r;
+};
+
+// ---------- 2. 일일 퀘스트 ----------
+const fishSum = () => Object.values((S.codex && S.codex.fish) || {}).reduce((a, v) => a + (+v || 0), 0);
+const DQ_POOL = [
+  {k:'exp', n:'장기 탐사 한 번 다녀오기', need:1, v:() => st_(S, 'exp')},
+  {k:'short', n:'단기 탐사 5번 하기', need:5, v:() => st_(S, 'short')},
+  {k:'cook', n:'요리 3번 하기', need:3, v:() => st_(S, 'cook')},
+  {k:'fish', n:'물고기 5마리 낚기', need:5, v:fishSum},
+  {k:'harv', n:'논밭에서 3번 거두기', need:3, v:() => st_(S, 'harvest')},
+  {k:'ranch', n:'축사 산물 2번 거두기', need:2, v:() => st_(S, 'ranch')},
+  {k:'dreq', n:'마을회관 납품 의뢰 1건 마치기', need:1, v:() => st_(S, 'dreq')},
+  {k:'hall', n:'마을회관에 재료 납품하기', need:1, v:() => st_(S, 'hallGive')},
+  {k:'craft', n:'공방에서 물건 하나 만들기', need:1, v:() => st_(S, 'craft')},
+  {k:'touch', n:'동료와 교감 3번 하기', need:3, v:() => st_(S, 'touch')},
+  {k:'greet', n:'다른 개척자에게 인사 2번 하기', need:2, v:() => st_(S, 'greet'), cloud:1},
+];
+const dqGold = () => 150 + S.lv*25;
+const dqBonus = () => ({gold:500 + S.lv*60, tok:2});
+function dqS(){
+  const d = seoul().key;
+  if (!S.dq || S.dq.d !== d){
+    const pool = DQ_POOL.filter(q => !q.cloud || ST.mode === 'cloud'), rng = mulberry32(hashStr((ST.uid || 'me') + d + 'dq') >>> 0), keys = [];
+    while (keys.length < 4 && keys.length < pool.length){ const q = pool[Math.floor(rng()*pool.length)]; if (!keys.includes(q.k)) keys.push(q.k); }
+    S.dq = {d, keys, base:Object.fromEntries(keys.map(k => [k, DQ_POOL.find(q => q.k === k).v()])), got:[], bonus:false};
+  }
+  return S.dq;
+}
+const dqProg = k => { const s = dqS(), q = DQ_POOL.find(x => x.k === k); return Math.min(q.need, Math.max(0, q.v() - (s.base[k] || 0))); };
+const dqDone = k => dqProg(k) >= DQ_POOL.find(x => x.k === k).need;
+const dqReady = () => { const s = dqS(); return s.keys.filter(k => dqDone(k) && !s.got.includes(k)).length + (s.got.length === s.keys.length && !s.bonus ? 1 : 0); };
+function dqClaim(k){ const s = dqS(); if (!s.keys.includes(k) || s.got.includes(k) || !dqDone(k)) return; s.got.push(k); const g = dqGold(); S.gold += g; stat('dq'); sfx('coin'); save(); toast(`일일 퀘스트 완료 · ${g.toLocaleString()}${CUR}`, 'good'); renderSheet(true); render(); }
+function dqClaimAll(){ const s = dqS(); if (s.bonus || s.got.length < s.keys.length) return; s.bonus = true; const txt = qPay(dqBonus()); stat('dqAll'); sfx('win'); save(); toast(`오늘의 퀘스트를 모두 끝냈다! ${txt}`, 'good'); renderSheet(true); render(); }
+const dqView = () => {
+  const s = dqS(), all = s.got.length === s.keys.length;
+  return `<p class="small muted" style="margin-top:0">날마다 자정(서울 시각)에 네 가지가 새로 나온다. 하나 끝낼 때마다 <b>${dqGold().toLocaleString()}${CUR}</b>, 모두 끝내면 덤을 더 준다. 레벨이 오를수록 보상도 커진다.</p>
+  <div class="list">${s.keys.map(k => { const q = DQ_POOL.find(x => x.k === k), p = dqProg(k), got = s.got.includes(k); return `<div class="li"><div class="t"><b>${q.n}</b><div class="bar gold" style="margin:4px 0 2px"><i style="width:${p/q.need*100}%"></i></div><span class="tiny muted num">${p}/${q.need} · ${dqGold().toLocaleString()}${CUR}</span></div>${got ? '<span class="chip good">받음</span>' : `<button class="btn sm ${p >= q.need ? 'seal' : 'ghost'}" data-act="dqClaim" data-k="${k}" ${p >= q.need ? '' : 'disabled'}>받기</button>`}</div>`; }).join('')}</div>
+  <div class="card" style="margin-top:10px"><div class="row"><div class="grow"><b>모두 끝내기 덤</b><br><span class="small muted">${rewTxt(dqBonus())}</span></div>${s.bonus ? '<span class="chip good">받음</span>' : `<button class="btn sm ${all ? 'seal' : 'ghost'}" data-act="dqClaimAll" ${all ? '' : 'disabled'}>받기</button>`}</div></div>
+  <p class="tiny muted" style="margin:8px 2px 0">진행은 오늘 0시 이후에 한 것만 센다. 장기 탐사를 마치면 따로 <b>탐사 수당</b>도 받는다.</p>`;
+};
+// 일지에 「일일」 탭을 붙이고, 할 일 숫자에 더한다
+const _journal_dq = SHEETS.journal;
+SHEETS.journal = () => {
+  if (UI.jt === 'dq'){ const saved = UI.jt; UI.jt = 'att'; const h = _journal_dq(); UI.jt = saved; const head = h.slice(0, h.indexOf('</div>', h.indexOf('<div class="seg"')) + 6).replace(/aria-pressed="true"/g, 'aria-pressed="false"'); return dqTabs(head, true) + dqView(); }
+  return dqTabs(_journal_dq(), false);
+};
+function dqTabs(h, on){ const n = dqReady(); return h.replace('<button data-act="jt" data-t="story"', `<button data-act="jt" data-t="dq" aria-pressed="${on}">일일${n ? ` ${n}` : ''}</button><button data-act="jt" data-t="story"`); }
+const _lifeCount_dq = lifeCount;
+lifeCount = () => _lifeCount_dq() + dqReady();
+const _lifeChips_dq = lifeChips;
+lifeChips = () => { const out = _lifeChips_dq(); if (dqReady()) out.unshift('<button class="chip gold" data-act="journalGo" data-t="dq">📋 일일 퀘스트 보상</button>'); return out; };
+Object.assign(ACT, {dqClaim:d => dqClaim(d.k), dqClaimAll:() => dqClaimAll()});
+TITLES.push({id:'dq30', n:'성실한 개척자', d:'일일 퀘스트를 30번 끝냈다.', c:S => st_(S, 'dq') >= 30});
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
