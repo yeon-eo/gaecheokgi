@@ -11874,6 +11874,110 @@ const _lifeChips_dq = lifeChips;
 lifeChips = () => { const out = _lifeChips_dq(); if (dqReady()) out.unshift('<button class="chip gold" data-act="journalGo" data-t="dq">📋 일일 퀘스트 보상</button>'); return out; };
 Object.assign(ACT, {dqClaim:d => dqClaim(d.k), dqClaimAll:() => dqClaimAll()});
 TITLES.push({id:'dq30', n:'성실한 개척자', d:'일일 퀘스트를 30번 끝냈다.', c:S => st_(S, 'dq') >= 30});
+// ===================== 부부: 결혼 기념일, 도시락 싸 주기, 부부 원정, 부부 일일 과제 =====================
+// 결혼한 모든 부부가 쓸 수 있다. 결혼한 날은 rel 문서의 wed(두 사람 모두 쓸 수 있다). 규칙 변경 없음.
+// 안내 공지는 CPL_NOTE_NAMES의 두 사람(또는 둘만의 반려동물을 가진 사람)에게만 한 번 뜬다. 일반 업데이트 소식과 위키에는 싣지 않는다.
+const CPL_NOTE_V = '2026-11-14', CPL_NOTE_NAMES = ['하루노 카나', '키시베 스이무'];
+function spouse(){ for (const r of Object.values(RELS)) if (r && r.stage === 'married' && (r.a === ST.uid || r.b === ST.uid)) return r.a === ST.uid ? r.b : r.a; return null; }
+const spName = () => { const o = spouse(); return (o && PL[o] && PL[o].name) || '배우자'; };
+const wedAt = () => { const o = spouse(); return o ? getRel(o).wed || 0 : 0; };
+const wedDays = () => { const w = wedAt(); return w ? Math.floor((seoul().day0 - seoul(w).day0)/(24*H)) + 1 : 0; };
+async function wedEnsure(){ const o = spouse(); if (!o || getRel(o).wed || ST.mode !== 'cloud') return; await writeRel(o, {wed:now()}); }
+// ---------- 결혼 기념일 ----------
+const WED_GIFT = [
+  {d:7, n:'일주일', r:{gold:1000, tok:3}},
+  {d:30, n:'한 달', r:{gold:3000, tok:5}, furn:'f_oshidori'},
+  {d:100, n:'백 일', r:{gold:10000, tok:10, egg:'pet'}, furn:'f_wedscreen'},
+  {d:200, n:'이백 일', r:{gold:15000, tok:15, items:[['scroll', 2]]}},
+  {d:365, n:'일 년', r:{gold:30000, tok:30, egg:'summon', items:[['ticket', 1]]}},
+];
+const nFC = (n, cat, w, h, c, d) => ({n, cat, p:0, need:[], c, w, h, lim:1, d});
+Object.assign(FURN, {
+  f_oshidori:nFC('원앙 한 쌍', 'room', 64, 40, 8, () => `<ellipse cx="-14" cy="-14" rx="16" ry="11" fill="#e88a3a" ${hS}/><circle cx="-24" cy="-26" r="8" fill="#3a6a5a" ${hS}/><path d="M-32-26l-6 2 6 2z" fill="#e05a3a"/><ellipse cx="16" cy="-12" rx="15" ry="10" fill="#a89070" ${hS}/><circle cx="26" cy="-22" r="7" fill="#8a7a6a" ${hS}/><path d="M33-22l6 2-6 2z" fill="#c8803a"/><path d="M-30 0h60" stroke="#6ab0d0" stroke-width="3"/>`),
+  f_wedscreen:nFC('혼례 병풍', 'room', 96, 76, 14, () => `<rect x="-46" y="-74" width="92" height="72" fill="#c8342a" ${hS}/><path d="M-15-74v72M15-74v72" stroke="#e8c858" stroke-width="2"/><circle cx="-30" cy="-44" r="8" fill="#e8c858"/><circle cx="30" cy="-44" r="8" fill="#e8c858"/><path d="M-6-50q6-8 12 0q-6 10-12 0z" fill="#fff4d8"/><path d="M-46-4h92" stroke="${HK}" stroke-width="3"/>`),
+});
+const wedGot = () => { const o = spouse(); S.wedGot = S.wedGot || {}; return (S.wedGot[o] = S.wedGot[o] || []); };
+function wedClaim(d){ const G = WED_GIFT.find(x => x.d === d); if (!G || wedDays() < d || wedGot().includes(d)) return; wedGot().push(d); const txt = qPay(G.r); if (G.furn) furnGive(G.furn); stat('wedGift'); sfx('win'); save(); toast(`결혼 ${G.n} 기념 선물 · ${txt}${G.furn ? ` · ${FURN[G.furn].n}` : ''}`, 'good'); renderSheet(true); render(); }
+// ---------- 도시락 싸 주기 ----------
+const cplS = () => { const d = seoul().key, o = spouse(); if (!S.cpl || S.cpl.d !== d || S.cpl.o !== o) S.cpl = {d, o, tx:{}, rx:{}, exp:0, got:[], all:false}; return S.cpl; };
+function bentoSend(k){
+  const o = spouse(); if (!o || ST.mode !== 'cloud') return; const s = cplS(); if (s.tx.bento) return toast('도시락은 하루에 한 번만 쌀 수 있어요.');
+  const base = k.replace('*', ''); if (!IT[base] || IT[base].t !== 'food' || !takeItem(k)) return;
+  const m = ($('#bentoMsg')?.value || '').trim().slice(0, 40);
+  sendEv(o, 'bento', {k, m}); s.tx.bento = 1; stat('bentoSend'); sfx('soft'); save(); toast(`${itemName(k)}${pp(itemName(k), '을', '를')} 도시락으로 싸서 ${spName()}님께 보냈다. 다음 장기 탐사 때 열어 볼 거예요.`, 'good'); renderSheet(true);
+}
+function bentoOpen(){
+  const B = S.bentoIn; if (!B || !IT[String(B.k).replace('*', '')]) return; S.bentoIn = null; addItem(B.k); eat(B.k);
+  const nm = (PL[B.from] && PL[B.from].name) || '배우자'; stat('bentoOpen');
+  setTimeout(() => toast(`${nm}님이 싸 준 도시락을 열었다. ${itemName(B.k)}${B.m ? ` · 「${B.m}」` : ''}`, 'good'), 300); save();
+}
+const _startLong_cpl = startLong;
+startLong = (ri, ...a) => { if (!S.exp && S.loc === ri) bentoOpen(); const r = _startLong_cpl(ri, ...a); if (S.exp && cplParty()){ cplS().exp = 1; save(); } return r; };
+const _applyGo_cpl = applyGo;
+applyGo = P => { bentoOpen(); const r = _applyGo_cpl(P); if (S.exp && cplParty()){ cplS().exp = 1; save(); } return r; };
+// ---------- 부부 원정 ----------
+const cplParty = () => { const o = spouse(), P = typeof myParty === 'function' ? myParty() : null; return !!(o && P && (P.members || []).includes(o)); };
+const _makeSnap_cpl = makeSnap;
+makeSnap = (...a) => { const s = _makeSnap_cpl(...a); if (!S || !cplParty()) return s; return {...s, rew:+(s.rew*1.1).toFixed(3), cost:+(s.cost*.9).toFixed(3)}; };
+// ---------- 부부 일일 과제 ----------
+const CPL_TASK = [
+  {k:'greet', n:'서로 인사 나누기', ok:s => s.tx.greet && s.rx.greet},
+  {k:'aff', n:'애정 표현 주고받기', ok:s => s.tx.aff && s.rx.aff},
+  {k:'bento', n:'도시락 주고받기 (둘 중 한 사람이라도)', ok:s => s.tx.bento || s.rx.bento},
+  {k:'exp', n:'부부 원정 떠나기 (조사대로 함께 장기 탐사)', ok:s => s.exp},
+];
+const cplPay = () => ({gold:300 + S.lv*15});
+const cplAllPay = () => ({gold:1500 + S.lv*40, tok:3});
+const cplReady = () => { const o = spouse(); if (!o) return 0; const s = cplS(); return CPL_TASK.filter(t => t.ok(s) && !s.got.includes(t.k)).length + (s.got.length === CPL_TASK.length && !s.all ? 1 : 0) + WED_GIFT.filter(G => wedDays() >= G.d && !wedGot().includes(G.d)).length; };
+function cplClaim(k){ const s = cplS(), T = CPL_TASK.find(t => t.k === k); if (!T || s.got.includes(k) || !T.ok(s)) return; s.got.push(k); const txt = qPay(cplPay()); stat('cplTask'); sfx('coin'); save(); toast(`부부 과제 「${T.n.split(' (')[0]}」 · ${txt}`, 'good'); renderSheet(true); render(); }
+function cplClaimAll(){ const s = cplS(); if (s.all || s.got.length < CPL_TASK.length) return; s.all = true; const txt = qPay(cplAllPay()); sfx('win'); save(); toast(`오늘의 부부 과제를 모두 마쳤다! ${txt}`, 'good'); renderSheet(true); render(); }
+const CPL_TX = {greet:'greet', affection:'aff', bento:'bento'};
+const _sendEv_cpl = sendEv;
+sendEv = (to, type, data) => { if (CPL_TX[type] && to && to === spouse()){ cplS().tx[CPL_TX[type]] = 1; save(); } return _sendEv_cpl(to, type, data); };
+const _handleEvent_cpl = handleEvent;
+handleEvent = (id, ev) => {
+  if (ev && ev.from && CPL_TX[ev.type] && ev.from === spouse() && !processed.has(id)){ cplS().rx[CPL_TX[ev.type]] = 1; }
+  if (ev && ev.type === 'bento'){
+    if (processed.has(id) || !S || !S.char) return; processed.add(id); const del = () => ST.db.doc('events/' + id).delete().catch(() => {});
+    if (blocked(ev.from) || !ev.data || !IT[String(ev.data.k).replace('*', '')]){ del(); return; }
+    S.bentoIn = {k:ev.data.k, m:String(ev.data.m || '').slice(0, 40), from:ev.from, ts:ev.ts || now()}; const nm = (PL[ev.from] && PL[ev.from].name) || '배우자';
+    notify('social', '도시락', `${nm}님이 도시락(${itemName(ev.data.k)})을 싸 주었다. 다음 장기 탐사를 떠날 때 열어 본다.${S.bentoIn.m ? ` 「${S.bentoIn.m}」` : ''}`); save(); del(); softRender(); return;
+  }
+  return _handleEvent_cpl(id, ev);
+};
+// ---------- 화면 ----------
+SHEETS.couple = () => {
+  const o = spouse(); if (!o) return sheetHead('부부') + '<p class="small muted">연인에게 청혼해 부부가 되면 열리는 곳이다.</p>';
+  wedEnsure(); const s = cplS(), nm = esc(spName()), days = wedDays(), all = s.got.length === CPL_TASK.length, B = S.bentoIn;
+  const foods = Object.keys(S.inv).filter(k => cnt(k) > 0 && IT[k.replace('*', '')]?.t === 'food').slice(0, 16);
+  return sheetHead('부부', '<span class="chip gold">💞</span>') + `
+  <div class="card cpl-top"><b style="font-size:1.15rem">${nm}님과 부부</b><p class="small" style="margin:4px 0 0">${days ? `함께한 지 <b>${days}일째</b>` : '결혼한 날을 기록하는 중…'} · 부부 버프 경험치 +10%</p></div>
+  <h3 style="margin:14px 0 6px">결혼 기념일</h3><div class="list">${WED_GIFT.map(G => { const got = wedGot().includes(G.d), can = days >= G.d; return `<div class="li"><div class="t"><b>${G.n} (${G.d}일)</b><span class="tiny muted">${rewTxt(G.r)}${G.furn ? ` · 한정 가구 「${FURN[G.furn].n}」` : ''}</span></div>${got ? '<span class="chip good">받음</span>' : `<button class="btn sm ${can ? 'seal' : 'ghost'}" data-act="wedClaim" data-k="${G.d}" ${can ? '' : 'disabled'}>${can ? '받기' : `${G.d - days}일 남음`}</button>`}</div>`; }).join('')}</div>
+  <h3 style="margin:14px 0 6px">도시락 싸 주기</h3><p class="small muted" style="margin:0 0 6px">요리 하나를 도시락으로 싸서 보낸다. ${nm}님이 다음 장기 탐사를 떠날 때 열어 그 음식의 버프가 걸린다. 하루 한 번.</p>
+  ${B ? `<p class="small" style="margin:0 0 6px">💌 받은 도시락: <b>${esc(itemName(B.k))}</b>${B.m ? ` · 「${esc(B.m)}」` : ''} · 다음 장기 탐사 때 연다</p>` : ''}
+  ${s.tx.bento ? '<p class="small" style="margin:0">오늘은 이미 도시락을 쌌다.</p>' : foods.length ? `<input type="text" id="bentoMsg" maxlength="40" placeholder="도시락에 넣을 쪽지 (40자, 선택)" aria-label="도시락 쪽지" style="margin-bottom:6px"><div class="row wrapf" style="gap:6px">${foods.map(k => `<button class="btn sm ghost" data-act="bentoSend" data-k="${esc(k)}">${esc(itemName(k))} ${cnt(k)}</button>`).join('')}</div>` : '<p class="small muted" style="margin:0">쌀 수 있는 요리가 없다. 부엌에서 만들어 보자.</p>'}
+  <h3 style="margin:14px 0 6px">부부 원정</h3><p class="small muted" style="margin:0">${nm}님과 조사대를 꾸려 함께 장기 탐사를 떠나면 <b>보상 +10%, 체력 소모 −10%</b>. 조사대 보너스와 따로 더해진다.${cplParty() ? ' <b style="color:var(--moss)">지금 같은 조사대다!</b>' : ''}</p>
+  <h3 style="margin:14px 0 6px">오늘의 부부 과제</h3><div class="list">${CPL_TASK.map(T => { const ok = T.ok(s), got = s.got.includes(T.k); return `<div class="li"><div class="t"><b>${T.n}</b><span class="tiny muted">${rewTxt(cplPay())}</span></div>${got ? '<span class="chip good">받음</span>' : `<button class="btn sm ${ok ? 'seal' : 'ghost'}" data-act="cplClaim" data-k="${T.k}" ${ok ? '' : 'disabled'}>${ok ? '받기' : '아직'}</button>`}</div>`; }).join('')}</div>
+  <div class="card" style="margin-top:8px"><div class="row"><div class="grow"><b>모두 마치기 덤</b><br><span class="small muted">${rewTxt(cplAllPay())}</span></div>${s.all ? '<span class="chip good">받음</span>' : `<button class="btn sm ${all ? 'seal' : 'ghost'}" data-act="cplClaimAll" ${all ? '' : 'disabled'}>받기</button>`}</div></div>
+  <p class="tiny muted" style="margin:8px 2px 0">인사와 애정 표현은 교류 탭에서 ${nm}님을 눌러 할 수 있다. 과제는 서울 시각 자정에 새로 시작한다.</p>`;
+};
+const cplCard = () => { const o = spouse(); if (!o) return ''; const n = cplReady(); return `<button class="j-banner cpl-banner" data-act="sheet" data-s="couple"><span class="ic" aria-hidden="true" style="font-size:1.6rem">💞</span><span class="t"><b>${esc(spName())}님과 부부</b><span>${wedDays() ? `함께한 지 ${wedDays()}일째 · ` : ''}기념일 · 도시락 · 부부 원정 · 오늘의 과제</span></span>${n ? `<i>${n}</i>` : ''}<span class="arr" aria-hidden="true">›</span></button>`; };
+const _social_cpl = TABS.social;
+TABS.social = () => { const h = _social_cpl(), c = cplCard(); if (!c) return h; const i = h.indexOf('</div>', h.indexOf('class="sec-title"')); return i < 0 ? c + h : h.slice(0, i + 6) + c + h.slice(i + 6); };
+const _lifeChips_cpl = lifeChips;
+lifeChips = () => { const out = _lifeChips_cpl(); if (cplReady()) out.push('<button class="chip gold" data-act="sheet" data-s="couple">💞 부부</button>'); return out; };
+Object.assign(ACT, {wedClaim:d => wedClaim(+d.k), bentoSend:d => bentoSend(d.k), cplClaim:d => cplClaim(d.k), cplClaimAll:() => cplClaimAll()});
+// ---------- 두 사람에게만 뜨는 안내 ----------
+const cplNoteFor = () => !!S && !!S.char && (CPL_NOTE_NAMES.includes(S.char.name) || (typeof DUO !== 'undefined' && !!DUO.doc));
+SHEETS.cplNote = () => sheetHead('<span style="font-size:.62em">두 분께만 드리는 소식</span>') + `<p class="small muted" style="margin-top:0">부부가 함께 할 수 있는 것들이 생겼어요.</p><div class="list">${[
+  ['💍', '결혼 기념일', '교류 탭 맨 위 「부부」에서 함께한 날을 볼 수 있어요. 7일·30일·100일·200일·1년마다 기념 선물을 받아요. 30일에는 「원앙 한 쌍」, 100일에는 「혼례 병풍」 한정 가구도 받아요.'],
+  ['🍱', '도시락 싸 주기', '요리 하나를 도시락으로 싸서 쪽지와 함께 보내요. 받은 사람이 다음 장기 탐사를 떠날 때 열어서 그 음식의 버프가 걸려요. 하루 한 번.'],
+  ['⛰', '부부 원정', '둘이 조사대를 꾸려 함께 장기 탐사를 떠나면 보상 +10%, 체력 소모 −10%가 더해져요.'],
+  ['📋', '오늘의 부부 과제', '서로 인사 나누기, 애정 표현 주고받기, 도시락 주고받기, 부부 원정 떠나기. 하나마다 엽전, 모두 마치면 덤으로 엽전과 개척 증표를 받아요.'],
+].map(([ic, t, d]) => `<div class="li"><span aria-hidden="true" style="width:28px;text-align:center;font-size:1.25rem">${ic}</span><div class="t"><b>${t}</b><span>${d}</span></div></div>`).join('')}</div><p class="small" style="margin:10px 2px 0">부부가 되면 교류 탭 맨 위에 「부부」 띠가 생겨요.</p><button class="btn seal full" style="margin-top:12px" data-act="cplNoteOk">확인했어요</button>`;
+ACT.cplNoteOk = () => { S.cplNote = CPL_NOTE_V; save(); closeSheet(); };
+setInterval(() => { if (window.__NOPOP || !S || SCREEN !== 'game' || SHEET || FG || CG || !$('#ask').hidden) return; if (S.guideSeen !== GUIDE_V) return; if (S.cplNote !== CPL_NOTE_V && cplNoteFor()) openSheet('cplNote'); }, 1500);
+TITLES.push({id:'wed100', n:'백년가약', d:'부부가 된 지 100일이 지났다.', c:S => (S.wedGot && Object.values(S.wedGot).some(a => a.includes(100)))});
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
