@@ -583,6 +583,7 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 /* 둘만의 반려동물 */
 .duo-ic{ flex:none; display:grid; place-items:center; width:84px; height:84px; border-radius:16px; background:radial-gradient(circle at 40% 35%, #a09ca8, #74707e); border:1px solid var(--line); }
 .duo-pix{ image-rendering:pixelated; display:block; }
+.duo-img{ display:block; object-fit:cover; border-radius:12px; } .duo-ic .duo-img{ width:76px; height:76px; } .duo-tile .duo-img{ width:30px; height:30px; border-radius:6px; }
 .duo-tile .duo-pix{ width:30px; height:30px; }
 .duo-bowl{ display:inline-flex; gap:4px; } .duo-bowl i{ width:18px; height:18px; border-radius:5px; border:1.5px solid var(--line); background:var(--card); } .duo-bowl i.on{ background:#c4a060; border-color:#c4a060; }
 .duo-notes{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:12px; }
@@ -11365,26 +11366,27 @@ function duoCare(k){
 function duoBowl(k){ const p = duoPet(k); if (!p) return; const hb = duoHun(p); if (hb.bowl >= DUO_BOWL) return toast('사료통이 가득 찼어요.'); if (!takeItem('feed')) return toast('배합 사료가 없어요. 잡화점의 「축사 먹이」에서 살 수 있어요.'); sfx('soft'); toast(`${p.n}의 사료통에 한 끼를 채웠다.`, 'good'); duoWrite(k, {bowl:hb.bowl + 1}, 'bowl'); }
 function duoFeed(k){ const p = duoPet(k); if (!p) return; const hb = duoHun(p); if (hb.hun >= 95) return toast(`${p.n}${pp(p.n, '은', '는')} 지금 배가 불러요.`); if (!takeItem('feed')) return toast('배합 사료가 없어요. 잡화점의 「축사 먹이」에서 살 수 있어요.'); const t = now(); sfx('eat'); toast(`${p.n}에게 사료를 먹였다. 친밀도 +2`, 'good'); duoWrite(k, {hun:Math.min(100, hb.hun + 50), aff:{[ST.uid]:Math.min(100, duoAff(p, ST.uid) + 2)}, care:{[ST.uid]:t}}, 'feed'); }
 function duoRename(k){ const p = duoPet(k), el = $('#duoN_' + k); if (!p || !el) return; const n = el.value.trim().slice(0, 12); if (!n) return; toast(`이제 ${n}${pp(n, '이라고', '라고')} 부른다.`, 'good'); duoWrite(k, {n}, 'name'); }
-const DUO_LOG = {care:'돌봐 주었다', bowl:'의 사료통을 채웠다', feed:'에게 사료를 먹였다', name:'의 이름을 지어 주었다'};
+const DUO_LOG = {care:'돌봐 주었다', bowl:'의 사료통을 채웠다', feed:'에게 사료를 먹였다', name:'의 이름을 지어 주었다', img:'의 그림을 바꿨다'};
 const duoAgo = ts => { const m = Math.floor((now() - ts)/MIN); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m/60)}시간 전` : `${Math.floor(m/1440)}일 전`; };
 SHEETS.duo = () => {
   const D = DUO.doc; if (!D) return sheetHead('우리 동물') + '<p class="small muted">함께 키우는 동물이 없습니다.</p>';
   const o = duoOther(), on = esc(duoName(o)), feed = cnt('feed');
   const card = k => { const p = D.pets[k], P = DUO_PETS[k]; if (!p || !P) return ''; const hb = duoHun(p), mine = duoAff(p, ST.uid), idle = duoIdle(p, ST.uid), cd = now() - ((p.care && p.care[ST.uid]) || 0) < DUO_CD;
-    return `<div class="card duo-card"><div class="row" style="gap:12px;align-items:flex-start"><span class="duo-ic">${duoPix(P)}</span><div class="grow"><b style="font-size:1.1rem">${esc(p.n)}</b><br><span class="small muted">${P.sp}</span><br><span class="small">${P.d}</span></div></div>
+    return `<div class="card duo-card"><div class="row" style="gap:12px;align-items:flex-start"><span class="duo-ic">${duoArt(k, 72)}</span><div class="grow"><b style="font-size:1.1rem">${esc(p.n)}</b><br><span class="small muted">${P.sp}</span><br><span class="small">${P.d}</span></div></div>
       <div class="row small" style="margin-top:8px"><span class="grow">배고픔</span><b class="num">${hb.hun}</b></div><div class="bar gold"><i style="width:${hb.hun}%"></i></div>
       <div class="row small" style="margin-top:6px"><span class="grow">내 친밀도</span><b class="num">${mine}</b></div><div class="bar gold"><i style="width:${mine}%"></i></div>
       <p class="tiny muted" style="margin:6px 0 0">동거인 ${on} 님의 친밀도 ${duoAff(p, o)} · 친밀도는 사람마다 따로 쌓인다</p>
       ${idle >= DUO_IDLE ? `<p class="tiny" style="margin:2px 0 0;color:var(--seal)">${idle}시간째 돌봐 주지 않아 친밀도가 떨어지고 있다.</p>` : ''}${hb.hun < 30 ? `<p class="tiny" style="margin:2px 0 0;color:var(--seal)">${esc(p.n)}${pp(p.n, '이', '가')} 배고파한다.</p>` : ''}
       <div class="row small" style="gap:6px;margin-top:8px"><span>사료통</span><span class="duo-bowl" aria-label="사료통 ${hb.bowl}끼">${Array.from({length:DUO_BOWL}, (_, i) => `<i class="${i < hb.bowl ? 'on' : ''}"></i>`).join('')}</span><span class="tiny muted">${hb.bowl}끼 · 배고프면 알아서 먹는다</span></div>
       <div class="row wrapf" style="gap:6px;margin-top:10px"><button class="btn sm seal" data-act="duoCare" data-k="${k}" ${cd ? 'disabled' : ''}>${cd ? '돌봐 주었다' : '돌보기'}</button><button class="btn sm ghost" data-act="duoBowl" data-k="${k}" ${feed && hb.bowl < DUO_BOWL ? '' : 'disabled'}>사료통 채우기</button><button class="btn sm ghost" data-act="duoFeed" data-k="${k}" ${feed && hb.hun < 95 ? '' : 'disabled'}>바로 먹이기</button></div>
+      <details class="sub" style="margin-top:8px"><summary class="small">그림 바꾸기</summary><p class="tiny muted" style="margin:6px 0">사진이나 그림을 고르면 가운데를 정사각형으로 잘라 넣는다. 두 사람 모두에게 똑같이 보인다.</p><div class="row wrapf" style="gap:6px"><label class="btn sm" for="duoF_${k}">그림 고르기</label><input id="duoF_${k}" class="duo-file" data-k="${k}" type="file" accept="image/*" hidden>${p.img ? `<button class="btn sm ghost" data-act="duoImgReset" data-k="${k}">원래 그림으로</button>` : ''}</div></details>
       <details class="sub" style="margin-top:8px"><summary class="small">이름 짓기</summary><div class="row" style="gap:6px;margin-top:6px"><input type="text" id="duoN_${k}" maxlength="12" value="${esc(p.n)}" aria-label="새 이름"><button class="btn sm" data-act="duoRename" data-k="${k}">바꾸기</button></div></details></div>`; };
   const log = (D.log || []).filter(l => D.pets[l.p] && DUO_LOG[l.k]).slice(0, 8);
   return sheetHead('우리 동물', `<span class="chip">배합 사료 ${feed}</span>`) + `<p class="small muted" style="margin-top:0">${on} 님과 둘이서만 키우는 동물들이다. 다른 개척자에게는 보이지 않는다. 사료는 잡화점의 배합 사료를 쓴다.</p><div class="stack">${Object.keys(DUO_PETS).map(card).join('')}</div>
   ${log.length ? `<h3 style="margin:14px 0 6px">돌본 기록</h3><div class="list">${log.map(l => `<div class="li"><div class="t"><span class="small">${l.u === ST.uid ? '내가' : on + ' 님이'} ${esc(D.pets[l.p].n)}${l.k === 'care' ? pp(D.pets[l.p].n, '을', '를') + ' ' : ''}${DUO_LOG[l.k]}</span></div><span class="tiny muted">${duoAgo(l.ts)}</span></div>`).join('')}</div>` : ''}`;
 };
 const duoNeed = () => DUO.doc ? Object.keys(DUO_PETS).filter(k => { const p = DUO.doc.pets[k]; return p && (duoHun(p).hun < 30 || duoIdle(p, ST.uid) >= DUO_IDLE); }).length : 0;
-const duoTile = () => { if (!DUO.doc) return ''; const n = duoNeed() + (duoNew() ? 1 : 0); return `<button class="tile" data-act="sheet" data-s="duo"><span class="ic duo-tile">${duoPix(DUO_PETS.hachi, 30)}</span><b>우리 동물</b><span class="st ${n ? 'on' : ''}">${n ? (duoNew() ? '새 소식이 있다' : `돌봐 줄 동물 ${n}`) : `${esc(duoName(duoOther()))} 님과 함께`}</span></button>`; };
+const duoTile = () => { if (!DUO.doc) return ''; const n = duoNeed() + (duoNew() ? 1 : 0); return `<button class="tile" data-act="sheet" data-s="duo"><span class="ic duo-tile">${duoArt('hachi', 30)}</span><b>우리 동물</b><span class="st ${n ? 'on' : ''}">${n ? (duoNew() ? '새 소식이 있다' : `돌봐 줄 동물 ${n}`) : `${esc(duoName(duoOther()))} 님과 함께`}</span></button>`; };
 // ---------- 운영 도구: 두 사람을 정해 만들고 지운다 ----------
 const duoId = (a, b) => 'duo_' + [a, b].sort().join('_');
 async function opDuoMake(){
@@ -11449,6 +11451,35 @@ Object.assign(ACT, {duoTab:d => { UI.duoTab = d.t; if (d.t !== 'pets'){ S.duoSee
 const regBonus = ri => { const R = REG[ri]; return R ? +(R.lv*.012).toFixed(3) : 0; };
 const _makeSnap_reg = makeSnap;
 makeSnap = (region, ...a) => { const s = _makeSnap_reg(region, ...a), b = regBonus(region == null ? S.loc : region); return b ? {...s, rew:+(s.rew*(1 + b)).toFixed(3)} : s; };
+
+// ===================== 우리 동물 그림 바꾸기 =====================
+// 고른 그림을 192×192로 잘라 duo 문서의 pets.{k}.img(data URL)에 넣는다. 두 사람만 읽을 수 있는 문서라 다른 사람에게는 보이지 않는다.
+// 문서 하나는 1MB까지라 그림마다 약 150KB 아래로 줄인다.
+const DUO_IMG = 192, DUO_IMG_MAX = 150000;
+const duoImgOk = s => typeof s === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(s) && s.length <= DUO_IMG_MAX*1.4;
+function duoArt(k, size){ const p = DUO.doc && DUO.doc.pets && DUO.doc.pets[k], P = DUO_PETS[k]; return p && duoImgOk(p.img) ? `<img class="duo-img" src="${p.img}" width="${size}" height="${size}" alt="${esc(p.n || P.n)}">` : duoPix(P, size); }
+function duoImgMake(src){
+  return new Promise((res, rej) => { const img = new Image(); img.onload = () => {
+    const c = document.createElement('canvas'); c.width = c.height = DUO_IMG; const g = c.getContext('2d'), s = Math.min(img.width, img.height);
+    g.imageSmoothingEnabled = s > DUO_IMG*1.5; g.drawImage(img, (img.width - s)/2, (img.height - s)/2, s, s, 0, 0, DUO_IMG, DUO_IMG);
+    let alpha = false; try { const d = g.getImageData(0, 0, DUO_IMG, DUO_IMG).data; for (let i = 3; i < d.length; i += 16) if (d[i] < 250){ alpha = true; break; } } catch (e){}
+    let url = alpha ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .86);
+    if (url.length > DUO_IMG_MAX) url = c.toDataURL('image/webp', .8);
+    if (!duoImgOk(url) || url.length > DUO_IMG_MAX) url = c.toDataURL('image/jpeg', .7);
+    duoImgOk(url) ? res(url) : rej(new Error('size')); }; img.onerror = () => rej(new Error('read')); img.src = src; });
+}
+async function duoImgSet(k, src){
+  const D = DUO.doc; if (!D || !D.pets[k]) return; let url; try { url = await duoImgMake(src); } catch (e){ return toast('그림을 읽지 못했어요. 다른 그림으로 해 보세요.', 'warn'); }
+  D.pets[k].img = url; D.log = [{u:ST.uid, p:k, k:'img', ts:now()}, ...(D.log || [])].slice(0, 14);
+  try { await ST.db.doc('duo/' + DUO.id).update({pets:{[k]:{img:url}}, log:D.log}); stat('duoImg'); sfx('soft'); toast(`${D.pets[k].n}의 그림을 바꿨다.`, 'good'); } catch (e){ console.warn('duo', e); toast('그림을 저장하지 못했어요. 더 작은 그림으로 해 보세요.', 'warn'); }
+  renderSheet(true); render();
+}
+async function duoImgReset(k){
+  const D = DUO.doc; if (!D || !D.pets[k] || !D.pets[k].img) return; if (!await ask('원래 그림으로', `${D.pets[k].n}의 그림을 처음 그림으로 되돌릴까요?`, '되돌리기')) return;
+  D.pets[k].img = ''; try { await ST.db.doc('duo/' + DUO.id).update({pets:{[k]:{img:''}}}); toast('원래 그림으로 되돌렸다.'); } catch (e){ toast('되돌리지 못했어요.', 'warn'); } renderSheet(true); render();
+}
+document.addEventListener('change', e => { const t = e.target; if (!t.classList || !t.classList.contains('duo-file') || !t.files || !t.files[0]) return; const f = t.files[0], k = t.dataset.k; if (!/^image\//.test(f.type)) return toast('그림 파일만 넣을 수 있어요.', 'warn'); if (f.size > 15*1024*1024) return toast('파일이 너무 커요. 15MB 아래로 골라 주세요.', 'warn'); const r = new FileReader(); r.onload = () => duoImgSet(k, r.result); r.readAsDataURL(f); t.value = ''; });
+ACT.duoImgReset = d => duoImgReset(d.k);
 // ===================== 두 번째 대륙: 봉래 대륙 =====================
 // 천주봉 우두머리를 쓰러뜨리면 백사 해안에서 배가 뜬다. 고장 여섯 곳(13~18)을 고장 표(REG·BOSS·STARS·MAPPOS·ROADS·AMB_REG·X3_THEME)에 덧붙인다.
 // 지도는 대륙마다 따로 그린다. MAPPOS는 대륙마다 자기 지도 좌표다. 대륙을 건너는 길은 항구까지 걷고 배를 탄다.
