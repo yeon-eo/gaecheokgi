@@ -456,7 +456,7 @@ button.chip.good{ color:var(--moss); } button.chip.bad{ color:var(--seal); } but
 .ib-bg{ fill:#3b2f42; } .ib-ring{ fill:none; stroke:#7a6880; stroke-width:1; opacity:.8; }
 .iic.q .ib-ring{ stroke:#f0c040; stroke-width:1.6; opacity:1; }
 .li > .iic{ margin-right:2px; }
-.chip.ichip{ padding-left:8px; }
+.chip.ichip{ padding-left:8px; white-space:normal; max-width:100%; text-align:left; line-height:1.35; }
 .linkbtn{ background:none; border:0; padding:0; color:var(--indigo); font:inherit; text-decoration:underline; cursor:pointer; }
 .seg.scrollx{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
 .seg.scrollx::-webkit-scrollbar{ display:none; } .seg.scrollx > button{ flex:none; }
@@ -11801,13 +11801,13 @@ function wkMon(id){
   <h3 style="margin:12px 0 6px">떨구는 것</h3><div class="list">${(m.dr6 || m.dr).map(([k, c]) => `<button class="li click" data-act="wkGo" data-p="item:${k}">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)}</b><span>${c < .1 ? (c*100).toFixed(1) : Math.round(c*100)}%</span></div></button>`).join('')}</div>`;
 }
 function wkList(kind){
-  const q = (UI.wkQ || '').trim(), keys = Object.keys(IT).filter(k => !k.endsWith('*') && IT[k].n && (kind === 'all' || wkKind(k) === kind) && (!q || IT[k].n.includes(q))).sort((a, b) => (wk().lvOf[a] ?? 999) - (wk().lvOf[b] ?? 999) || IT[a].n.localeCompare(IT[b].n, 'ko'));
+  const q = (UI.wkQ || '').trim(), keys = Object.keys(IT).filter(k => !k.endsWith('*') && IT[k].n && !IT[k].hide && (kind === 'all' || wkKind(k) === kind) && (!q || IT[k].n.includes(q))).sort((a, b) => (wk().lvOf[a] ?? 999) - (wk().lvOf[b] ?? 999) || IT[a].n.localeCompare(IT[b].n, 'ko'));
   const kinds = ['all', ...new Set(Object.values(WK_KIND))];
   return `<div class="row wrapf" style="gap:4px;margin:8px 0">${kinds.map(x => `<button class="chip ${x === kind ? 'gold' : ''}" data-act="wkKind" data-k="${x}" aria-pressed="${x === kind}">${x === 'all' ? '전체' : x}</button>`).join('')}</div>
   <p class="tiny muted" style="margin:0 2px 6px">${keys.length}개 · 쉬운 것부터</p><div class="list">${keys.slice(0, 120).map(k => { const d = wkDiff(k); return `<button class="li click" data-act="wkGo" data-p="item:${k}">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)}</b><span>${wkKind(k)} · ${d.n}${d.lv ? ` · Lv${d.lv}~` : ''}</span></div><span class="wk-star tiny">${wkStars(d.star)}</span></button>`; }).join('')}</div>${keys.length > 120 ? '<p class="small muted">결과가 많다. 위에서 이름으로 찾아보자.</p>' : ''}`;
 }
 function wkSearch(q){
-  const items = Object.keys(IT).filter(k => !k.endsWith('*') && IT[k].n && IT[k].n.includes(q)).slice(0, 30), regs = REG.map((r, i) => i).filter(i => REG[i].n.includes(q)), mons = Object.keys(MON).filter(k => MON[k].n.includes(q)).slice(0, 15), docs = Object.keys(WK_DOC).filter(k => WK_DOC[k].n.includes(q) || WK_DOC[k].b().replace(/<[^>]+>/g, '').includes(q));
+  const items = Object.keys(IT).filter(k => !k.endsWith('*') && IT[k].n && !IT[k].hide && IT[k].n.includes(q)).slice(0, 30), regs = REG.map((r, i) => i).filter(i => REG[i].n.includes(q)), mons = Object.keys(MON).filter(k => MON[k].n.includes(q)).slice(0, 15), docs = Object.keys(WK_DOC).filter(k => WK_DOC[k].n.includes(q) || WK_DOC[k].b().replace(/<[^>]+>/g, '').includes(q));
   const sec = (t, a) => a.length ? `<h3 style="margin:12px 0 6px">${t}</h3><div class="list">${a.join('')}</div>` : '';
   const out = sec('글', docs.map(k => `<button class="li click" data-act="wkGo" data-p="doc:${k}"><span aria-hidden="true">${WK_DOC[k].ic}</span><div class="t"><b>${WK_DOC[k].n}</b></div></button>`)) + sec('아이템', items.map(k => `<button class="li click" data-act="wkGo" data-p="item:${k}">${itemIcon(k)}<div class="t"><b>${esc(IT[k].n)}</b><span>${wkKind(k)} · ${wkDiff(k).n}</span></div></button>`)) + sec('고장', regs.map(i => `<button class="li click" data-act="wkGo" data-p="reg:${i}"><div class="t"><b>${esc(REG[i].n)}</b><span>${recLv(i)}</span></div></button>`)) + sec('몬스터', mons.map(k => `<button class="li click" data-act="wkGo" data-p="mon:${k}"><div class="t"><b>${esc(MON[k].n)}</b><span>Lv${MON[k].L}</span></div></button>`));
   return out || '<p class="small muted" style="margin-top:10px">찾는 것이 없다. 다른 말로 찾아보자.</p>';
@@ -12009,6 +12009,24 @@ SHEETS.cplNote = () => sheetHead('<span style="font-size:.62em">두 분께만 �
 ACT.cplNoteOk = () => { S.cplNote = CPL_NOTE_V; save(); closeSheet(); };
 setInterval(() => { if (window.__NOPOP || !S || SCREEN !== 'game' || SHEET || FG || CG || !$('#ask').hidden) return; if (S.guideSeen !== GUIDE_V) return; if (S.cplNote !== CPL_NOTE_V && cplNoteFor()) openSheet('cplNote'); }, 1500);
 TITLES.push({id:'wed100', n:'백년가약', d:'부부가 된 지 100일이 지났다.', c:S => (S.wedGot && Object.values(S.wedGot).some(a => a.includes(100)))});
+
+// ===================== 약혼 반지: 부부가 되면 우편으로 한 번 받는다 =====================
+// 안쪽에 두 사람의 이름이 새겨진다(받을 때 정해져 S.wedRingEng에 남는다). 원석 색은 내 아바타 옷 색을 따라간다.
+// 능력치는 은반지(체력 +3)보다 조금 낫고 용혈 반지(합 8)보다 낮은 합 6. 위키·공지에는 싣지 않는다(hide).
+IT.wedring = {n:'약혼 반지', t:'acc', slot:'ring', p:0, st:{VIT:2, LUK:2, SPI:2}, hide:1, d:'부부의 연을 맺은 두 사람에게만 주어지는 반지.'};
+Object.defineProperty(IT.wedring, 'f', {get:() => `안쪽에 「${S && S.wedRingEng || '두 사람의 이름'}」이 새겨져 있다. 원석은 늘 입는 옷과 같은 빛으로 반짝인다.`, enumerable:true, configurable:true});
+Object.defineProperty(ICON, 'wedring', {get:() => ['ring', '#e8c858', (typeof S !== 'undefined' && S && AV_CLOTH[avMine().oc]) || '#c8342a'], enumerable:true, configurable:true});
+const _itemIcon_ring = itemIcon;
+itemIcon = (k, ...a) => { if (String(k).startsWith('wedring')) for (const c in ICON_CACHE) if (c.startsWith('wedring')) delete ICON_CACHE[c]; return _itemIcon_ring(k, ...a); };
+const _itemName_ring = itemName;
+itemName = (k, ...a) => String(k).replace('*', '') === 'wedring' && S && S.wedRingEng ? `약혼 반지 「${S.wedRingEng}」` : _itemName_ring(k, ...a);
+function wedRingTick(){
+  if (!S || SCREEN !== 'game' || S.wedRingGot) return; const o = spouse(); if (!o || !PL[o] || !PL[o].name) return;
+  S.wedRingGot = now(); S.wedRingEng = `${S.char.name} ♥ ${PL[o].name}`;
+  postAdd({kind:'grant', name:'운영자', items:[['wedring', 1]], gold:0, msg:`${PL[o].name}님과 부부가 된 것을 축하합니다. 두 분의 이름을 새긴 약혼 반지를 보내 드려요.`});
+  save(); notify('social', '우편', '우편함에 선물이 도착했습니다. 두 분의 이름이 새겨진 약혼 반지예요.'); render();
+}
+setInterval(wedRingTick, 5000);
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
