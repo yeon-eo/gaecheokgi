@@ -10596,8 +10596,11 @@ Object.assign(ACT, {journalGo:d => { UI.jt = d.t; openSheet('journal'); }, hallG
 // 규칙 변경 없음: 대회 기록은 hallc/{uid}의 wc·wcp에 쓴다. 패치마다 GUIDE_V와 GUIDE를 고치면 모두에게 한 번 뜬다.
 
 // ---------- 1. 업데이트 길잡이 ----------
-const GUIDE_V = '2026-11-14';
+const GUIDE_V = '2026-11-16';
 const GUIDE = [
+  ['🛠', '조기 귀환 수당 오류를 고쳤어요', '장기 탐사를 도중에 끝내고 돌아와도 정한 시간 전체의 탐사 수당이 들어오던 문제를 고쳤어요. 이제 조기 귀환하면 실제로 다닌 시간만큼만 수당을 받아요(10분이 안 되면 없음). 끝까지 다녀오면 전과 똑같이 다 받아요.'],
+];
+const GUIDE_1114 = [
   ['📋', '일일 퀘스트', '개척 일지에 「일일」 탭이 생겼어요. 날마다 네 가지 할 일이 나오고, 하나 끝낼 때마다 엽전(150 + 레벨×25냥), 모두 끝내면 덤으로 엽전과 개척 증표를 더 줘요.'],
   ['💰', '탐사 수당', '장기 탐사를 마치면 탐사 시간과 고장 레벨에 따라 수당을 따로 받아요. 백사 해안 1시간 170냥, 천주봉 3시간 3,330냥, 봉래산 3시간 4,770냥이에요.'],
   ['🪨', '행상 값 인하', '떠돌이 행상의 용혈석은 9,000냥, 성운석은 11,000냥으로 내렸어요.'],
@@ -10626,7 +10629,8 @@ const GUIDE_OLD = [
   ['🏯', '마을회관', '주간 사업과 회관 잔치가 생겼어요.'],
   ['👹', '마을 공동 토벌', '토요일·일요일에 큰 요괴가 나타나요. 모두의 피해가 합쳐져요.'],
 ];
-SHEETS.guide = () => sheetHead('이번 업데이트') + `<p class="small muted" style="margin-top:0">새로 들어온 것을 한눈에 살펴보세요.</p><div class="list">${[...GUIDE, ...GUIDE_PREV, ...GUIDE_OLD].map(([ic, t, d]) => `<div class="li"><span aria-hidden="true" style="width:28px;text-align:center;font-size:1.25rem">${ic}</span><div class="t"><b>${t}</b><span>${d}</span></div></div>`).join('')}</div><button class="btn seal full" style="margin-top:12px" data-act="closeSheet">다 읽었어요</button>`;
+const guideRow = ([ic, t, d]) => `<div class="li"><span aria-hidden="true" style="width:28px;text-align:center;font-size:1.25rem">${ic}</span><div class="t"><b>${t}</b><span>${d}</span></div></div>`;
+SHEETS.guide = () => sheetHead('이번 업데이트') + `<p class="small muted" style="margin-top:0">새로 들어온 것을 한눈에 살펴보세요.</p><div class="list">${GUIDE.map(guideRow).join('')}</div><details class="sub" style="margin-top:10px"><summary class="small">지난 업데이트 보기</summary><div class="list">${[...GUIDE_1114, ...GUIDE_PREV, ...GUIDE_OLD].map(guideRow).join('')}</div></details><button class="btn seal full" style="margin-top:12px" data-act="closeSheet">다 읽었어요</button>`;
 const _closeSheet_guide = closeSheet;
 let guideAsking = false;
 closeSheet = force => {
