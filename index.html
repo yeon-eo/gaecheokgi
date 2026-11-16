@@ -143,12 +143,12 @@ main.view{ padding-block:4px 120px; }
 .nav .dot{ position:absolute; top:8px; right:calc(50% - 18px); width:8px; height:8px; border-radius:50%; background:var(--seal); }
 
 /* 시설 타일 */
-.tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
-.tile{ text-align:left; background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:12px; box-shadow:inset 0 0 18px var(--burn); display:grid; gap:2px; min-height:92px; align-content:start; }
-.tile .ic{ width:28px; height:28px; color:var(--ink-2); }
-.tile b{ font-size:1rem; }
-.tile .st{ font-size:.8rem; color:var(--ink-3); }
-.tile .st.on{ color:var(--seal); font-weight:700; }
+.tiles{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+.tile{ text-align:left; background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:10px 4px 9px; box-shadow:inset 0 0 18px var(--burn); display:grid; gap:3px; min-height:78px; align-content:start; justify-items:center; text-align:center; position:relative; }
+.tile .ic{ width:26px; height:26px; color:var(--ink-2); }
+.tile b{ font-size:.9rem; line-height:1.25; word-break:keep-all; }
+.tile .st{ display:none; }
+.tile .st.on{ display:block; font-size:.72rem; line-height:1.25; color:var(--seal); font-weight:700; word-break:keep-all; }
 
 /* 목록 */
 .list{ display:grid; }
@@ -258,7 +258,7 @@ main.view{ padding-block:4px 120px; }
 .prog{ position:absolute; left:18px; right:84px; bottom:18px; }
 .bigtap{ min-height:64px; font-size:1.2rem; }
 @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
-@media (min-width:600px){ .tiles{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+@media (min-width:600px){ .tiles{ grid-template-columns:repeat(4, minmax(0,1fr)); } }
 
 /* ---------- V2 ---------- */
 .top .who .grow{ min-width:0; } .top .who .grow .tiny{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -3345,7 +3345,7 @@ TABS.home = () => {
   ${MUSIC.yt && MUSIC.ytFail && !MUSIC.cfg ? `<p class="small" style="margin:-2px 2px 10px">배경음악 · <a href="${esc(MUSIC.yt.url)}" target="_blank" rel="noopener" style="color:var(--indigo)">유튜브 새 탭에서 듣기 ↗</a></p>` : ''}
   ${es && es.st === 'down' ? `<div class="card" style="border-color:var(--seal);margin-bottom:10px"><b style="color:var(--seal)">행동불능 상태</b><p class="small" style="margin:4px 0 0">${REG[S.exp.region].n}에서 쓰러졌습니다. ${ST.mode==='cloud'?'같은 고장의 동료가 구조하러 오길 기다리는 중입니다.':'잠시 뒤 마을 사람들이 실어 옵니다.'} 자동 귀환까지 <span class="num" data-cd="${es.autoAt}"></span></p></div>` : ''}
   ${S.reqs.length ? `<div class="card" style="margin-bottom:10px"><b>받은 요청 ${S.reqs.length}건</b> <button class="btn sm ghost" data-act="tab" data-t="social" style="float:right">교류에서 보기</button></div>` : ''}
-  <div class="card map-card">${baseMapSVG()}<p class="tiny muted" style="margin:6px 2px 0">건물을 누르면 들어갈 수 있다.${lock ? ' 지금은 장기 탐사 중이라 잠겨 있다.' : ''}</p></div>
+  <div class="card map-card">${baseMapSVG()}${lock ? `<p class="tiny muted" style="margin:6px 2px 0">장기 탐사 중이라 건물이 잠겨 있다.</p>` : ""}</div>
   <div class="tiles" style="margin-top:10px">
     ${festOn() ? `<button class="tile fest-tile" data-act="sheet" data-s="matsuri"><span class="ic">${festTheme().ic}</span><b>${festTheme().n}</b><span class="st on">축제 중 · <span class="num" data-cd="${festEnd()}"></span> 남음</span></button>` : ''}
     ${tile('sheet', 'kitchen', '부엌', `<span class="st ${canCook?'on':''}">${canCook ? `지금 만들 수 있는 요리 ${canCook}` : `아는 레시피 ${knownRecipes().length}`}</span>`, 'data-s="kitchen"')}
