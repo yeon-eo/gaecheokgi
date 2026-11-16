@@ -733,6 +733,7 @@ body.c3-on .toast{ font-size:.82rem; padding:7px 12px; opacity:.94; }
 .h-skins{ display:grid; grid-template-columns:repeat(auto-fill, minmax(5rem, 1fr)); gap:6px; }
 .h-skin{ min-height:44px; border:1.5px solid var(--line); border-radius:6px; padding:2px; }
 .h-skin span{ background:rgba(255,255,255,.82); color:#2b241b; border-radius:3px; padding:0 3px; }
+.ops-sus{border-left:3px solid var(--seal);background:color-mix(in srgb,var(--seal) 7%,transparent)} button.li .li{border:0;padding:0;background:none}
 </style>
 <div id="app" aria-live="polite"></div>
 <div id="sheet" hidden></div>
@@ -12029,6 +12030,98 @@ function wedRingTick(){
   save(); notify('social', '우편', '우편함에 선물이 도착했습니다. 두 분의 이름이 새겨진 약혼 반지예요.'); render();
 }
 setInterval(wedRingTick, 5000);
+// ===================== 운영창: 유저 목록·세이브 열람·활동 기록 =====================
+// 활동 기록: 각자 자기 기록만 oplog/{uid}/items에 쓰고(만들기만), 읽기와 지우기는 운영자만 한다(firestore.rules oplog 블록).
+// 세이브 열람: data/users/{uid}/save를 운영자가 읽기만 한다(규칙에 운영자 읽기 허용). 운영창은 다른 유저의 데이터를 고치지 않는다.
+const OLOG = {q:[], lastGold:null, lastLv:null, started:false};
+const OLOG_K = {login:'접속', exp:'탐사 출발', back:'탐사 귀환', gold:'엽전 변화', lv:'레벨 업', market:'거래소', merch:'행상', gift:'선물', post:'우편 받음', bless:'기원', trade:'교환', title:'칭호', grant:'운영 지급'};
+function olog(k, x){ if (ST.mode !== 'cloud' || !S || !ST.uid) return; OLOG.q.push({k, x:String(x).slice(0, 160), g:Math.round(S.gold || 0), lv:S.lv || 0, ts:now()}); if (OLOG.q.length >= 8) ologFlush(); }
+async function ologFlush(){ if (ST.mode !== 'cloud' || !OLOG.q.length) return; const q = OLOG.q.splice(0, 20); for (const e of q){ try { await ST.db.collection(`oplog/${ST.uid}/items`).add(e); } catch (err){ console.warn('oplog', err); break; } } }
+setInterval(() => {
+  if (!S || SCREEN !== 'game' || ST.mode !== 'cloud') return;
+  if (!OLOG.started){ OLOG.started = true; OLOG.lastGold = S.gold; OLOG.lastLv = S.lv; olog('login', `${REG[S.loc]?.n || ''}에서 접속 · Lv${S.lv} · ${Math.round(S.gold).toLocaleString()}${CUR}`); }
+  const d = Math.round(S.gold - OLOG.lastGold); if (Math.abs(d) >= 3000){ olog('gold', `${d > 0 ? '+' : ''}${d.toLocaleString()}${CUR} (20초 사이)`); } OLOG.lastGold = S.gold;
+  if (S.lv > OLOG.lastLv){ olog('lv', `Lv${OLOG.lastLv} → Lv${S.lv}`); OLOG.lastLv = S.lv; }
+  ologFlush();
+}, 20000);
+addEventListener('pagehide', () => { ologFlush(); });
+// 주요 행동 감싸기 (원래 동작은 그대로)
+const _startLong_ol = startLong; startLong = (ri, h, ...a) => { const had = !!S.exp, r = _startLong_ol(ri, h, ...a); if (!had && S.exp) olog('exp', `${REG[ri].n} ${h}시간`); return r; };
+const _settleExp_ol = settleExp; settleExp = kind => { const E = S.exp, g = S.gold, n = Object.values(S.inv).reduce((a, v) => a + v, 0), r = _settleExp_ol(kind); if (E && !S.exp) setTimeout(() => olog('back', `${REG[E.region].n} · ${HIST_KIND[kind] || kind} · ${Math.round(S.gold - g).toLocaleString()}${CUR} · 물건 ${Object.values(S.inv).reduce((a, v) => a + v, 0) - n}개`), 600); return r; };
+const _mkBuy_ol = mkBuy; mkBuy = async id => { const L = MK.open[id], g = S.gold; const r = await _mkBuy_ol(id); if (L && S.gold < g) olog('market', `샀다 · ${itemName(L.k)} ×${L.n} · ${L.price}${CUR} (판 사람 ${L.sn || '?'})`); return r; };
+const _mkList_ol = mkList; mkList = async (...a) => { const k = UI.mkK, n = +($('#mkN')?.value || 0), p = +($('#mkP')?.value || 0), c = Object.keys(MK.mine || {}).length; const r = await _mkList_ol(...a); if (Object.keys(MK.mine || {}).length > c) olog('market', `올렸다 · ${itemName(k)} ×${n} · 개당 ${p}${CUR}`); return r; };
+const _mkSettle_ol = mkSettle; mkSettle = async (...a) => { const g = S.gold; const r = await _mkSettle_ol(...a); if (S.gold > g) olog('market', `팔린 값 받음 · +${(S.gold - g).toLocaleString()}${CUR}`); return r; };
+const _merchBuy_ol = merchBuy; merchBuy = k => { const g = S.gold; const r = _merchBuy_ol(k); if (S.gold < g) olog('merch', `${merchName ? merchName(k) : k} · ${(g - S.gold).toLocaleString()}${CUR}`); return r; };
+const _blessBuy_ol = blessBuy; blessBuy = k => { const g = S.gold; const r = _blessBuy_ol(k); if (S.gold < g) olog('bless', `${BLESS[k]?.n || k} · ${(g - S.gold)}${CUR}`); return r; };
+const _giftTo_ol = giftTo; giftTo = async (o, k, n, msg) => { const c = cnt(k); const r = await _giftTo_ol(o, k, n, msg); if (cnt(k) < c) olog('gift', `${PL[o]?.name || o}에게 ${itemName(k)} ×${c - cnt(k)}`); return r; };
+const _postGive_ol = postGive; postGive = p => { _postGive_ol(p); olog(p.kind === 'grant' ? 'grant' : 'post', `${p.kind === 'grant' ? '운영자' : p.name || '누군가'} · ${postSum(p)}`); };
+
+// ---------- 운영창 ----------
+const OPS = {save:{}, log:{}, load:{}, feed:null, feedAt:0};
+async function opsLoad(uid){
+  if (OPS.load[uid]) return; OPS.load[uid] = 1;
+  try { const d = await ST.db.doc(`data/users/${uid}/save`).get(); OPS.save[uid] = d.exists ? JSON.parse(JSON.stringify(d.data())) : {none:1}; } catch (e){ OPS.save[uid] = {err:String(e.message || e)}; }
+  try { const s = await ST.db.collection(`oplog/${uid}/items`).orderBy('ts', 'desc').limit(150).get(); OPS.log[uid] = s.docs.map(x => ({id:x.id, ...x.data()})); } catch (e){ OPS.log[uid] = [{k:'err', x:'활동 기록을 읽지 못했다: ' + (e.message || e), ts:now()}]; }
+  OPS.load[uid] = 2; if (SHEET && SHEET.k === 'ops') renderSheet(true);
+}
+async function opsFeed(){
+  if (OPS.feed === 'loading') return; OPS.feed = 'loading'; renderSheet(true); const out = [];
+  const us = Object.values(PL).filter(p => p && p.uid).sort((a, b) => opsSeen(b) - opsSeen(a)).slice(0, 30);
+  for (const p of us){ try { const s = await ST.db.collection(`oplog/${p.uid}/items`).orderBy('ts', 'desc').limit(20).get(); s.docs.forEach(x => out.push({uid:p.uid, name:p.name, ...x.data()})); } catch (e){} }
+  OPS.feed = out.sort((a, b) => b.ts - a.ts).slice(0, 150); OPS.feedAt = now(); if (SHEET && SHEET.k === 'ops') renderSheet(true);
+}
+const opsSeen = x => Math.max(x?.seen || 0, x?.updated || 0);
+const opsAgo = ts => { if (!ts) return '기록 없음'; const m = Math.floor((now() - ts)/MIN); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m/60)}시간 전` : `${Math.floor(m/1440)}일 전`; };
+const opsTime = ts => new Date(ts).toLocaleString('ko-KR', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+const opsSus = e => (e.k === 'gold' && /\+/.test(e.x) && +String(e.x).replace(/[^\d]/g, '') >= 10000) || (e.k === 'back' && /조기 귀환/.test(e.x));
+const opsRow = (e, who) => `<div class="li ${opsSus(e) ? 'ops-sus' : ''}"><span class="chip">${OLOG_K[e.k] || e.k}</span><div class="t"><span class="small">${who ? `<b>${esc(who)}</b> · ` : ''}${esc(e.x || '')}</span><span class="tiny muted">${opsTime(e.ts)} · 그때 Lv${e.lv ?? '?'} · ${(e.g ?? 0).toLocaleString()}${CUR}</span></div></div>`;
+function opsUser(uid){
+  const p = PL[uid] || {}, sv = OPS.save[uid], lg = OPS.log[uid]; if (!OPS.load[uid]) opsLoad(uid);
+  const back = '<button class="chip" data-act="opsGo" data-p="users">‹ 유저 목록</button>';
+  if (OPS.load[uid] !== 2) return back + '<p class="small muted" style="margin-top:10px">불러오는 중…</p>';
+  const head = `<div class="card" style="margin-top:8px"><div class="row" style="gap:10px">${PHOTO(p.photo)}<div class="grow"><b style="font-size:1.1rem">${esc(p.name || uid)}</b>${p.op ? ' <span class="chip">운영자</span>' : ''}<br><span class="small muted">Lv${p.lv ?? '?'} · ${JOBS[p.job]?.n || '?'} · ${REG[p.loc ?? 0]?.n || '?'} · 마지막 접속 ${opsAgo(opsSeen(p))}</span></div></div><p class="tiny muted" style="margin:6px 0 0">uid ${esc(uid)}</p></div>`;
+  if (!sv || sv.err || sv.none) return back + head + `<p class="small" style="color:var(--seal)">${sv && sv.err ? '세이브를 읽지 못했다. Firebase 규칙을 새로 게시했는지 확인하자. (' + esc(sv.err) + ')' : '세이브가 없다.'}</p>`;
+  const t = UI.opsUT || 'sum', seg = `<div class="seg" style="margin:10px 0">${[['sum', '요약'], ['log', `활동 기록 ${lg ? lg.length : 0}`], ['bag', '가방'], ['hist', '탐사 기록'], ['stat', '통계']].map(([k, n]) => `<button data-act="opsUT" data-t="${k}" aria-pressed="${t === k}">${n}</button>`).join('')}</div>`;
+  let body = '';
+  if (t === 'sum'){ const it = Object.entries(sv.inv || {}).filter(([, n]) => n > 0), eq = sv.equip || {}, st = sv.stats || {}; body = `<div class="list">${[['엽전', (sv.gold || 0).toLocaleString() + CUR], ['레벨·경험치', `Lv${sv.lv} · ${sv.xp || 0}`], ['직업', `${JOBS[sv.job]?.n || sv.job} · ${SUBS[sv.sub]?.n || sv.sub}`], ['지금 하는 일', sv.exp ? `${REG[sv.exp.region]?.n} 장기 탐사 중` : sv.hard ? '고난도 탐사 중' : sv.travel ? '이동 중' : '거점'], ['가방', `${it.length}종 · ${it.reduce((a, [, n]) => a + n, 0)}개`], ['장비', Object.values(eq).filter(Boolean).map(k => itemName(k)).join(', ') || '없음'], ['동료', `${(sv.comps || []).length}마리`], ['토벌', `${Object.keys(sv.bosses || {}).length}곳`], ['탐사 완주', st.exp || 0], ['이야기', `${sv.q?.main ?? 0}장`], ['받은 탐사 수당 합', `${(st.expPay || 0).toLocaleString()}${CUR}`], ['회관 기여', sv.hallPts || 0]].map(([a, b]) => `<div class="li"><div class="t"><b>${a}</b></div><span class="small">${esc(String(b))}</span></div>`).join('')}</div>`; }
+  if (t === 'log'){ const f = UI.opsLK || 'all', ks = ['all', ...new Set((lg || []).map(e => e.k))], L = (lg || []).filter(e => f === 'all' || e.k === f); body = `<div class="row wrapf" style="gap:4px;margin-bottom:8px">${ks.map(k => `<button class="chip ${k === f ? 'gold' : ''}" data-act="opsLK" data-k="${k}">${k === 'all' ? '전체' : OLOG_K[k] || k}</button>`).join('')}</div>${L.length ? `<div class="list">${L.map(e => opsRow(e)).join('')}</div>` : '<p class="small muted">기록이 없다. 이 기능이 생긴 뒤 접속한 적이 있어야 쌓인다.</p>'}`; }
+  if (t === 'bag'){ const it = Object.entries(sv.inv || {}).filter(([k, n]) => n > 0 && IT[k.replace('*', '')]).sort((a, b) => (IT[b[0].replace('*', '')].p || 0)*b[1] - (IT[a[0].replace('*', '')].p || 0)*a[1]); body = `<p class="tiny muted" style="margin:0 0 6px">값어치가 큰 순서</p><div class="list">${it.slice(0, 80).map(([k, n]) => `<div class="li">${itemIcon(k)}<div class="t"><b>${esc(itemName(k))}</b><span>${n}개 · 개당 ${IT[k.replace('*', '')].p || 0}${CUR}</span></div></div>`).join('')}</div>`; }
+  if (t === 'hist'){ const H = sv.hist || []; body = H.length ? `<div class="list">${H.slice(0, 30).map(h => `<div class="li"><div class="t"><b>${REG[h.region]?.n || '?'} · ${HIST_KIND[h.kind] || h.kind}</b><span class="small">${opsTime(h.at)} · ${Math.round((h.dur || 0)/MIN)}분 · 엽전 ${h.gold || 0} · 물건 ${h.n || 0}개 · 경험치 ${h.xp || 0}${h.party && h.party.length ? ` · 조사대 ${esc(h.party.join(', '))}` : ''}</span></div></div>`).join('')}</div>` : '<p class="small muted">탐사 기록이 없다.</p>'; }
+  if (t === 'stat'){ const st = Object.entries(sv.stats || {}).filter(([, v]) => typeof v === 'number').sort((a, b) => b[1] - a[1]); body = `<div class="list">${st.map(([k, v]) => `<div class="li"><div class="t"><b class="small">${esc(k)}</b></div><span class="small num">${v.toLocaleString()}</span></div>`).join('')}</div>`; }
+  const grant = `<details class="sub" style="margin-top:12px"><summary class="small">이 유저에게 우편 보내기</summary><div class="row wrapf" style="gap:6px;margin-top:6px"><input type="number" id="opsG" min="0" max="10000000" placeholder="엽전" style="max-width:120px" aria-label="보낼 엽전"><input type="text" id="opsM" maxlength="200" placeholder="편지 (선택)" aria-label="편지"><button class="btn sm seal" data-act="opsGrant" data-u="${esc(uid)}">보내기</button></div><p class="tiny muted" style="margin:4px 0 0">아이템은 설정의 「지급」 도구로 보낼 수 있다.</p></details>`;
+  return back + head + seg + body + grant + `<button class="btn sm ghost" style="margin-top:10px" data-act="opsReload" data-u="${esc(uid)}">새로 불러오기</button>`;
+}
+SHEETS.ops = () => {
+  if (!isOp()) return sheetHead('운영창') + '<p class="small muted">운영자만 볼 수 있다.</p>';
+  if (ST.mode !== 'cloud') return sheetHead('운영창') + '<p class="small muted">공유 저장소에 연결되어 있을 때만 쓸 수 있다.</p>';
+  const p = UI.opsP || 'users', head = sheetHead('운영창', '<span class="chip">운영자 전용</span>');
+  if (p.startsWith('user:')) return head + opsUser(p.slice(5));
+  const seg = `<div class="seg" style="margin-bottom:10px"><button data-act="opsGo" data-p="users" aria-pressed="${p === 'users'}">유저</button><button data-act="opsGo" data-p="feed" aria-pressed="${p === 'feed'}">최근 활동</button><button data-act="opsGo" data-p="sus" aria-pressed="${p === 'sus'}">살펴볼 것</button></div>`;
+  if (p === 'feed' || p === 'sus'){
+    if (!OPS.feed || (OPS.feed !== 'loading' && now() - OPS.feedAt > 5*MIN)) { if (OPS.feed !== 'loading') setTimeout(opsFeed, 0); return head + seg + '<p class="small muted">최근 접속한 유저 30명의 활동 기록을 모으는 중…</p>'; }
+    if (OPS.feed === 'loading') return head + seg + '<p class="small muted">모으는 중…</p>';
+    const L = p === 'sus' ? OPS.feed.filter(opsSus) : OPS.feed;
+    return head + seg + `<div class="row" style="margin-bottom:6px"><span class="tiny muted grow">${p === 'sus' ? '20초 사이 엽전 +1만 이상, 조기 귀환' : '최근 접속한 30명의 최근 기록'} · ${opsAgo(OPS.feedAt)} 기준</span><button class="chip" data-act="opsFeedRe">새로 고침</button></div>${L.length ? `<div class="list">${L.map(e => `<button class="li click" data-act="opsGo" data-p="user:${esc(e.uid)}" style="text-align:left">${opsRow(e, e.name).replace(/^<div class="li[^"]*">|<\/div>$/g, '')}</button>`).join('')}</div>` : '<p class="small muted">아직 기록이 없다.</p>'}`;
+  }
+  const q = (UI.opsQ || '').trim(), us = Object.values(PL).filter(x => x && x.uid && (!q || (x.name || '').includes(q))).sort((a, b) => opsSeen(b) - opsSeen(a));
+  return head + seg + `<div class="row" style="gap:6px;margin-bottom:8px"><input type="search" id="opsQ" placeholder="이름으로 찾기" value="${esc(q)}" aria-label="유저 찾기"><button class="btn sm" data-act="opsFind">찾기</button></div><p class="tiny muted" style="margin:0 2px 6px">${us.length}명 · 최근 접속 순 · 초록 점은 3분 안에 접속</p>
+  <div class="list">${us.map(x => `<button class="li click" data-act="opsGo" data-p="user:${esc(x.uid)}"><span class="av-wrap">${PHOTO(x.photo)}<i class="on-dot ${now() - opsSeen(x) < 3*MIN ? 'on' : ''}"></i></span><div class="t"><b>${esc(x.name || '?')}${x.op ? ' <span class="chip">운영자</span>' : ''}</b><span>Lv${x.lv ?? '?'} · ${JOBS[x.job]?.n || '?'} · ${REG[x.loc ?? 0]?.n || '?'}${x.exp ? ' · 탐사 중' : ''} · ${opsAgo(opsSeen(x))}</span></div><span aria-hidden="true">›</span></button>`).join('')}</div>`;
+};
+Object.assign(ACT, {
+  mkList,
+  opsOpen:() => { UI.opsP = 'users'; openSheet('ops'); },
+  opsGo:d => { UI.opsP = d.p; if (d.p.startsWith('user:')) UI.opsUT = 'sum'; renderSheet(true); const pn = $('#sheet .panel'); if (pn) pn.scrollTop = 0; },
+  opsUT:d => { UI.opsUT = d.t; renderSheet(true); }, opsLK:d => { UI.opsLK = d.k; renderSheet(true); },
+  opsFind:() => { UI.opsQ = $('#opsQ')?.value || ''; renderSheet(true); },
+  opsReload:d => { delete OPS.load[d.u]; delete OPS.save[d.u]; delete OPS.log[d.u]; opsLoad(d.u); renderSheet(true); },
+  opsFeedRe:() => { OPS.feed = null; renderSheet(true); },
+  opsGrant:async d => { const g = clamp(parseInt($('#opsG')?.value) || 0, 0, 10000000), m = ($('#opsM')?.value || '').trim(); if (!g && !m) return toast('엽전이나 편지를 넣어 주세요.'); if (!await ask('우편 보내기', `${PL[d.u]?.name || d.u}님에게 ${g ? g.toLocaleString() + CUR : ''}${g && m ? ' · ' : ''}${m ? '편지' : ''}를 보냅니다.`, '보내기')) return; if (g) await opGrant(d.u, '', 0, g, m); else { postSent(await postSend(d.u, 'grant', {items:IO([]), gold:0, msg:m}), d.u, '편지'); save(); toast('편지를 보냈습니다.', 'good'); } },
+});
+// 설정의 운영 도구 맨 위와 거점 칩에 운영창 단추
+const _settings_ops = SHEETS.settings;
+SHEETS.settings = (...a) => { const h = _settings_ops(...a); if (!isOp()) return h; return h.replace('<h3 style="margin-top:14px">운영 도구', '<button class="btn seal full" style="margin-top:14px" data-act="opsOpen">🛠 운영창 열기 (유저 목록·세이브·활동 기록)</button><h3 style="margin-top:14px">운영 도구'); };
+const _lifeChips_ops = lifeChips;
+lifeChips = () => { const out = _lifeChips_ops(); if (isOp() && ST.mode === 'cloud') out.push('<button class="chip" data-act="opsOpen">🛠 운영창</button>'); return out; };
 // ===================== Firebase 연동 (웹사이트 함께하기 버전) =====================
 // firebase-config.js 에 프로젝트 설정이 들어 있으면 켜진다. 없으면 혼자 하는 버전으로 동작.
 let FB = null;
