@@ -11680,7 +11680,7 @@ const WK_DOC = {
 <h4>장기 탐사</h4><ul>
 <li>1·2·3시간 중에서 골라 떠나요. 3분마다 일지가 한 줄씩 쌓이고, 창을 닫아도 진행돼요.</li>
 <li>재료 발견, 몬스터와의 전투, 희귀 발견(「반짝이는 것」), 알, 고장 장비(1시간 약 25%, 3시간 약 60%)가 나와요.</li>
-<li>가방에 담을 수 있는 양은 <b>20 + 힘×2</b>개예요.</li><li>마치면 <b>탐사 수당</b>을 따로 받아요: 시간 × (150 + 고장 레벨×20)냥. 조기 귀환·부축은 절반이에요.</li>
+<li>가방에 담을 수 있는 양은 <b>20 + 힘×2</b>개예요.</li><li>마치면 <b>탐사 수당</b>을 따로 받아요: 시간 × (150 + 고장 레벨×20)냥. 조기 귀환·부축은 실제로 다닌 시간만큼의 절반이에요(10분이 안 되면 없어요).</li>
 <li>떠날 때의 식사 버프·동료·날씨·추위와 더위·기원이 탐사 내내 적용돼요.</li>
 <li>높은 고장일수록 보상이 많아요. 권장 레벨 1당 장기 탐사 보상이 1.2%씩 늘어요.</li></ul>
 <h4>단기 탐사 (훑어보기)</h4><ul><li>6초 만에 끝나고 하루 10번, 몬스터가 없어요.</li><li><b>운 10마다 물건이 하나 더</b> 나오고 엽전·대박 확률이 올라요.</li></ul>
@@ -11845,12 +11845,14 @@ Object.assign(ACT, {
 // 탐사 수당: 장기 탐사를 마치면 시간과 고장 레벨에 따라 엽전을 따로 준다. simulate와 난수는 건드리지 않는다.
 
 // ---------- 1. 탐사 수당 ----------
-const expPay = (E, mult = 1) => { const R = REG[E.region], h = Math.max(1, Math.round(E.dur*SPD()/H)); return Math.round(h*(150 + R.lv*20)*mult); };
+// 다 마치면 정한 시간만큼, 도중에 돌아오면 실제로 다닌 시간만큼만 준다(10분이 안 되면 없음). 정한 시간을 넘겨 계산하지 않는다
+const expHours = (E, kind, t = now()) => { const full = Math.max(1, Math.round(E.dur*SPD()/H)); if (kind === 'done') return full; const h = Math.min(full, Math.max(0, (Math.min(t, E.start + E.dur) - E.start)*SPD()/H)); return h < 1/6 ? 0 : h; };
+const expPay = (E, mult = 1, kind = 'done', t = now()) => { const R = REG[E.region]; return Math.round(expHours(E, kind, t)*(150 + R.lv*20)*mult); };
 const PAY_MULT = {done:1, early:.5, carry:.5, heal:1, auto:.3};
 const _settleExp_pay = settleExp;
 settleExp = kind => {
-  const E = S.exp, m = PAY_MULT[kind] ?? 0; const r = _settleExp_pay(kind);
-  if (E && m && !S.exp){ const g = expPay(E, m); S.gold += g; stat('expPay', g); save(); setTimeout(() => toast(`${REG[E.region].n} 탐사 수당 +${g.toLocaleString()}${CUR}${m < 1 ? ' (일부만)' : ''}`, 'good'), 400); }
+  const E = S.exp, m = PAY_MULT[kind] ?? 0, t0 = now(); const r = _settleExp_pay(kind);
+  if (E && m && !S.exp){ const g = expPay(E, m, kind, t0); if (g <= 0) return r; S.gold += g; stat('expPay', g); save(); setTimeout(() => toast(`${REG[E.region].n} 탐사 수당 +${g.toLocaleString()}${CUR}${kind !== 'done' ? ` (다닌 ${Math.round(expHours(E, kind, t0)*60)}분 · ${m < 1 ? '절반' : '전부'})` : ''}`, 'good'), 400); }
   return r;
 };
 
