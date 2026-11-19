@@ -1397,8 +1397,8 @@ const pick = (rng, arr) => arr[Math.floor(rng()*arr.length)];
 function wpick(rng, list){ const tot = list.reduce((a,x)=>a+x[1],0); let r = rng()*tot; for (const x of list){ r -= x[1]; if (r <= 0) return x[0]; } return list[list.length-1][0]; }
 // 무구는 직업마다 이름이 다르다
 let itemName = (k, job) => { const b = k.replace('*',''); let n = IT[b]?.n || k; if (/^w[1-6]$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_N[j]) n = WEAPON_N[j][+b[1]-1]; } else if (/^gw\d+$/.test(b)){ const j = job || (typeof S !== 'undefined' && S && S.job); if (j && WEAPON_KIND[j]) n = `${REGION_GEAR[+b.slice(2)].p} ${WEAPON_KIND[j]}`; } return n + (k.endsWith('*') ? ' (정성 가득)' : ''); };
-// 동료는 여러 마리 기를 수 있지만 함께 다니는 건 두 마리까지
-let COMP_MAX = 20; const COMP_OUT = 2;
+// 동료는 몇 마리든 기를 수 있다(제한 없음). 함께 다니는 건 두 마리로 고정
+let COMP_MAX = Infinity; const COMP_OUT = 2;
 const activeComps = () => (S.comps || []).filter(c => c.out !== false).slice(0, COMP_OUT);
 const stat = (k, n = 1) => { if (S){ S.stats = S.stats || {}; S.stats[k] = (S.stats[k]||0) + n; } };
 const itemCnt = k => `${itemName(k)} ×${cnt(k)}`;
@@ -3662,7 +3662,7 @@ SHEETS.farm = () => {
 SHEETS.nest = () => {
   const n = S.nest, ready = n && now() >= n.at + n.dur;
   return sheetHead('둥지') + `
-  <p class="small muted" style="margin-top:0">알을 둥지에 두면 시간이 지나 부화한다. 펫과 소환수는 여러 마리 기를 수 있고(최대 ${COMP_MAX}마리), 탐사에 데리고 다니는 건 두 마리까지다.</p>
+  <p class="small muted" style="margin-top:0">알을 둥지에 두면 시간이 지나 부화한다. 펫과 소환수는 몇 마리든 기를 수 있고, 탐사에 데리고 다니는 건 두 마리까지다.</p>
   ${n ? `<div class="card comp">${eggArt(n.egg.kind,'lg')}<div class="grow"><b>${n.egg.kind==='pet'?'야생동물의 알':'요괴의 알'}</b><p class="small muted" style="margin:4px 0 8px">${ready ? '껍질에 금이 갔다!' : `부화까지 <span class="num" data-cd="${n.at+n.dur}"></span>`}</p>${ready ? `<button class="btn seal" data-act="hatch" ${S.comps.length>=COMP_MAX?'disabled':''}>부화시키기</button>${S.comps.length>=COMP_MAX?'<p class="tiny" style="color:var(--seal)">동료가 가득 찼다(${COMP_MAX}마리). 한 마리와 작별해야 한다.</p>':''}` : ''}</div></div>` : '<p>둥지가 비어 있다.</p>'}
   ${S.eggs.length ? `<h3 style="margin-top:14px">가진 알</h3><div class="list">${S.eggs.map(e => `<div class="li">${eggArt(e.kind)}<div class="t"><b>${e.kind==='pet'?'야생동물의 알':'요괴의 알'}</b><span>${EGG_H[e.kind]}시간 뒤 부화 · ${e.kind==='pet'?'펫':'소환수'}</span></div><button class="btn sm" data-act="placeEgg" data-id="${e.id}" ${S.nest||S.comps.length>=COMP_MAX?'disabled':''}>둥지에 두기</button></div>`).join('')}</div>` : ''}
   <h3 style="margin-top:14px">동료 ${S.comps.length}마리 · 동행 ${activeComps().length}/${COMP_OUT}</h3>
@@ -8137,10 +8137,12 @@ function opCompsGive(){
   compSeenAll(); S.opCompsV = 1; save(); pubDirty();
   return n;
 }
-setInterval(() => { if (!S || !S.job) return; const op = isOp(); COMP_MAX = op ? 200 : COMP_MAX_BASE; if (op && !S.opCompsV){ const n = opCompsGive(); if (n) toast(`운영자 계정에 동료 ${n}마리를 넣었습니다. 둥지에서 볼 수 있어요.`, 'good'); if (SCREEN === 'game'){ render(); renderSheet(true); } } }, 2000);
+setInterval(() => { if (!S || !S.job) return; const op = isOp(); COMP_MAX = COMP_MAX_BASE; if (op && !S.opCompsV){ const n = opCompsGive(); if (n) toast(`운영자 계정에 동료 ${n}마리를 넣었습니다. 둥지에서 볼 수 있어요.`, 'good'); if (SCREEN === 'game'){ render(); renderSheet(true); } } }, 2000);
 const _settings_op = SHEETS.settings;
 SHEETS.settings = (...a) => { const h = _settings_op(...a); if (!isOp()) return h; const mark = '<button class="btn sm seal" data-act="opMaxLv"'; return h.includes(mark) ? h.replace(mark, `<button class="btn sm" data-act="opComps">동료 전부 받기 (없는 종만)</button>` + mark) : h; };
 Object.assign(ACT, { opComps: () => { if (!isOp()) return; const n = opCompsGive(); toast(n ? `동료 ${n}마리를 넣었습니다.` : '이미 모든 동료가 있습니다.', 'good'); renderSheet(true); render(); } });
+// 함께 다니는 동료는 두 마리로 고정: 예전 세이브에 '데리고 다님'이 셋 이상 남아 있으면 앞의 두 마리만 남긴다
+setInterval(() => { if (!S || !S.comps || S.exp) return; let k = 0, ch = 0; for (const c of S.comps) if (c.out !== false){ if (k >= COMP_OUT){ c.out = false; ch++; } else k++; } if (ch){ save(); pubDirty(); } }, 5000);
 // ===================== 손맛 요리: 직접 썰고 젓고 굽는 미니게임 · 도시락 싸기 · 요리 버릇 도감 =====================
 // 기존 '요리' 버튼(바로 만들기)은 그대로 둔다. 방치형이라 손맛 요리는 언제나 선택이다.
 // 재료는 완성할 때 뺀다(도중에 앱을 닫아도 잃지 않는다). 잘하면 정성 가득이 보장되고, 망치면 실패작이 나온다. 실패도 '요리 버릇'으로 모이는 재미가 있다.
@@ -11725,7 +11727,7 @@ const WK_DOC = {
 <h4>뒷산 일터</h4><ul><li>채광(철광석·은광석·보석 원석), 벌목(목재·옻진), 채집(약초·버섯·산나물·산열매·뽕잎), 청소(엽전)를 시간 단위로 맡겨요.</li><li>서브 직업이 맞으면 30% 더 많이 나와요.</li></ul>`},
   comp:{n:'동료와 알', ic:'🐾', b:() => `
 <ul><li>탐사에서 알을 주워 <b>둥지</b>에서 부화시키면 동료가 돼요. 야생동물의 알은 펫, 요괴의 알은 소환수가 나와요.</li>
-<li>동료는 ${COMP_MAX}마리까지 기르고, 그중 <b>${COMP_OUT}마리</b>를 데리고 다녀요.</li>
+<li>동료는 몇 마리든 기를 수 있고, 그중 <b>${COMP_OUT}마리</b>를 데리고 다녀요.</li>
 <li>펫: 탐사 체력 소모 감소, 보상 +5%. 소환수: 전투마다 함께 공격 (음양사는 1.5배).</li>
 <li>교감(쓰다듬기·놀아 주기·먹이)으로 친밀도를 올리면 효과가 세져요. 심부름을 보내면 재료를 물어 와요.</li>
 <li>장터에서 하루 3번 훈련시켜 경험치를 줄 수 있어요.</li></ul>`},
