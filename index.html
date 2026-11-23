@@ -1466,8 +1466,25 @@ function curHP(){
   if (S.hp == null) { S.hp = mx; S.hpAt = now(); }
   if (S.rest && now() >= S.rest.until && typeof endRest === 'function') endRest(true); // 앱을 닫아 둔 사이 휴식이 끝났으면 끝난 시각까지만 5배로 계산
   if (S.exp) return Math.min(mx, S.hp);
-  const rate = mx * 0.05 / (10*MIN) * regenMult() * SPD(); // 10분에 5%
-  return Math.min(mx, S.hp + (now() - S.hpAt) * rate);
+  return hpUpTo(now());
+}
+// 마지막 기록 시각(S.hpAt)부터 t까지의 자연 회복(10분에 5%). 앱을 닫아 둔 사이 식사·영약 버프나 온천 휴식이
+// 끝났어도 끝난 시각을 기준으로 나눠서 계산한다(예전에는 지금 걸린 버프로 통째로 계산해서 덜 찼다)
+function regenAt(t){
+  const f = S.food, e = S.elix, r = S.rest;
+  const fr = f && f.until > t && (typeof foodRec !== 'function' || foodRec(f.id)?.b?.regen);
+  const er = e && e.until > t && IT[e.id]?.b?.regen;
+  const rr = r && r.until > t && (r.start || 0) <= t;
+  return (fr ? 2 : 1) * (er ? 2 : 1) * (rr ? REST_MULT : 1);
+}
+function hpUpTo(t){
+  const mx = maxHP(); let hp = S.hp, a = S.hpAt;
+  if (!(t > a)) return Math.min(mx, hp);
+  const base = mx * 0.05 / (10*MIN) * SPD();
+  const bp = [S.rest && S.rest.start, S.rest && S.rest.until, S.food && S.food.until, S.elix && S.elix.until].filter(x => x && x > a && x < t).sort((x, y) => x - y);
+  bp.push(t);
+  for (const b of bp){ hp += (b - a) * base * regenAt((a + b)/2); a = b; if (hp >= mx) break; }
+  return Math.min(mx, hp);
 }
 function setHP(v){ S.hp = clamp(v, 0, maxHP()); S.hpAt = now(); }
 const syn = () => SYN[`${S.job}:${S.sub}`] ? `${S.job}:${S.sub}` : null;
@@ -1849,6 +1866,17 @@ function expState(E = S.exp, rescueDoc){
   return now() >= plannedEnd ? {st:'done', res, end:plannedEnd} : {st:'run', res, end:plannedEnd};
 }
 const curTick = E => Math.floor((now() - E.start)/E.tick);
+// 탐사가 끝난 시각: 완주는 예정 끝, 자동 귀환은 기다림이 끝난 때, 구조는 구조받은 때. 지금보다 늦을 수는 없다
+function expEndAt(E, kind){
+  const t = now(); if (!E) return t;
+  try {
+    const es = expState(E);
+    if (kind === 'done' && es && es.end) return Math.min(t, es.end);
+    if (kind === 'auto' && es && es.dt != null) return Math.min(t, es.dt + E.wait);
+    if ((kind === 'carry' || kind === 'heal') && es && es.rd && es.rd.ts) return Math.min(t, Math.max(es.dt || 0, es.rd.ts));
+  } catch (e) {}
+  return t;
+}
 
 // ===================== 탐사 =====================
 function regionOpen(ri){ return ri >= 0 && ri < REG.length; }
@@ -1863,9 +1891,8 @@ function startRest(mins){
 }
 function endRest(quiet){
   if (!S.rest) return;
-  const mx = maxHP(), fb = foodBuff(), eb = elixBuff(), base = mx * 0.05 / (10*MIN) * (fb && fb.regen ? 2 : 1) * (eb && eb.regen ? 2 : 1) * SPD();
   const end = Math.min(now(), S.rest.until);
-  if (S.hp != null && S.hpAt < end) { S.hp = Math.min(mx, S.hp + (end - S.hpAt) * base * REST_MULT); S.hpAt = end; }
+  if (S.hp != null && S.hpAt < end) { S.hp = hpUpTo(end); S.hpAt = end; }
   S.rest = null; save(); pubDirty();
   if (!quiet) toast('온천에서 나왔다. 몸이 한결 가볍다.');
 }
@@ -1905,6 +1932,7 @@ function itemsSum(items, mult){
 function settleExp(kind){
   const E = S.exp; if (!E) return;
   let res = simOf(E), mult = 1, hp, fee = 0, note = '';
+  const tEnd = expEndAt(E, kind); // 탐사가 실제로 끝난 시각: 앱을 닫아 둔 사이 끝났으면 그때부터 체력이 차고 지친 몸도 풀린다
   const mx = maxHP();
   if (kind === 'early'){ res = simOf(E, curTick(E)); mult = 0.5; hp = res.hp; note = '조기 귀환으로 보상의 절반만 챙겼다.'; }
   else if (kind === 'done'){ hp = res.hp; }
@@ -1925,13 +1953,13 @@ function settleExp(kind){
   let egg = null;
   if (res.egg && kind !== 'auto' && kind !== 'carry'){ egg = res.egg; S.eggs.push({...egg, id:uid36()}); }
   activeComps().forEach(c => compXP(c, Math.round(10*E.dur*SPD()/H)));
-  if (['carry','heal','auto'].includes(kind)) S.tired = {until: now() + 12*H/SPD(), weak:false};
-  S.exp = null; setHP(hp);
+  if (['carry','heal','auto'].includes(kind)) S.tired = {until: tEnd + 12*H/SPD(), weak:false};
+  S.exp = null; setHP(hp); S.hpAt = tEnd;
   const shownL = res.lines;
   const sum = {kind, region:E.region, at:now(), got, gold, fee, xp, egg, note, kills:res.kills, dur:E.dur*SPD(), lines:shownL.slice(-160), start:E.start, tick:E.tick};
   // 지난 탐사 기록: 일지 전체를 함께 보관 (최대 8회, 회당 160줄)
   const shown = kind === 'early' ? res.lines : res.downedAt != null ? res.lines : res.lines;
-  S.hist.unshift({kind, region:E.region, at:now(), start:E.start, tick:E.tick, xp, gold, fee, n:Object.values(got).reduce((a,b)=>a+b,0) + (egg ? 1 : 0), got, egg, kills:res.kills, dur:E.dur*SPD(), party:(E.party||[]).map(a => a.name), lines:shown.slice(-160)}); S.hist = S.hist.slice(0, 8);
+  S.hist.unshift({kind, region:E.region, at:tEnd, start:E.start, tick:E.tick, xp, gold, fee, n:Object.values(got).reduce((a,b)=>a+b,0) + (egg ? 1 : 0), got, egg, kills:res.kills, dur:E.dur*SPD(), party:(E.party||[]).map(a => a.name), lines:shown.slice(-160)}); S.hist = S.hist.slice(0, 8);
   save(); pubDirty();
   if (kind === 'done') notify('exp', '장기 탐사 완료', `${REG[E.region].n}에서 무사히 돌아왔습니다.`, 'exp' + E.id);
   openSheet('result', sum); sfx(kind === 'done' ? 'win' : 'soft');
@@ -4671,8 +4699,9 @@ function hardFinish(kind){
   S.gold += gold; const xp = addXP(xpRaw + (kind === 'done' ? Math.round(H.mins*1.5*(1 + H.ri*0.4)) : 0));
   let egg = null; if (H.egg && kind !== 'down'){ egg = H.egg; S.eggs.push({...egg, id:uid36()}); }
   for (const k in H.pots) if (H.pots[k]) addItem(k, H.pots[k]);
-  if (kind === 'down'){ setHP(maxHP()*0.05); S.tired = {until:now() + 6*H_MS()/SPD(), weak:false}; stat('hardDown'); }
-  else { setHP(Math.max(1, H.hp)); if (kind === 'done') stat('hardDone'); }
+  const tEnd = kind === 'quit' ? now() : Math.min(now(), H.clock || now()); // 앱을 닫아 둔 사이 끝났으면 끝난 시각부터 체력이 찬다
+  if (kind === 'down'){ setHP(maxHP()*0.05); S.hpAt = tEnd; S.tired = {until:tEnd + 6*H_MS()/SPD(), weak:false}; stat('hardDown'); }
+  else { setHP(Math.max(1, H.hp)); S.hpAt = tEnd; if (kind === 'done') stat('hardDone'); }
   const lines = H.log.map(l => ({i:Math.round((l.t - H.start)/1000), x:l.x, k:l.k === 'choice' ? 'start' : l.k}));
   const n = Object.values(got).reduce((a, b) => a + b, 0) + (egg ? 1 : 0);
   S.hist.unshift({kind:'hard_' + kind, region:H.ri, at:now(), start:H.start, tick:1000, xp, gold, fee:0, n, got, egg, kills:{}, dur:H.mins*MIN, party:[], lines:lines.slice(-250)}); S.hist = S.hist.slice(0, 8);
@@ -10598,8 +10627,13 @@ Object.assign(ACT, {journalGo:d => { UI.jt = d.t; openSheet('journal'); }, hallG
 // 규칙 변경 없음: 대회 기록은 hallc/{uid}의 wc·wcp에 쓴다. 패치마다 GUIDE_V와 GUIDE를 고치면 모두에게 한 번 뜬다.
 
 // ---------- 1. 업데이트 길잡이 ----------
-const GUIDE_V = '2026-11-16';
+const GUIDE_V = '2026-11-23';
 const GUIDE = [
+  ['❤️', '접속하지 않아도 체력이 제때 차요', '앱을 닫아 둔 사이 장기 탐사가 끝나면, 예전에는 다시 접속한 때부터 체력이 차기 시작했어요. 이제는 탐사가 끝난 시각부터 차요. 오래 비워 두었다가 들어오면 그만큼 체력이 이미 차 있어요.'],
+  ['⛰', '고난도 탐사·쓰러졌을 때도 같아요', '고난도 탐사가 닫아 둔 사이 끝났을 때, 쓰러져서 마을 사람들이 실어 왔을 때, 다른 개척자에게 구조받았을 때도 그 일이 일어난 시각부터 체력이 차요. 「지친 몸」 상태도 그때부터 세어서 일찍 풀려요.'],
+  ['🍠', '식사·영약 회복 효과도 정확하게', '회복 2배 음식이나 영약, 온천 휴식이 접속하지 않은 사이 끝나도, 효과가 있던 시간만큼은 빠르게 찬 것으로 계산해요. 예전에는 효과가 끝나면 그동안 더 찬 몫이 사라졌어요.'],
+];
+const GUIDE_1116 = [
   ['🛠', '조기 귀환 수당 오류를 고쳤어요', '장기 탐사를 도중에 끝내고 돌아와도 정한 시간 전체의 탐사 수당이 들어오던 문제를 고쳤어요. 이제 조기 귀환하면 실제로 다닌 시간만큼만 수당을 받아요(10분이 안 되면 없음). 끝까지 다녀오면 전과 똑같이 다 받아요.'],
 ];
 const GUIDE_1114 = [
@@ -10632,7 +10666,7 @@ const GUIDE_OLD = [
   ['👹', '마을 공동 토벌', '토요일·일요일에 큰 요괴가 나타나요. 모두의 피해가 합쳐져요.'],
 ];
 const guideRow = ([ic, t, d]) => `<div class="li"><span aria-hidden="true" style="width:28px;text-align:center;font-size:1.25rem">${ic}</span><div class="t"><b>${t}</b><span>${d}</span></div></div>`;
-SHEETS.guide = () => sheetHead('이번 업데이트') + `<p class="small muted" style="margin-top:0">새로 들어온 것을 한눈에 살펴보세요.</p><div class="list">${GUIDE.map(guideRow).join('')}</div><details class="sub" style="margin-top:10px"><summary class="small">지난 업데이트 보기</summary><div class="list">${[...GUIDE_1114, ...GUIDE_PREV, ...GUIDE_OLD].map(guideRow).join('')}</div></details><button class="btn seal full" style="margin-top:12px" data-act="closeSheet">다 읽었어요</button>`;
+SHEETS.guide = () => sheetHead('이번 업데이트') + `<p class="small muted" style="margin-top:0">새로 들어온 것을 한눈에 살펴보세요.</p><div class="list">${GUIDE.map(guideRow).join('')}</div><details class="sub" style="margin-top:10px"><summary class="small">지난 업데이트 보기</summary><div class="list">${[...GUIDE_1116, ...GUIDE_1114, ...GUIDE_PREV, ...GUIDE_OLD].map(guideRow).join('')}</div></details><button class="btn seal full" style="margin-top:12px" data-act="closeSheet">다 읽었어요</button>`;
 const _closeSheet_guide = closeSheet;
 let guideAsking = false;
 closeSheet = force => {
